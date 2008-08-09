@@ -1,4 +1,5 @@
 #summary ChangeLog for all submits
+#labels Featured
 
 {{{
 /*
