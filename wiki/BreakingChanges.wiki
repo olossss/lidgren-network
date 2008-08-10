@@ -12,4 +12,5 @@
   * When sending a message, you won't create a new NetMessage object. Instead you should call NetBase.CreateBuffer() and use the returned object. The library pools objects internally to reduce memory allocations.
 
   * No ConnectionRequest event implemented yet. Events across threads would require application thread safe code and I want to avoid requiring that.
-  
+
+  * No String Table support yet.
