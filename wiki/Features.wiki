@@ -1,5 +1,4 @@
 #summary Library features
-#labels Featured
 
 == General features ==
   * Very easy to use
