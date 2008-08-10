@@ -187,14 +187,5 @@ namespace UnitTests
 
 			Console.ReadKey();
 		}
-
-		public static void Compare1(int val)
-		{
-		}
-
-		public static void Compare2(int val)
-		{
-		}
-
 	}
 }
