@@ -1,4 +1,5 @@
 #summary Message compression example
+#labels Featured
 
 {{{
 public class Car
