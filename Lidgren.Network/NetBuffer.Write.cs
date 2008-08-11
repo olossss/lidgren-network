@@ -419,5 +419,25 @@ namespace Lidgren.Network
 			Write(BitConverter.ToUInt32(endPoint.Address.GetAddressBytes(), 0));
 			Write(endPoint.Port);
 		}
+
+		/// <summary>
+		/// Pads data with enough bits to reach a full byte. Decreases cpu usage for subsequent byte writes.
+		/// </summary>
+		public void WritePadBits()
+		{
+			int dbg = m_bitLength % 8;
+
+			m_bitLength += (m_bitLength % 8);
+			EnsureBufferSize(m_bitLength);
+		}
+
+		/// <summary>
+		/// Pads data with the specified number of bits.
+		/// </summary>
+		public void WritePadBits(int numberOfBits)
+		{
+			m_bitLength += numberOfBits;
+			EnsureBufferSize(m_bitLength);
+		}
 	}
 }

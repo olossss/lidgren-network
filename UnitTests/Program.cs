@@ -71,6 +71,7 @@ namespace UnitTests
 				msg.Write(Int64.MinValue);
 
 				msg.Write(42);
+				msg.WritePadBits();
 
 				int numBits = msg.WriteRangedInteger(0, 10, 5);
 				if (numBits != 4)
@@ -150,6 +151,8 @@ namespace UnitTests
 
 				if (msg.ReadInt32() != 42)
 					throw new Exception("Ack thphth end");
+
+				msg.SkipPadBits();
 
 				if (msg.ReadRangedInteger(0, 10) != 5)
 					throw new Exception("Ack thphth ranged integer");

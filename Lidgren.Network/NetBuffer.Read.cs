@@ -373,5 +373,21 @@ namespace Lidgren.Network
 			int port = ReadInt32();
 			return new IPEndPoint(new IPAddress((long)address), port);
 		}
+
+		/// <summary>
+		/// Pads data with enough bits to reach a full byte. Decreases cpu usage for subsequent byte writes.
+		/// </summary>
+		public void SkipPadBits()
+		{
+			m_readPosition += (m_readPosition % 8);
+		}
+
+		/// <summary>
+		/// Pads data with the specified number of bits.
+		/// </summary>
+		public void SkipPadBits(int numberOfBits)
+		{
+			m_readPosition += numberOfBits;
+		}
 	}
 }
