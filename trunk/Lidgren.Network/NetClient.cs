@@ -311,6 +311,31 @@ namespace Lidgren.Network
 			LogWrite("Broadcasting server discovery ping...");
 			BroadcastUnconnectedMessage(data, serverPort);
 		}
+		
+		/// <summary>
+		/// Emit a discovery signal to your subnet
+		/// </summary>
+		public void DiscoverKnownServer(string host, int serverPort)
+		{
+			IPAddress address = NetUtility.Resolve(host);
+			IPEndPoint ep = new IPEndPoint(address, serverPort);
+			DiscoverKnownServer(ep);
+		}
+
+		/// <summary>
+		/// Emit a discovery signal to your subnet
+		/// </summary>
+		public void DiscoverKnownServer(IPEndPoint address)
+		{
+			if (!m_isBound)
+				Start();
+
+			NetBuffer data = new NetBuffer(m_config.ApplicationIdentifier.Length);
+			data.Write(m_config.ApplicationIdentifier);
+			
+			LogWrite("Discovering known server " + address.ToString() + "...");
+			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, address);
+		}
 
 		internal override void HandleConnectionForciblyClosed(NetConnection connection, SocketException sex)
 		{

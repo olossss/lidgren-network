@@ -42,9 +42,9 @@ namespace Lidgren.Network
 
 			// will intiate handshake
 			NetConnection connection = new NetConnection(this, remoteEndpoint, hailData);
-			lock(m_connections)
+			lock (m_connections)
 				m_connections.Add(connection);
-			m_connectionLookup.Add(remoteEndpoint, connection);			
+			m_connectionLookup.Add(remoteEndpoint, connection);
 			connection.Connect();
 		}
 
@@ -65,5 +65,29 @@ namespace Lidgren.Network
 			BroadcastUnconnectedMessage(data, port);
 		}
 
+		/// <summary>
+		/// Emit a discovery signal to your subnet
+		/// </summary>
+		public void DiscoverKnownPeer(string host, int serverPort)
+		{
+			IPAddress address = NetUtility.Resolve(host);
+			IPEndPoint ep = new IPEndPoint(address, serverPort);
+			DiscoverKnownPeer(ep);
+		}
+
+		/// <summary>
+		/// Emit a discovery signal to your subnet
+		/// </summary>
+		public void DiscoverKnownPeer(IPEndPoint address)
+		{
+			if (!m_isBound)
+				Start();
+
+			NetBuffer data = new NetBuffer(m_config.ApplicationIdentifier.Length);
+			data.Write(m_config.ApplicationIdentifier);
+
+			LogWrite("Discovering known server " + address.ToString() + "...");
+			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, address);
+		}
 	}
 }
