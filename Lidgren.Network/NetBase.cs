@@ -335,8 +335,6 @@ namespace Lidgren.Network
 			NetBuffer data,
 			IPEndPoint remoteEP)
 		{
-			int dataLen = data.LengthBytes;
-
 			// packet number
 			m_sendBuffer.Reset();
 
@@ -345,6 +343,7 @@ namespace Lidgren.Network
 			m_sendBuffer.Write((ushort)0);
 
 			// payload length; variable byte encoded
+			int dataLen = data.LengthBytes;
 			m_sendBuffer.WriteVariableUInt32((uint)(dataLen + 1));
 
 			m_sendBuffer.Write((byte)tp);
@@ -363,7 +362,7 @@ namespace Lidgren.Network
 
 			m_sendBuffer.Reset();
 
-			// message type + channel
+			// message type, netchannel and sequence number
 			m_sendBuffer.Write((byte)((int)NetMessageLibraryType.System | ((int)NetChannel.Unreliable << 3)));
 			m_sendBuffer.Write((ushort)0);
 

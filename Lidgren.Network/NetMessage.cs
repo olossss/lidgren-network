@@ -30,7 +30,7 @@ namespace Lidgren.Network
 		{
 			Debug.Assert(m_sequenceNumber != -1);
 
-			// message type and channel
+			// message type, netchannel and sequence number
 			intoBuffer.Write((byte)((int)m_type | ((int)m_sequenceChannel << 3)));
 			intoBuffer.Write((ushort)m_sequenceNumber);
 
