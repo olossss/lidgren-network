@@ -163,6 +163,9 @@ namespace Lidgren.Network
 					if (sysType == NetSystemType.DiscoveryResponse)
 					{
 						// DiscoveryResponse found
+						if ((m_enabledMessageTypes & NetMessageType.ServerDiscovered) != NetMessageType.ServerDiscovered)
+							return; // disabled
+
 						byte[] discoverData = new byte[payLen - 1];
 						if (payLen > 1)
 							Buffer.BlockCopy(message.m_data.Data, 1, discoverData, 0, payLen - 1);
@@ -203,8 +206,8 @@ namespace Lidgren.Network
 			{
 				if (payLen < 1)
 				{
-					// TODO: Notify application?
-					LogWrite("Received malformed system message: " + message);
+					if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+						NotifyApplication(NetMessageType.BadMessageReceived, "Received malformed system message: " + message, m_serverConnection);
 					return;
 				}
 				NetSystemType sysType = (NetSystemType)message.m_data.Data[0];
@@ -221,8 +224,8 @@ namespace Lidgren.Network
 					case NetSystemType.Discovery:
 					case NetSystemType.Error:
 					default:
-						// TODO: Notify application?
-						LogWrite("Undefined behaviour for client and " + sysType);
+						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for client and " + sysType, m_serverConnection);
 						return;
 				}
 			}

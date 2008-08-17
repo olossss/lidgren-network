@@ -114,7 +114,7 @@ namespace StressClient
 		{
 			switch (type)
 			{
-				case NetMessageType.LogMessage:
+				case NetMessageType.DebugMessage:
 					WriteToConsole(data.ReadString());
 					break;
 				case NetMessageType.StatusChanged:

@@ -54,7 +54,7 @@ namespace Lidgren.Network
 			if (m_status == status)
 				return;
 
-			m_owner.LogWrite("New connection status: " + status + " (" + reason + ")");
+			//m_owner.LogWrite("New connection status: " + status + " (" + reason + ")");
 			NetConnectionStatus oldStatus = m_status;
 			m_status = status;
 
@@ -555,8 +555,8 @@ namespace Lidgren.Network
 				case NetSystemType.ConnectionEstablished:
 					if (m_status != NetConnectionStatus.Connecting)
 					{
-						// TODO: Notify application?
-						m_owner.LogWrite("Received connection response but we're not connecting...");
+						if ((m_owner.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+							m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Received connection response but we're not connecting...", this);
 						return;
 					}
 					// send first ping 100-350ms after connected

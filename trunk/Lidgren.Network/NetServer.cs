@@ -136,8 +136,8 @@ namespace Lidgren.Network
 				// not a connected sender; only allow System messages
 				if (message.m_type != NetMessageLibraryType.System)
 				{
-					// TODO: Notify application?
-					LogWrite("Rejecting non-system message from unconnected source: " + message);
+					if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+						NotifyApplication(NetMessageType.BadMessageReceived, "Rejecting non-system message from unconnected source: " + message, null);
 					return;
 				}
 
@@ -149,15 +149,15 @@ namespace Lidgren.Network
 						// check app ident
 						if (payLen < 4)
 						{
-							// TODO: Notify application?
-							LogWrite("Malformed Connect message received from " + senderEndpoint);
+							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+								NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Connect message received from " + senderEndpoint, null);
 							return;
 						}
 						string appIdent = message.m_data.ReadString();
 						if (appIdent != m_config.ApplicationIdentifier)
 						{
-							// TODO: Notify application?
-							LogWrite("Connect for different application identification received: " + appIdent);
+							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+								NotifyApplication(NetMessageType.BadMessageReceived, "Connect for different application identification received: " + appIdent, null);
 							return;
 						}
 
@@ -172,8 +172,8 @@ namespace Lidgren.Network
 
 						if (m_connections.Count >= m_config.m_maxConnections)
 						{
-							// TODO: Notify application?
-							LogWrite("Server full; rejecting connect from " + senderEndpoint);
+							if ((m_enabledMessageTypes & NetMessageType.ConnectionRejected) == NetMessageType.ConnectionRejected)
+								NotifyApplication(NetMessageType.ConnectionRejected, "Server full; rejecting connect from " + senderEndpoint, null);
 							return;
 						}
 
@@ -191,22 +191,22 @@ namespace Lidgren.Network
 
 						break;
 					case NetSystemType.ConnectionEstablished:
-						// TODO: Notify application?
-						LogWrite("Connection established received from non-connection!");
+						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+							NotifyApplication(NetMessageType.BadMessageReceived, "Connection established received from non-connection! " + senderEndpoint, null);
 						return;
 					case NetSystemType.Discovery:
 						// check app ident
 						if (payLen < 5)
 						{
-							// TODO: Notify application?
-							LogWrite("Malformed Discovery message received");
+							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+								NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Discovery message received from " + senderEndpoint, null);
 							return;
 						}
 						string appIdent2 = message.m_data.ReadString();
 						if (appIdent2 != m_config.ApplicationIdentifier)
 						{
-							// TODO: Notify application?
-							LogWrite("Discovery for different application identification received: " + appIdent2);
+							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+								NotifyApplication(NetMessageType.BadMessageReceived, "Discovery for different application identification received: " + appIdent2, null);
 							return;
 						}
 
@@ -214,8 +214,8 @@ namespace Lidgren.Network
 						SendDiscoveryResponse(senderEndpoint);
 						break;
 					default:
-						// TODO: Notify application?
-						LogWrite("Undefined behaviour for " + this + " receiving system type " + sysType + ": " + message + " from unconnected source");
+						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for " + this + " receiving system type " + sysType + ": " + message + " from unconnected source", null);
 						break;
 				}
 				// done
@@ -234,8 +234,8 @@ namespace Lidgren.Network
 				// handle system messages from connected source
 				if (payLen < 1)
 				{
-					// TODO: Notify application?
-					LogWrite("Received malformed system message; payload length less than 1 byte");
+					if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+						NotifyApplication(NetMessageType.BadMessageReceived, "Received malformed system message; payload length less than 1 byte", null);
 					return;
 				}
 				NetSystemType sysType = (NetSystemType)message.m_data.ReadByte();
@@ -250,24 +250,29 @@ namespace Lidgren.Network
 						break;
 					case NetSystemType.ConnectResponse:
 						if (m_allowOutgoingConnections)
+						{
 							message.m_sender.HandleSystemMessage(message, now);
+						}
 						else
-							LogWrite("Undefined behaviour for server and system type " + sysType);
+						{
+							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+								NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for server and system type " + sysType, null);
+						}
 						break;
 					case NetSystemType.Discovery:
 						// Allow discovery even if connected
 						// check app ident
 						if (payLen < 5)
 						{
-							// TODO: Notify application?
-							LogWrite("Malformed Discovery message received");
+							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+								NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Discovery message received", null);
 							return;
 						}
 						string appIdent2 = message.m_data.ReadString();
 						if (appIdent2 != m_config.ApplicationIdentifier)
 						{
-							// TODO: Notify application?
-							LogWrite("Discovery for different application identification received: " + appIdent2);
+							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+								NotifyApplication(NetMessageType.BadMessageReceived, "Discovery for different application identification received: " + appIdent2, null);
 							return;
 						}
 
@@ -275,8 +280,8 @@ namespace Lidgren.Network
 						SendDiscoveryResponse(senderEndpoint);
 						break;
 					default:
-						// TODO: Notify application?
-						LogWrite("Undefined behaviour for server and system type " + sysType);
+						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for server and system type " + sysType, null);
 						break;
 				}
 				return;

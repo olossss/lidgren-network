@@ -53,7 +53,7 @@ namespace PeerToPeer
 		{
 			switch (type)
 			{
-				case NetMessageType.LogMessage:
+				case NetMessageType.DebugMessage:
 					WriteToConsole(buffer.ReadString());
 					break;
 				case NetMessageType.Data:

@@ -54,6 +54,25 @@ namespace Lidgren.Network
 		private Thread m_heartbeatThread;
 		private int m_runSleep = 1;
 
+		internal NetMessageType m_enabledMessageTypes;
+
+		/// <summary>
+		/// Gets or sets what types of messages are delievered to the client
+		/// </summary>
+		public NetMessageType EnabledMessageTypes { get { return m_enabledMessageTypes; } set { m_enabledMessageTypes = value; } }
+
+		public void SetMessageTypeEnabled(NetMessageType type, bool enabled)
+		{
+			if (enabled)
+			{
+				m_enabledMessageTypes |= type;
+			}
+			else
+			{
+				m_enabledMessageTypes &= (~type);
+			}
+		}
+
 		/// <summary>
 		/// Gets the configuration for this NetBase instance
 		/// </summary>
@@ -95,6 +114,11 @@ namespace Lidgren.Network
 			m_receivedMessages = new NetQueue<NetMessage>(4);
 			m_scratchBuffer = new NetBuffer(32);
 			m_bindLock = new object();
+
+			// default enabled message types
+			m_enabledMessageTypes =
+				NetMessageType.Data | NetMessageType.StatusChanged | NetMessageType.ServerDiscovered |
+				NetMessageType.DebugMessage | NetMessageType.Receipt;
 		}
 
 		/*
@@ -306,15 +330,9 @@ namespace Lidgren.Network
 		/// </summary>
 		internal void NotifyStatusChange(NetConnection connection, string reason)
 		{
-			NetMessage msg = CreateMessage();
-			msg.m_msgType = NetMessageType.StatusChanged;
-			msg.m_sender = connection;
-
-			msg.m_data = CreateBuffer();
-			msg.m_data.Write(reason);
-
-			lock (m_receivedMessages)
-				m_receivedMessages.Enqueue(msg);
+			if ((m_enabledMessageTypes & NetMessageType.StatusChanged) != NetMessageType.StatusChanged)
+				return; // disabled
+			NotifyApplication(NetMessageType.StatusChanged, reason, connection);
 		}
 
 		internal NetMessage CreateSystemMessage(NetSystemType systemType)
@@ -485,6 +503,9 @@ namespace Lidgren.Network
 		/// </summary>
 		internal void FireReceipt(NetConnection connection, NetBuffer receiptData)
 		{
+			if ((m_enabledMessageTypes & NetMessageType.Receipt) != NetMessageType.Receipt)
+				return; // disabled
+
 			NetMessage msg = CreateMessage();
 			msg.m_sender = connection;
 			msg.m_msgType = NetMessageType.Receipt;
@@ -510,20 +531,26 @@ namespace Lidgren.Network
 		[Conditional("DEBUG")]
 		internal void Log(string message, NetConnection sender)
 		{
-			// don't interfere with the normal NetBuffer recycling; just create a new instance
-			NetBuffer buf = new NetBuffer(message.Length);
+			if ((m_enabledMessageTypes & NetMessageType.DebugMessage) != NetMessageType.DebugMessage)
+				return; // disabled
+			NotifyApplication(NetMessageType.DebugMessage, message, sender);
+		}
+
+		internal void NotifyApplication(NetMessageType tp, string message, NetConnection conn)
+		{
+			NetBuffer buf = CreateBuffer();
 			buf.Write(message);
 
 			// dito for message
 			NetMessage msg = new NetMessage();
 			msg.m_data = buf;
-			msg.m_msgType = NetMessageType.LogMessage;
-			msg.m_sender = sender;
+			msg.m_msgType = tp;
+			msg.m_sender = conn;
 
 			lock (m_receivedMessages)
 				m_receivedMessages.Enqueue(msg);
 		}
-
+		
 		public void Shutdown(string reason)
 		{
 			LogWrite("Shutdown initiated (" + reason + ")");

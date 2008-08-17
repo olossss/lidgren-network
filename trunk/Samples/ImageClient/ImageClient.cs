@@ -50,7 +50,7 @@ namespace MultiImageClient
 		{
 			switch (type)
 			{
-				case NetMessageType.LogMessage:
+				case NetMessageType.DebugMessage:
 					Console.WriteLine(buffer.ReadString());
 					break;
 				case NetMessageType.StatusChanged:
