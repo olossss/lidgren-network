@@ -1,6 +1,9 @@
 #summary Frequently asked questions
 #labels Featured
 
+=====Q: Is there a plan for the developement of the library?=====
+A: Not really. I aim to squash all the bugs and performance issues out of the code and look at the [Missing missing] pieces at the same time.
+
 =====Q: What's new in this version?=====
 A: Most of the code is rewritten from scratch, but the general layout of classes remain the same as the first version. The biggest change is that the library now runs in its own thread, better utilizing todays multicore processors. A few API changes has been done to accomodate this; for example, all the events have been removed. `Status` changes and debug log messages are delivered using the same mechanism as data retrieval.
 
