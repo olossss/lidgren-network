@@ -54,7 +54,6 @@
     <Compile Include="NetEnums.cs" />
     <Compile Include="NetEventArgs.cs" />
     <Compile Include="NetException.cs" />
-    <Compile Include="NetLog.cs" />
     <Compile Include="NetMessage.cs" />
     <Compile Include="NetPeer.cs" />
     <Compile Include="NetPool.cs" />

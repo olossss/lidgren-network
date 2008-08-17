@@ -68,26 +68,7 @@ namespace Lidgren.Network
 		public override string ToString()
 		{
 			if (m_type == NetMessageLibraryType.System)
-			{
 				return "[" + (NetSystemType)m_data.Data[0] + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
-			}
-
-			/*
-			else if (m_type == NetMessageType.User)
-			{
-				int pos = m_data.Position;
-				m_data.Position = 0;
-				int pixel = (int)(m_data.ReadUInt32() / 128);
-				m_data.Position = pos;
-
-				if (m_sequenceNumber - 1 != pixel)
-					return "[" + m_type + " " + m_sequenceChannel + "|" + m_sequenceNumber + " buffer: " + (m_data as object).GetHashCode() + " pixel: " + pixel + " !!!!!!!!!!!!!!!!]";
-				else
-					return "[" + m_type + " " + m_sequenceChannel + "|" + m_sequenceNumber + " buffer: " + (m_data as object).GetHashCode() + " pixel: " + pixel + "]";
-
-				// return "[" + m_type + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
-			}
-			*/
 
 			return "[" + m_type + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
 		}
