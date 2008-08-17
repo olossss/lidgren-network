@@ -4,6 +4,7 @@
 {{{
 /*
 2008-08-17 Notification for bad messages received and connections rejected added as new NetMessageType enum entries
+2008-08-13 DiscoverKnownServer() and DiscoverKnownPeer() added
 2008-08-11 WritePadBits() and SkipPadBits() as faster alternatives to WriteByte(int,
 int) when padding to aligned byte for performance reasons
 2008-08-09 Initial submit
