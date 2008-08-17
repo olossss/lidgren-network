@@ -36,12 +36,12 @@ while (keepGoing)
 	{
 		switch (type)
 		{
-			case NetMessageType.LogMessage:
+			case NetMessageType.DebugMessage:
 				Console.WriteLine(buffer.ReadString());
 				break;
 
 			case NetMessageType.StatusChanged:
-				Console.WriteLine("New status: " + client.Status + " (Reason: " + s_readBuffer.ReadString() + ")");
+				Console.WriteLine("New status: " + client.Status + " (Reason: " + buffer.ReadString() + ")");
 				break;
 
 			case NetMessageType.Data:
