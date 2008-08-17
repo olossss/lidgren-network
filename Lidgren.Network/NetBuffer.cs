@@ -136,5 +136,10 @@ namespace Lidgren.Network
 			Array.Copy(Data, copy, copy.Length);
 			return copy;
 		}
+
+		public override string ToString()
+		{
+			return "[NetBuffer " + m_bitLength + " bits, " + m_readPosition + " read]";
+		}
 	}
 }

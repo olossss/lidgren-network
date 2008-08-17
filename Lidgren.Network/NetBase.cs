@@ -121,22 +121,6 @@ namespace Lidgren.Network
 				NetMessageType.DebugMessage | NetMessageType.Receipt;
 		}
 
-		/*
-		/// <summary>
-		/// Recycles a received and processed netbuffer
-		/// </summary>
-		public void Recycle(NetBuffer buffer)
-		{
-			buffer.m_refCount--;
-
-			Debug.Assert(buffer.m_refCount >= 0);
-
-			// is this buffer ready for recycling?
-			if (buffer.m_refCount == 0)
-				m_bufferPool.Push(buffer);
-		}
-		*/
-
 		/// <summary>
 		/// Creates (or retrieves a recycled) NetBuffer for sending a message
 		/// </summary>

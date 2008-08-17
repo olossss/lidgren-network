@@ -202,7 +202,5 @@ namespace Lidgren.Network
 			m_head = 0;
 			m_tail = (m_size == capacity) ? 0 : m_size;
 		}
-				
-		
 	}
 }
