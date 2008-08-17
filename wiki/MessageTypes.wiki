@@ -1,10 +1,15 @@
 #summary Message types
 
-When calling ReadMessage on NetClient, NetServer or NetPeer you'll get a NetMessageType for the data. The most common type will be NetMessageType.Data which means the content of the buffer is data sent from the remote connection. Other NetMessageTypes are:
+When calling `ReadMessage` on `NetClient`, `NetServer` or `NetPeer` you'll get a `NetMessageType` for the data. The most common type will be `NetMessageType.Data` which means the content of the buffer is data sent from the remote connection. Other NetMessageTypes are:
 
-  * *DebugMessage* is various debug information emitted by the library; these messages will only appear in DEBUG builds. The buffer contains a string, retrieved by using buffer.ReadString()
+  * *DebugMessage* is various debug information emitted by the library; these messages will only appear in DEBUG builds. The buffer contains a string, retrieved by using `buffer.ReadString()`
+
   * *StatusChanged* means the status of the connection has changed. The buffer will contain a string explaining the reason for the change in status
-  * *ServerDiscovered* is emitted when a server responds to the DiscoverLocalServers() or DiscoverKnownServer() call. The content of the buffer is the endpoint of the server; use buffer.ReadIPEndPoint() to retrieve it
-  * *Reciept* will appear if you send a message using the SendMessage(buffer, recipient, receiptBuffer) override. When the message is known to have arrived at the destination, a Receipt message is given to the application with the same buffer data that was used in the SendMessage call.
+
+  * *ServerDiscovered* is emitted when a server responds to the `DiscoverLocalServers()` or `DiscoverKnownServer()` call. The content of the buffer is the endpoint of the server; use `buffer.ReadIPEndPoint()` to retrieve it
+
+  * *Reciept* will appear if you send a message using the `SendMessage(buffer, recipient, receiptBuffer)` override. When the message is known to have arrived at the destination, a `Receipt` message is given to the application with the same buffer data that was used in the `SendMessage` call.
+
   * *BadMessageReceived* is emitted when the library receives malformed or unhandled message types. It contains a string and is disabled by default.
-  * *ConnectionRejected* is emittes when a connection is rejected by the library, for example because MaxConnections has been reached. It contains a string and is disabled by default.
+
+  * *ConnectionRejected* is emittes when a connection is rejected by the library, for example because `MaxConnections` has been reached. It contains a string and is disabled by default.
