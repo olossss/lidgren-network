@@ -211,8 +211,8 @@ namespace Lidgren.Network
 			int len = ackMessage.m_data.LengthBytes;
 			if ((len % 3) != 0)
 			{
-				// TODO: Notify application?
-				m_owner.LogWrite("Malformed ack message; length must be multiple of 3; it's " + len);
+				if ((m_owner.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+					m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Malformed ack message; length must be multiple of 3; it's " + len, this);
 				return;
 			}
 
@@ -229,8 +229,8 @@ namespace Lidgren.Network
 				int chanIdx = (int)chan - (int)NetChannel.ReliableUnordered;
 				if (chanIdx < 0)
 				{
-					// TODO: Notify application?
-					m_owner.LogWrite("Malformed ack message; indicated netchannel " + chan);
+					if ((m_owner.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+						m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Malformed ack message; indicated netchannel " + chan, this);
 					continue;
 				}
 

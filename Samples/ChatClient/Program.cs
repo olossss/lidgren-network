@@ -44,7 +44,7 @@ namespace ChatClient
 				{
 					switch (type)
 					{
-						case NetMessageType.LogMessage:
+						case NetMessageType.DebugMessage:
 							WriteToConsole(s_readBuffer.ReadString());
 							break;
 						case NetMessageType.ServerDiscovered:

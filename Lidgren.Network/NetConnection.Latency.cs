@@ -109,14 +109,6 @@ namespace Lidgren.Network
 			m_latencyHistory[0] = rtSeconds;
 			m_currentAvgRoundtrip = ((rtSeconds * 3) + (m_latencyHistory[1] * 2) + m_latencyHistory[2]) / 6.0;
 
-			// TODO: notify application if they want it
-			//m_owner.NotifyApplication(
-			//	NetNotificationType.PongReceived,
-			//	this,
-			//	"Found latency: " + (int)(rtSeconds * 1000.0) + " ms; average: " + (int)(m_currentAvgRoundtrip * 1000) + " ms",
-			//	rtSeconds
-			//);
-
 			m_ackMaxDelayTime = (float)(
 				m_owner.m_config.m_maxAckWithholdTime * rtSeconds * m_owner.m_config.m_resendTimeMultiplier
 			);
