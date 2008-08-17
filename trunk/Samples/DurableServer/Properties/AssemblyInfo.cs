@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ChatServer")]
+[assembly: AssemblyTitle("DurableServer")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ChatServer")]
-[assembly: AssemblyCopyright("Copyright © Michael Lidgren 2008")]
+[assembly: AssemblyCompany("Microsoft")]
+[assembly: AssemblyProduct("DurableServer")]
+[assembly: AssemblyCopyright("Copyright © Microsoft 2008")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("163c6fee-10e1-4001-92b7-7fbb09c83c48")]
+[assembly: Guid("04baf3d4-67ba-4416-bbf3-afb777a300f4")]
 
 // Version information for an assembly consists of the following four values:
 //
