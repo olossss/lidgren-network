@@ -73,6 +73,7 @@ namespace Lidgren.Network
 			m_statistics = new NetConnectionStatistics(this, 1.0f);
 			m_unsentMessages = new NetQueue<NetMessage>(6);
 			m_lockedUnsentMessages = new NetQueue<NetMessage>(3);
+			m_status = NetConnectionStatus.Connecting; // to prevent immediate removal on heartbeat thread
 
 			InitializeReliability();
 			InitializeFragmentation();
@@ -193,8 +194,10 @@ namespace Lidgren.Network
 			m_futureClose = double.MaxValue;
 			m_futureDisconnectReason = null;
 
+			m_owner.LogVerbose("Sending Connect request");
 			NetMessage msg = m_owner.CreateSystemMessage(NetSystemType.Connect);
 			msg.m_data.Write(m_owner.Configuration.ApplicationIdentifier);
+			msg.m_data.Write(m_owner.m_randomIdentifier);
 			if (m_hailData != null && m_hailData.Length > 0)
 				msg.m_data.Write(m_hailData);
 			m_unsentMessages.Enqueue(msg);
@@ -521,6 +524,24 @@ namespace Lidgren.Network
 					Disconnect(msg.m_data.ReadString(), 0.75f + ((float)m_currentAvgRoundtrip * 4), false);
 					break;
 				case NetSystemType.Connect:
+
+					string appIdent = msg.m_data.ReadString();
+					if (appIdent != m_owner.m_config.ApplicationIdentifier)
+					{
+						if ((m_owner.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
+							m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Connect for different application identification received: " + appIdent, null);
+						return;
+					}
+
+					// read random identifer
+					byte[] rnd = msg.m_data.ReadBytes(8);
+					if (NetUtility.CompareElements(rnd, m_owner.m_randomIdentifier))
+					{
+						// don't allow self-connect
+						if ((m_owner.m_enabledMessageTypes & NetMessageType.ConnectionRejected) == NetMessageType.ConnectionRejected)
+							m_owner.NotifyApplication(NetMessageType.ConnectionRejected, "Connection to self not allowed", null);
+						return;
+					}
 
 					// finalize disconnect if it's in process
 					if (m_status == NetConnectionStatus.Disconnecting)

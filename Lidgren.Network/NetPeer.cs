@@ -40,11 +40,21 @@ namespace Lidgren.Network
 			if (m_connections.Count >= m_config.MaxConnections)
 				throw new NetException("No available slots!");
 
-			// will intiate handshake
-			NetConnection connection = new NetConnection(this, remoteEndpoint, hailData);
-			lock (m_connections)
-				m_connections.Add(connection);
-			m_connectionLookup.Add(remoteEndpoint, connection);
+			NetConnection connection;
+			if (m_connectionLookup.TryGetValue(remoteEndpoint, out connection))
+			{
+				// Already connected to this remote endpoint
+			}
+			else
+			{
+				// create new connection
+				connection = new NetConnection(this, remoteEndpoint, hailData);
+				lock (m_connections)
+					m_connections.Add(connection);
+				m_connectionLookup.Add(remoteEndpoint, connection);
+			}
+
+			// connect
 			connection.Connect();
 		}
 

@@ -91,11 +91,15 @@ namespace Lidgren.Network
 			if (m_serverConnection != null)
 			{
 				m_serverConnection.Disconnect("New connect", 0, m_serverConnection.Status == NetConnectionStatus.Connected);
-				m_serverConnection = null;
+				if (m_serverConnection.RemoteEndpoint.Equals(m_connectEndpoint))
+					m_serverConnection = new NetConnection(this, m_connectEndpoint, m_hailData);
+			}
+			else
+			{
+				m_serverConnection = new NetConnection(this, m_connectEndpoint, m_hailData);
 			}
 
-			// will intiate handshake
-			m_serverConnection = new NetConnection(this, m_connectEndpoint, m_hailData);
+			// connect
 			m_serverConnection.Connect();
 
 			m_connectEndpoint = null;

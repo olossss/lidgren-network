@@ -34,6 +34,7 @@ namespace Lidgren.Network
 		private Socket m_socket;
 		private EndPoint m_senderRemote;
 		internal bool m_isBound;
+		internal byte[] m_randomIdentifier;
 		internal NetPool<NetMessage> m_messagePool; // created in NetServer, NetClient and NetPeer
 		internal NetPool<NetBuffer> m_bufferPool; // created in NetServer, NetClient and NetPeer
 
@@ -114,6 +115,9 @@ namespace Lidgren.Network
 			m_receivedMessages = new NetQueue<NetMessage>(4);
 			m_scratchBuffer = new NetBuffer(32);
 			m_bindLock = new object();
+
+			m_randomIdentifier = new byte[8];
+			NetRandom.Instance.NextBytes(m_randomIdentifier);
 
 			// default enabled message types
 			m_enabledMessageTypes =
@@ -450,9 +454,9 @@ namespace Lidgren.Network
 
 			try
 			{
-				m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
-				//int bytesSent = m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
-				//LogWrite("Sent " + bytesSent + " bytes");
+				//m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
+				int bytesSent = m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
+				LogVerbose("Sent " + bytesSent + " bytes");
 				return;
 			}
 			catch (SocketException sex)

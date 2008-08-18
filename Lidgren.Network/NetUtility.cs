@@ -127,5 +127,15 @@ namespace Lidgren.Network
 				((value & 0x000000000000ff00L) << 40) |
 				((value & 0x00000000000000ffL) << 56);
 		}
+
+		public static bool CompareElements(byte[] one, byte[] two)
+		{
+			if (one.Length != two.Length)
+				return false;
+			for (int i = 0; i < one.Length; i++)
+				if (one[i] != two[i])
+					return false;
+			return true;
+		}
 	}
 }
