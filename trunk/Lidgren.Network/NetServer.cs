@@ -146,6 +146,9 @@ namespace Lidgren.Network
 				switch (sysType)
 				{
 					case NetSystemType.Connect:
+
+						LogVerbose("Connection request received");
+
 						// check app ident
 						if (payLen < 4)
 						{
@@ -158,6 +161,16 @@ namespace Lidgren.Network
 						{
 							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
 								NotifyApplication(NetMessageType.BadMessageReceived, "Connect for different application identification received: " + appIdent, null);
+							return;
+						}
+
+						// read random identifer
+						byte[] rnd = message.m_data.ReadBytes(8);
+						if (NetUtility.CompareElements(rnd, m_randomIdentifier))
+						{
+							// don't allow self-connect
+							if ((m_enabledMessageTypes & NetMessageType.ConnectionRejected) == NetMessageType.ConnectionRejected)
+								NotifyApplication(NetMessageType.ConnectionRejected, "Connection to self not allowed", null);
 							return;
 						}
 
@@ -275,6 +288,10 @@ namespace Lidgren.Network
 								NotifyApplication(NetMessageType.BadMessageReceived, "Discovery for different application identification received: " + appIdent2, null);
 							return;
 						}
+
+						// make sure we didn't send this request ourselves (in case of NetPeer)
+						if (IPAddress.IsLoopback(senderEndpoint.Address) && senderEndpoint.Port == this.ListenPort)
+							break;
 
 						// send discovery response
 						SendDiscoveryResponse(senderEndpoint);

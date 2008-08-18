@@ -24,6 +24,8 @@ namespace PeerToPeer
 			NetConfiguration config = new NetConfiguration("p2pchat");
 			config.MaxConnections = 256;
 			s_peer = new NetPeer(config);
+			//s_peer.VerboseLog = true;
+			s_peer.SetMessageTypeEnabled(NetMessageType.ConnectionRejected | NetMessageType.BadMessageReceived, true);
 			s_peer.Start(); // listen for incoming connections
 
 			s_readBuffer = s_peer.CreateBuffer();
@@ -54,6 +56,8 @@ namespace PeerToPeer
 			switch (type)
 			{
 				case NetMessageType.DebugMessage:
+				case NetMessageType.BadMessageReceived:
+				case NetMessageType.ConnectionRejected:
 					WriteToConsole(buffer.ReadString());
 					break;
 				case NetMessageType.Data:
