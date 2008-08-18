@@ -4,6 +4,7 @@ using System.Text;
 
 using Lidgren.Network;
 using System.Diagnostics;
+using System.Net;
 
 namespace UnitTests
 {

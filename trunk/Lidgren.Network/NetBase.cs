@@ -339,7 +339,8 @@ namespace Lidgren.Network
 		internal void SendSingleUnreliableSystemMessage(
 			NetSystemType tp,
 			NetBuffer data,
-			IPEndPoint remoteEP)
+			IPEndPoint remoteEP,
+			bool useBroadcast)
 		{
 			// packet number
 			m_sendBuffer.Reset();
@@ -355,9 +356,25 @@ namespace Lidgren.Network
 			m_sendBuffer.Write((byte)tp);
 			m_sendBuffer.Write(data.Data, 0, dataLen);
 
-			SendPacket(remoteEP);
+			if (useBroadcast)
+			{
+				try
+				{
+					m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
+					SendPacket(remoteEP);
+				}
+				finally
+				{
+					m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, false);
+				}
+			}
+			else
+			{
+				SendPacket(remoteEP);
+			}
 		}
 
+		/*
 		internal void BroadcastUnconnectedMessage(NetBuffer data, int port)
 		{
 			if (data == null)
@@ -420,6 +437,7 @@ namespace Lidgren.Network
 				m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, false);
 			}
 		}
+		*/
 
 		/// <summary>
 		/// Pushes a single packet onto the wire from m_sendBuffer
