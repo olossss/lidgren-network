@@ -85,7 +85,8 @@ namespace Lidgren.Network
 			m_owner.SendSingleUnreliableSystemMessage(
 				pingOrPong,
 				buffer,
-				m_remoteEndPoint
+				m_remoteEndPoint,
+				false
 			);
 			m_lastSentPing = now;
 		}

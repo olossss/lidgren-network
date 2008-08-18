@@ -512,7 +512,8 @@ namespace Lidgren.Network
 			SendSingleUnreliableSystemMessage(
 				NetSystemType.DiscoveryResponse,
 				m_scratchBuffer,
-				senderEndpoint
+				senderEndpoint,
+				false
 			);
 		}
 

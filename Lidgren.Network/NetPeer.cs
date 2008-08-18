@@ -67,28 +67,28 @@ namespace Lidgren.Network
 				Start();
 
 			NetBuffer data = CreateBuffer();
-			data.InternalEnsureBufferSize(m_config.ApplicationIdentifier.Length + 2);
-			data.Write((byte)NetSystemType.Discovery);
+			//data.Write((byte)NetSystemType.Discovery);
 			data.Write(m_config.ApplicationIdentifier);
 
 			LogWrite("Broadcasting local peer discovery ping...");
-			BroadcastUnconnectedMessage(data, port);
+			//BroadcastUnconnectedMessage(data, port);
+			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, new IPEndPoint(IPAddress.Broadcast, port), true);
 		}
 
 		/// <summary>
-		/// Emit a discovery signal to your subnet
+		/// Emit a discovery signal to a certain host
 		/// </summary>
 		public void DiscoverKnownPeer(string host, int serverPort)
 		{
 			IPAddress address = NetUtility.Resolve(host);
 			IPEndPoint ep = new IPEndPoint(address, serverPort);
-			DiscoverKnownPeer(ep);
+			DiscoverKnownPeer(ep, false);
 		}
 
 		/// <summary>
-		/// Emit a discovery signal to your subnet
+		/// Emit a discovery signal to a host or subnet
 		/// </summary>
-		public void DiscoverKnownPeer(IPEndPoint address)
+		public void DiscoverKnownPeer(IPEndPoint address, bool useBroadcast)
 		{
 			if (!m_isBound)
 				Start();
@@ -97,7 +97,7 @@ namespace Lidgren.Network
 			data.Write(m_config.ApplicationIdentifier);
 
 			LogWrite("Discovering known server " + address.ToString() + "...");
-			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, address);
+			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, address, useBroadcast);
 		}
 	}
 }

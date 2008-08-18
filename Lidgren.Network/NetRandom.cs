@@ -58,7 +58,9 @@ namespace Lidgren.Network
 		public NetRandom()
 		{
 			// Initialise using the system tick count.
-			Reinitialize((int)Environment.TickCount);
+			Reinitialize(
+				Environment.CommandLine.GetHashCode() ^ (int)Environment.TickCount
+			);
 		}
 
 		/// <summary>

@@ -312,27 +312,28 @@ namespace Lidgren.Network
 				Start();
 
 			NetBuffer data = new NetBuffer(m_config.ApplicationIdentifier.Length);
-			data.Write((byte)NetSystemType.Discovery);
+			//data.Write((byte)NetSystemType.Discovery);
 			data.Write(m_config.ApplicationIdentifier);
 
 			LogWrite("Broadcasting server discovery ping...");
-			BroadcastUnconnectedMessage(data, serverPort);
+			//BroadcastUnconnectedMessage(data, serverPort);
+			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, new IPEndPoint(IPAddress.Broadcast, serverPort), true);
 		}
 		
 		/// <summary>
-		/// Emit a discovery signal to your subnet
+		/// Emit a discovery signal to a single host
 		/// </summary>
 		public void DiscoverKnownServer(string host, int serverPort)
 		{
 			IPAddress address = NetUtility.Resolve(host);
 			IPEndPoint ep = new IPEndPoint(address, serverPort);
-			DiscoverKnownServer(ep);
+			DiscoverKnownServer(ep, false);
 		}
 
 		/// <summary>
-		/// Emit a discovery signal to your subnet
+		/// Emit a discovery signal to a host or subnet
 		/// </summary>
-		public void DiscoverKnownServer(IPEndPoint address)
+		public void DiscoverKnownServer(IPEndPoint address, bool useBroadcast)
 		{
 			if (!m_isBound)
 				Start();
@@ -341,7 +342,7 @@ namespace Lidgren.Network
 			data.Write(m_config.ApplicationIdentifier);
 			
 			LogWrite("Discovering known server " + address.ToString() + "...");
-			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, address);
+			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, address, useBroadcast);
 		}
 
 		internal override void HandleConnectionForciblyClosed(NetConnection connection, SocketException sex)

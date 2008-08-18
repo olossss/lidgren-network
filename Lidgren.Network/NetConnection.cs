@@ -632,7 +632,8 @@ namespace Lidgren.Network
 				m_owner.SendSingleUnreliableSystemMessage(
 					NetSystemType.Disconnect,
 					scratch,
-					m_remoteEndPoint
+					m_remoteEndPoint,
+					false
 				);
 			}
 

@@ -15,8 +15,8 @@ namespace ChatClient
 			NetClient client = new NetClient(config);
 			client.Start();
 
-			// Wait 1/4 of a second to allow server to start up if run via Visual Studio
-			Thread.Sleep(250);
+			// Wait half a second to allow server to start up if run via Visual Studio
+			Thread.Sleep(500);
 
 			// Emit discovery signal
 			client.DiscoverLocalServers(14242);
