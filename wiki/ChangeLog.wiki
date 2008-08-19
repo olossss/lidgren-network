@@ -2,6 +2,7 @@
 #labels Featured
 
 || Date || Change ||
+|| 2008.08.19 || Duplicate detection bug fixed. More comments in samples ||
 || 2008.08.18 || `DiscoverKnownServer()` and `DiscoverKnownPeer()` overrides added for broadcast; `NetRandom` default seed changed||
 || 2008.08.18 || `NetPeer` bug fixed, self connection prevention added ||
 || 2008.08.17 || Notification for bad messages received and connections rejected added as new `NetMessageType` enum entries. Dead code removed. Chat server/client rewritten as console applications.||
