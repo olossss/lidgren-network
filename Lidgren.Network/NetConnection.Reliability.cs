@@ -73,7 +73,7 @@ namespace Lidgren.Network
 			int expected = m_nextExpectedSequence[chanIdx];
 			uint round = m_currentSequenceRound[chanIdx];
 
-			int diff = expected - bufIdx;
+			int diff = expected - receivedSequenceNumber;
 			if (diff < -NetConstants.EarlyArrivalWindowSize)
 				diff += NetConstants.NumKeptSequenceNumbers;
 			else if (diff > NetConstants.EarlyArrivalWindowSize)
