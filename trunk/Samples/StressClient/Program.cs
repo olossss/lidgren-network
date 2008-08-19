@@ -29,9 +29,17 @@ namespace StressClient
 			config.ThrottleBytesPerSecond = 3500;
 
 			s_client = new NetClient(config);
+
+			// 100 ms simulated roundtrip latency
 			s_client.SimulatedMinimumLatency = 0.1f;
+
+			// ... + 0 to 50 ms
 			s_client.SimulatedLatencyVariance = 0.05f;
+
+			// 10% loss (!)
 			s_client.SimulatedLoss = 0.1f;
+
+			// 5% duplicated messages (!)
 			s_client.SimulatedDuplicates = 0.05f;
 			
 			s_readBuffer = s_client.CreateBuffer();

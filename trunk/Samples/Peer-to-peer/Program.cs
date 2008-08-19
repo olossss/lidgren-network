@@ -25,9 +25,13 @@ namespace PeerToPeer
 			config.MaxConnections = 256;
 			s_peer = new NetPeer(config);
 			//s_peer.VerboseLog = true;
-			s_peer.SetMessageTypeEnabled(NetMessageType.ConnectionRejected | NetMessageType.BadMessageReceived, true);
-			s_peer.Start(); // listen for incoming connections
 
+			s_peer.SetMessageTypeEnabled(NetMessageType.ConnectionRejected | NetMessageType.BadMessageReceived, true);
+
+			// start listening for incoming connections
+			s_peer.Start();
+
+			// create a buffer to read data into
 			s_readBuffer = s_peer.CreateBuffer();
 
 			WriteToConsole("Listening on port " + s_peer.ListenPort);

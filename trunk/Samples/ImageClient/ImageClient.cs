@@ -39,6 +39,9 @@ namespace MultiImageClient
 			m_client.Shutdown("Form exiting");
 		}
 
+		/// <summary>
+		/// Heartbeat; is called regularely by the main application
+		/// </summary>
 		public void Heartbeat()
 		{
 			NetMessageType type;
@@ -46,18 +49,30 @@ namespace MultiImageClient
 				HandleMessage(type, m_readBuffer);
 		}
 
+		/// <summary>
+		/// Handle incoming message
+		/// </summary>
 		private void HandleMessage(NetMessageType type, NetBuffer buffer)
 		{
 			switch (type)
 			{
 				case NetMessageType.DebugMessage:
+					//
+					// it's a library debug message; just display it in the console if debugger is attached
+					//
 					Console.WriteLine(buffer.ReadString());
 					break;
 				case NetMessageType.StatusChanged:
+					//
+					// it's a status change message; set the reason as window title and refresh picture
+					//
 					this.Text = buffer.ReadString();
 					pictureBox1.Refresh();
 					break;
 				case NetMessageType.ServerDiscovered:
+					//
+					// it's a server discovered message; connect to the discovered server
+					//
 					m_imageWidth = 0;
 					m_imageHeight = 0;
 					m_lineDisplayed = 0;
@@ -65,7 +80,9 @@ namespace MultiImageClient
 					m_client.Connect(buffer.ReadIPEndPoint());
 					break;
 				case NetMessageType.Data:
-
+					//
+					// it's a data message (data sent from the server)
+					//
 					if (m_imageWidth == 0)
 					{
 						// first message is size

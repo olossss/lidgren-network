@@ -34,6 +34,9 @@ namespace DurableServer
 						case NetMessageType.ConnectionRejected:
 						case NetMessageType.DebugMessage:
 						case NetMessageType.Data:
+							//
+							// All these types of messages all contain a single string in the buffer; display it
+							//
 							Console.WriteLine(buffer.ReadString());
 							break;
 						default:
@@ -44,6 +47,7 @@ namespace DurableServer
 				Thread.Sleep(5);
 			}
 
+			// clean shutdown
 			server.Shutdown("Application exiting");
 		}
 	}

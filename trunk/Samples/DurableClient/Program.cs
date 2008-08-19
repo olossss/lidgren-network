@@ -14,15 +14,20 @@ namespace DurableClient
 			NetConfiguration config = new NetConfiguration("durable");
 			NetClient client = new NetClient(config);
 
-			Thread.Sleep(500); // wait for server to start up in VS
+			// wait half a second to allow server to start up in Visual Studio
+			Thread.Sleep(500);
 
+			// create a buffer to read data into
 			NetBuffer buffer = client.CreateBuffer();
 
+			// connect to localhost
 			client.Connect("localhost", 14242, null);
 
+			// enable some library messages
 			client.SetMessageTypeEnabled(NetMessageType.BadMessageReceived, true);
 			client.SetMessageTypeEnabled(NetMessageType.ConnectionRejected, true);
 
+			// create a stopwatch
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 			int loops = 0;
@@ -40,15 +45,22 @@ namespace DurableClient
 						case NetMessageType.BadMessageReceived:
 						case NetMessageType.ConnectionRejected:
 						case NetMessageType.DebugMessage:
+							//
+							// These three types of messages all contain a string in the buffer; display it.
+							//
 							Console.WriteLine(buffer.ReadString());
 							break;
 						case NetMessageType.Data:
 						default:
+							//
+							// For this application; server doesn't send any data... so Data messages are unhandled
+							//
 							Console.WriteLine("Unhandled: " + type + " " + buffer.ToString());
 							break;
 					}
 				}
 
+				// send a message every minute
 				if (sw.Elapsed.TotalSeconds >= 60)
 				{
 					loops++;
@@ -65,6 +77,7 @@ namespace DurableClient
 				Thread.Sleep(5);
 			}
 
+			// clean shutdown
 			client.Shutdown("Application exiting");
 		}
 	}
