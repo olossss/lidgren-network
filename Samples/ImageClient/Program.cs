@@ -34,6 +34,7 @@ namespace MultiImageClient
 
 		internal static void LaunchClient()
 		{
+			// create a new ImageClient window and add it to the list
 			ImageClient client = new ImageClient();
 			s_clients.Add(client);
 		}
