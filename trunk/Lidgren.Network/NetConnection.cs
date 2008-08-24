@@ -194,7 +194,7 @@ namespace Lidgren.Network
 			m_futureClose = double.MaxValue;
 			m_futureDisconnectReason = null;
 
-			m_owner.LogVerbose("Sending Connect request");
+			m_owner.LogVerbose("Sending Connect request", this);
 			NetMessage msg = m_owner.CreateSystemMessage(NetSystemType.Connect);
 			msg.m_data.Write(m_owner.Configuration.ApplicationIdentifier);
 			msg.m_data.Write(m_owner.m_randomIdentifier);
@@ -231,12 +231,12 @@ namespace Lidgren.Network
 					m_handshakeAttempts++;
 					if (m_isInitiator)
 					{
-						m_owner.LogWrite("Re-sending Connect");
+						m_owner.LogWrite("Re-sending Connect", this);
 						Connect();
 					}
 					else
 					{
-						m_owner.LogWrite("Re-sending ConnectResponse");
+						m_owner.LogWrite("Re-sending ConnectResponse", this);
 						m_handshakeInitiated = now;
 
 						m_unsentMessages.Enqueue(m_owner.CreateSystemMessage(NetSystemType.ConnectResponse));
@@ -399,7 +399,7 @@ namespace Lidgren.Network
 				if (isDuplicate)
 				{
 					m_statistics.CountDuplicateMessage(msg);
-					m_owner.LogVerbose("Rejecting duplicate " + msg);
+					m_owner.LogVerbose("Rejecting duplicate " + msg, this);
 				}
 				else
 				{
@@ -419,7 +419,7 @@ namespace Lidgren.Network
 				if (isDuplicate)
 				{
 					m_statistics.CountDuplicateMessage(msg);
-					m_owner.LogVerbose("Rejecting duplicate " + msg);
+					m_owner.LogVerbose("Rejecting duplicate " + msg, this);
 					return; // reject duplicates
 				}
 
@@ -440,7 +440,7 @@ namespace Lidgren.Network
 				{
 					// late sequenced message
 					m_statistics.CountDroppedSequencedMessage();
-					m_owner.LogVerbose("Dropping late sequenced " + msg);
+					m_owner.LogVerbose("Dropping late sequenced " + msg, this);
 					return;
 				}
 
@@ -464,10 +464,10 @@ namespace Lidgren.Network
 					// late ordered message
 #if DEBUG
 					if (!isDuplicate)
-						m_owner.LogWrite("Ouch, weird! Late ordered message that's NOT a duplicate?! seqNr: " + seqNr + " expecting: " + m_nextExpectedSequence[chanNr]);
+						m_owner.LogWrite("Ouch, weird! Late ordered message that's NOT a duplicate?! seqNr: " + seqNr + " expecting: " + m_nextExpectedSequence[chanNr], this);
 #endif
 					// must be duplicate
-					m_owner.LogVerbose("Dropping duplicate message " + seqNr);
+					m_owner.LogVerbose("Dropping duplicate message " + seqNr, this);
 					m_statistics.CountDuplicateMessage(msg);
 					return; // rejected; don't advance next expected
 				}
@@ -475,7 +475,7 @@ namespace Lidgren.Network
 				if (relation > 0)
 				{
 					// early message; withhold ordered
-					m_owner.LogVerbose("Withholding " + msg + " (expecting " + m_nextExpectedSequence[chanNr] + ")");
+					m_owner.LogVerbose("Withholding " + msg + " (expecting " + m_nextExpectedSequence[chanNr] + ")", this);
 					m_withheldMessages.Add(msg);
 					return; // return without advancing next expected
 				}
@@ -492,7 +492,7 @@ namespace Lidgren.Network
 					{
 						if (wm.m_sequenceNumber == nextSeq)
 						{
-							m_owner.LogVerbose("Releasing withheld message " + wm);
+							m_owner.LogVerbose("Releasing withheld message " + wm, this);
 							AcceptMessage(wm);
 							nextSeq++;
 							if (nextSeq >= NetConstants.NumSequenceNumbers)
@@ -559,7 +559,7 @@ namespace Lidgren.Network
 				case NetSystemType.ConnectResponse:
 					if (m_status != NetConnectionStatus.Connecting && m_status != NetConnectionStatus.Connected)
 					{
-						m_owner.LogWrite("Received connection response but we're not connecting...");
+						m_owner.LogWrite("Received connection response but we're not connecting...", this);
 						return;
 					}
 
@@ -590,7 +590,7 @@ namespace Lidgren.Network
 					// also accepted as ConnectionEstablished
 					if (m_isInitiator == false && m_status == NetConnectionStatus.Connecting)
 					{
-						m_owner.LogWrite("Received ping; interpreted as ConnectionEstablished");
+						m_owner.LogWrite("Received ping; interpreted as ConnectionEstablished", this);
 						m_statistics.Reset();
 						SetInitialAveragePing(now - m_handshakeInitiated);
 						SetStatus(NetConnectionStatus.Connected, "Connected");
@@ -606,7 +606,7 @@ namespace Lidgren.Network
 					ReceivedPong(twoWayLatency, msg);
 					break;
 				default:
-					m_owner.LogWrite("Undefined behaviour in NetConnection for system message " + sysType);
+					m_owner.LogWrite("Undefined behaviour in NetConnection for system message " + sysType, this);
 					break;
 			}
 		}

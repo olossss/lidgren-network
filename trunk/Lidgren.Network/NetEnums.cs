@@ -30,8 +30,9 @@ namespace Lidgren.Network
 		ServerDiscovered = 1 << 2,
 		Receipt = 1 << 3,
 		DebugMessage = 1 << 4,
-		BadMessageReceived = 1 << 5,
-		ConnectionRejected = 1 << 6,
+		VerboseDebugMessage = 1 << 5,
+		BadMessageReceived = 1 << 6,
+		ConnectionRejected = 1 << 7,
 	}
 
 	/// <summary>

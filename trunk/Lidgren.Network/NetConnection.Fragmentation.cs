@@ -67,7 +67,7 @@ namespace Lidgren.Network
 				fmsg.BitLength += (msg.m_data.m_bitLength - msg.m_data.Position);
 				fmsg.FragmentsReceived++;
 
-				m_owner.LogVerbose("Fragment " + id + " - " + number + "/" + total + " received; chunksize " + fmsg.ChunkSize + " this size " + payloadLen);
+				m_owner.LogVerbose("Fragment " + id + " - " + number + "/" + total + " received; chunksize " + fmsg.ChunkSize + " this size " + payloadLen, this);
 
 				if (fmsg.FragmentsReceived < fmsg.TotalFragments)
 				{
@@ -87,12 +87,12 @@ namespace Lidgren.Network
 				m_fragments.Remove(id);
 
 				// reuse "msg"
-				m_owner.LogVerbose("All fragments received; complete length is " + buf.LengthBytes);
+				m_owner.LogVerbose("All fragments received; complete length is " + buf.LengthBytes, this);
 				msg.m_data = buf;
 			}
 
 			// release
-			m_owner.LogVerbose("Accepted " + msg);
+			m_owner.LogVerbose("Accepted " + msg, this);
 
 			Debug.Assert(msg.m_type == NetMessageLibraryType.User);
 

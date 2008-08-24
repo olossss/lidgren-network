@@ -53,7 +53,7 @@ namespace Lidgren.Network
 			m_latencyHistory[1] = roundtripTime * 1.15 + 0.005; // overestimate
 			m_latencyHistory[0] = roundtripTime * 1.1; // overestimate
 			ReceivedPong(roundtripTime, null);
-			m_owner.LogWrite("Initializing avg rt to " + (int)(roundtripTime * 1000) + " ms");
+			m_owner.LogWrite("Initializing avg rt to " + (int)(roundtripTime * 1000) + " ms", this);
 		}
 
 		private void CheckPing(double now)
