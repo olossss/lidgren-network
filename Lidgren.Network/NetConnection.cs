@@ -493,6 +493,7 @@ namespace Lidgren.Network
 						if (wm.m_sequenceNumber == nextSeq)
 						{
 							m_owner.LogVerbose("Releasing withheld message " + wm, this);
+							m_withheldMessages.Remove(wm);
 							AcceptMessage(wm);
 							nextSeq++;
 							if (nextSeq >= NetConstants.NumSequenceNumbers)

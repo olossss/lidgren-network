@@ -75,9 +75,9 @@ namespace Lidgren.Network
 
 			int diff = expected - receivedSequenceNumber;
 			if (diff < -NetConstants.EarlyArrivalWindowSize)
-				diff += NetConstants.NumKeptSequenceNumbers;
+				diff += NetConstants.NumSequenceNumbers;
 			else if (diff > NetConstants.EarlyArrivalWindowSize)
-				diff -= NetConstants.NumKeptSequenceNumbers;
+				diff -= NetConstants.NumSequenceNumbers;
 
 			if (round - m_receivedSequences[chanIdx][bufIdx] < NetConstants.NumKeptSequenceNumbers / 3)
 			{

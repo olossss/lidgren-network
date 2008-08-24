@@ -35,9 +35,6 @@ namespace Lidgren.Network
 		protected Dictionary<IPEndPoint, NetConnection> m_connectionLookup;
 		protected bool m_allowOutgoingConnections; // used by NetPeer
 
-		private NetQueue<NetMessage> m_lockedMessagePool;
-		private NetQueue<NetBuffer> m_lockedBufferPool;
-
 		public List<NetConnection> Connections
 		{
 			get
@@ -73,7 +70,12 @@ namespace Lidgren.Network
 				return;
 			}
 
-			// drain locked pools
+			//
+			// Drain locked pools
+			//
+			// m_messagePool and m_bufferPool is only accessed from this thread; thus no locking
+			// is required for those objects
+			//
 			lock (m_lockedBufferPool)
 			{
 				NetBuffer lb;
@@ -416,17 +418,20 @@ namespace Lidgren.Network
 				return false;
 			}
 
+#if DEBUG
+			if (msg.m_data == null)
+				throw new NetException("Ouch!");
+			if (msg.m_data.Position != 0)
+				throw new NetException("Ouch!");
+#endif
+			
 			sender = msg.m_sender;
 
 			// recycle NetMessage object
 			NetBuffer content = msg.m_data;
+
 			msg.m_data = null;
 			type = msg.m_msgType;
-
-			lock(m_lockedMessagePool)
-				m_lockedMessagePool.Enqueue(msg);
-
-			Debug.Assert(content.Position == 0);
 
 			// swap content of buffers
 			byte[] tmp = intoBuffer.Data;
@@ -440,6 +445,11 @@ namespace Lidgren.Network
 			// recycle NetBuffer object (incl. old intoBuffer byte array)
 			content.m_refCount = 0;
 
+			// put new message in frontend queue
+			lock (m_lockedMessagePool)
+				m_lockedMessagePool.Enqueue(msg);
+
+			// recycle content
 			lock (m_lockedBufferPool)
 				m_lockedBufferPool.Enqueue(content);
 

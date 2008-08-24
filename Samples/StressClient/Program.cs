@@ -17,6 +17,7 @@ namespace StressClient
 		private static double s_nextDisplay;
 		private static int s_messagesSent = 0;
 		private static NetBuffer s_readBuffer;
+		private static NetChannel m_sendOnChannel;
 
 		[STAThread]
 		static void Main()
@@ -89,10 +90,7 @@ namespace StressClient
 							NetRandom.Instance.NextBytes(s_randomData);
 							sendBuffer.Write(s_randomData);
 							//m_buffer.Write("Nr: " + s_messagesSent);
-							s_client.SendMessage(sendBuffer, NetChannel.ReliableUnordered);
-							//s_client.SendMessage(sendBuffer, NetChannel.UnreliableInOrder12);
-							//s_client.SendMessage(sendBuffer, (NetChannel)NetRandom.Instance.Next(0, 32));
-							//s_client.SendMessage(sendBuffer, (NetChannel)NetRandom.Instance.Next(18, 30));
+							s_client.SendMessage(sendBuffer, m_sendOnChannel);
 							s_messagesSent++;
 							s_sentUntil += s_oneMessageTime;
 						}
@@ -138,13 +136,14 @@ namespace StressClient
 			}
 		}
 
-		internal static void Run(string host, int port, int mps, int throttle)
+		internal static void Run(string host, int port, int mps, int throttle, NetChannel channel)
 		{
 			s_client.Configuration.ThrottleBytesPerSecond = throttle;
 			s_client.Connect(host, port, null);
 			s_messagesPerSecond = mps;
 			s_oneMessageTime = 1.0 / (double)mps;
 			s_sentUntil = NetTime.Now;
+			m_sendOnChannel = channel;
 		}
 
 		internal static void Shutdown()
