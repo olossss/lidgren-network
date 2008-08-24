@@ -118,7 +118,7 @@ namespace Lidgren.Network
 			}
 			list.Add(msg);
 
-			m_owner.LogVerbose("Stored " + msg);
+			m_owner.LogVerbose("Stored " + msg, this);
 
 			// schedule resend
 			float multiplier = (1 + (msg.m_numSent * msg.m_numSent)) * m_owner.m_config.m_resendTimeMultiplier;
@@ -147,7 +147,7 @@ namespace Lidgren.Network
 						if (now > resend)
 						{
 							// Re-enqueue message in unsent list
-							m_owner.LogVerbose("Resending " + msg);
+							m_owner.LogVerbose("Resending " + msg, this);
 							m_statistics.CountMessageResent(msg.m_type);
 							m_removeList.Add(msg);
 							m_unsentMessages.Enqueue(msg);
@@ -245,7 +245,7 @@ namespace Lidgren.Network
 							NetMessage msg = list[o];
 							if (msg.m_sequenceNumber == seqNr)
 							{
-								m_owner.LogVerbose("Got ack, removed from storage: " + msg);
+								m_owner.LogVerbose("Got ack, removed from storage: " + msg, this);
 
 								//LogWrite("Removed stored message: " + msg);
 								list.RemoveAt(o);

@@ -42,7 +42,6 @@ namespace Lidgren.Network
 		protected bool m_shutdownRequested;
 		protected string m_shutdownReason;
 		protected bool m_shutdownComplete;
-		private bool m_verboseLog;
 
 		// ready for reading by the application
 		internal NetQueue<NetMessage> m_receivedMessages;
@@ -66,6 +65,10 @@ namespace Lidgren.Network
 		{
 			if (enabled)
 			{
+				if ((type | NetMessageType.DebugMessage) == NetMessageType.DebugMessage)
+					throw new NetException("Not possible to enable Debug messages in a Release build!");
+				if ((type | NetMessageType.VerboseDebugMessage) == NetMessageType.VerboseDebugMessage)
+					throw new NetException("Not possible to enable VerboseDebug messages in a Release build!");
 				m_enabledMessageTypes |= type;
 			}
 			else
@@ -78,11 +81,6 @@ namespace Lidgren.Network
 		/// Gets the configuration for this NetBase instance
 		/// </summary>
 		public NetConfiguration Configuration { get { return m_config; } }
-
-		/// <summary>
-		/// Gets or sets if verbose log messages are emitted
-		/// </summary>
-		public bool VerboseLog { get { return m_verboseLog; } set { m_verboseLog = value; } }
 
 		/// <summary>
 		/// Gets which port this netbase instance listens on, or -1 if it's not listening.
@@ -524,22 +522,37 @@ namespace Lidgren.Network
 		[Conditional("DEBUG")]
 		internal void LogWrite(string message)
 		{
-			Log(message, null);
+			if ((m_enabledMessageTypes & NetMessageType.DebugMessage) != NetMessageType.DebugMessage)
+				return; // disabled
+
+			NotifyApplication(NetMessageType.DebugMessage, message, null); //sender);
 		}
 
 		[Conditional("DEBUG")]
 		internal void LogVerbose(string message)
 		{
-			if (m_verboseLog)
-				Log(message, null);
+			if ((m_enabledMessageTypes & NetMessageType.VerboseDebugMessage) != NetMessageType.VerboseDebugMessage)
+				return; // disabled
+
+			NotifyApplication(NetMessageType.VerboseDebugMessage, message, null); //sender);
 		}
 
 		[Conditional("DEBUG")]
-		internal void Log(string message, NetConnection sender)
+		internal void LogWrite(string message, NetConnection connection)
 		{
 			if ((m_enabledMessageTypes & NetMessageType.DebugMessage) != NetMessageType.DebugMessage)
 				return; // disabled
-			NotifyApplication(NetMessageType.DebugMessage, message, sender);
+
+			NotifyApplication(NetMessageType.DebugMessage, message, connection);
+		}
+
+		[Conditional("DEBUG")]
+		internal void LogVerbose(string message, NetConnection connection)
+		{
+			if ((m_enabledMessageTypes & NetMessageType.VerboseDebugMessage) != NetMessageType.VerboseDebugMessage)
+				return; // disabled
+
+			NotifyApplication(NetMessageType.VerboseDebugMessage, message, connection);
 		}
 
 		internal void NotifyApplication(NetMessageType tp, string message, NetConnection conn)
