@@ -54,6 +54,8 @@ namespace Lidgren.Network
 			m_messagePool = new NetPool<NetMessage>(64, 4);
 			m_bufferPool = new NetPool<NetBuffer>(64, 4);
 			m_startLock = new object();
+			m_lockedMessagePool = new NetQueue<NetMessage>();
+			m_lockedBufferPool = new NetQueue<NetBuffer>();
 		}
 
 		/// <summary>
@@ -125,6 +127,25 @@ namespace Lidgren.Network
 		protected override void Heartbeat()
 		{
 			double now = NetTime.Now;
+
+			//
+			// Drain locked pools
+			//
+			// m_messagePool and m_bufferPool is only accessed from this thread; thus no locking
+			// is required for those objects
+			//
+			lock (m_lockedBufferPool)
+			{
+				NetBuffer lb;
+				while ((lb = m_lockedBufferPool.Dequeue()) != null)
+					m_bufferPool.Push(lb);
+			}
+			lock (m_lockedMessagePool)
+			{
+				NetMessage lm;
+				while ((lm = m_lockedMessagePool.Dequeue()) != null)
+					m_messagePool.Push(lm);
+			}
 
 			if (m_shutdownRequested)
 			{
@@ -264,7 +285,10 @@ namespace Lidgren.Network
 		/// <returns>true if a message was read</returns>
 		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type)
 		{
-			NetMessage msg = m_receivedMessages.Dequeue();
+			NetMessage msg;
+			lock(m_receivedMessages)
+				msg = m_receivedMessages.Dequeue();
+
 			if (msg == null)
 			{
 				type = NetMessageType.None;
@@ -275,7 +299,9 @@ namespace Lidgren.Network
 			NetBuffer content = msg.m_data;
 			msg.m_data = null;
 			type = msg.m_msgType;
-			m_messagePool.Push(msg);
+
+			lock(m_lockedMessagePool)
+				m_lockedMessagePool.Enqueue(msg);
 
 			// swap content of buffers
 			byte[] tmp = intoBuffer.Data;
@@ -288,7 +314,9 @@ namespace Lidgren.Network
 
 			// recycle
 			content.m_refCount = 0;
-			m_bufferPool.Push(content);
+
+			lock(m_lockedBufferPool)
+				m_lockedBufferPool.Enqueue(content);
 
 			return true;
 		}

@@ -39,6 +39,8 @@ namespace StressClient
 			this.richTextBox1 = new System.Windows.Forms.RichTextBox();
 			this.label4 = new System.Windows.Forms.Label();
 			this.textBox4 = new System.Windows.Forms.TextBox();
+			this.comboBox1 = new System.Windows.Forms.ComboBox();
+			this.label5 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// textBox1
@@ -61,7 +63,7 @@ namespace StressClient
 			// 
 			// button1
 			// 
-			this.button1.Location = new System.Drawing.Point(118, 96);
+			this.button1.Location = new System.Drawing.Point(118, 123);
 			this.button1.Name = "button1";
 			this.button1.Size = new System.Drawing.Size(75, 23);
 			this.button1.TabIndex = 3;
@@ -97,7 +99,7 @@ namespace StressClient
 			// label3
 			// 
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(12, 129);
+			this.label3.Location = new System.Drawing.Point(12, 156);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(52, 13);
 			this.label3.TabIndex = 7;
@@ -105,7 +107,7 @@ namespace StressClient
 			// 
 			// button2
 			// 
-			this.button2.Location = new System.Drawing.Point(199, 96);
+			this.button2.Location = new System.Drawing.Point(199, 123);
 			this.button2.Name = "button2";
 			this.button2.Size = new System.Drawing.Size(75, 23);
 			this.button2.TabIndex = 8;
@@ -117,9 +119,9 @@ namespace StressClient
 			// 
 			this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
-			this.richTextBox1.Location = new System.Drawing.Point(12, 596);
+			this.richTextBox1.Location = new System.Drawing.Point(12, 623);
 			this.richTextBox1.Name = "richTextBox1";
-			this.richTextBox1.Size = new System.Drawing.Size(348, 174);
+			this.richTextBox1.Size = new System.Drawing.Size(348, 147);
 			this.richTextBox1.TabIndex = 9;
 			this.richTextBox1.Text = "";
 			// 
@@ -141,11 +143,36 @@ namespace StressClient
 			this.textBox4.Text = "15000";
 			this.textBox4.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 			// 
+			// comboBox1
+			// 
+			this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+			this.comboBox1.FormattingEnabled = true;
+			this.comboBox1.Items.AddRange(new object[] {
+            "Unreliable",
+            "UnreliableInOrder",
+            "Reliable",
+            "ReliableInOrder"});
+			this.comboBox1.Location = new System.Drawing.Point(117, 96);
+			this.comboBox1.Name = "comboBox1";
+			this.comboBox1.Size = new System.Drawing.Size(157, 21);
+			this.comboBox1.TabIndex = 12;
+			// 
+			// label5
+			// 
+			this.label5.AutoSize = true;
+			this.label5.Location = new System.Drawing.Point(12, 99);
+			this.label5.Name = "label5";
+			this.label5.Size = new System.Drawing.Size(53, 13);
+			this.label5.TabIndex = 13;
+			this.label5.Text = "Channel:";
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(374, 782);
+			this.Controls.Add(this.label5);
+			this.Controls.Add(this.comboBox1);
 			this.Controls.Add(this.label4);
 			this.Controls.Add(this.textBox4);
 			this.Controls.Add(this.richTextBox1);
@@ -178,6 +205,8 @@ namespace StressClient
 		public System.Windows.Forms.RichTextBox richTextBox1;
 		public System.Windows.Forms.Label label4;
 		public System.Windows.Forms.TextBox textBox4;
+		private System.Windows.Forms.ComboBox comboBox1;
+		public System.Windows.Forms.Label label5;
 
 	}
 }
