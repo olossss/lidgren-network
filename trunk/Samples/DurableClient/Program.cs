@@ -14,6 +14,10 @@ namespace DurableClient
 			NetConfiguration config = new NetConfiguration("durable");
 			NetClient client = new NetClient(config);
 
+			client.SimulatedMinimumLatency = 0.05f;
+			client.SimulatedLatencyVariance = 0.025f;
+			client.SimulatedLoss = 0.03f;
+
 			// wait half a second to allow server to start up in Visual Studio
 			Thread.Sleep(500);
 
@@ -60,14 +64,15 @@ namespace DurableClient
 					}
 				}
 
-				// send a message every minute
-				if (sw.Elapsed.TotalSeconds >= 60)
+				// send a message every second
+				if (sw.Elapsed.TotalSeconds >= 1)
 				{
 					loops++;
-					Console.WriteLine("Sending minute #" + loops);
+					//Console.WriteLine("Sending message #" + loops);
+					Console.Title = "Client; Messages sent: " + loops;
 
 					NetBuffer send = client.CreateBuffer();
-					send.Write("Minute #" + loops);
+					send.Write("Message #" + loops);
 					client.SendMessage(send, NetChannel.ReliableUnordered);
 
 					sw.Reset();
