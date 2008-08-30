@@ -41,14 +41,15 @@ namespace Lidgren.Network
 		internal float m_throttleBytesPerSecond;
 
 		/// <summary>
-		/// Gets or sets the string identifying this particular application; distinquishing it from other Lidgren based applications
+		/// Gets or sets the string identifying this particular application; distinquishing it from other Lidgren based applications. Ie. this needs to be the same on client and server.
 		/// </summary>
 		public string ApplicationIdentifier { get { return m_appIdentifier; } set { m_appIdentifier = value; } }
 
 		/// <summary>
 		/// Gets or sets the local port to bind to
 		/// </summary>
-		public int Port {
+		public int Port
+		{
 			get { return m_port; }
 			set
 			{
