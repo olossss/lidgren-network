@@ -2,6 +2,8 @@
 #labels Featured
 
 || Date || Change ||
+
+|| 2008.08.31 || ConnectionApproval feature added where server/peer can reject connections due to IP or hail data before they're properly connected ||
 || 2008.08.24 || Verbose log message moved to its own `NetMessageType`. All log messages now have correct Sender set, if applicable. Withheld messages bug fixed. Stress sample extended. ||
 || 2008.08.22 || Xna type serialization added ||
 || 2008.08.19 || Duplicate detection bug fixed. More comments in samples ||
