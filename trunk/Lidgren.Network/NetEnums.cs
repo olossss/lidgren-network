@@ -28,11 +28,12 @@ namespace Lidgren.Network
 		Data = 1 << 0,
 		StatusChanged = 1 << 1,
 		ServerDiscovered = 1 << 2,
-		Receipt = 1 << 3,
-		DebugMessage = 1 << 4,
-		VerboseDebugMessage = 1 << 5,
-		BadMessageReceived = 1 << 6,
-		ConnectionRejected = 1 << 7,
+		ConnectionApproval = 1 << 3,
+		Receipt = 1 << 4,
+		DebugMessage = 1 << 5,
+		VerboseDebugMessage = 1 << 6,
+		BadMessageReceived = 1 << 7,
+		ConnectionRejected = 1 << 8,
 	}
 
 	/// <summary>

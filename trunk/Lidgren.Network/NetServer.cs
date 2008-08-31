@@ -192,18 +192,27 @@ namespace Lidgren.Network
 							return;
 						}
 
-						//
-						// TODO: ConnectionRequest the application
-						//
-
-						// Add connection
+						// Create connection
 						LogWrite("New connection: " + senderEndpoint);
 						NetConnection conn = new NetConnection(this, senderEndpoint, hailData);
-						lock (m_connections)
-							m_connections.Add(conn);
-						m_connectionLookup.Add(senderEndpoint, conn);
-						conn.HandleSystemMessage(message, now);
 
+						// Connection approval?
+						if ((m_enabledMessageTypes & NetMessageType.ConnectionApproval) == NetMessageType.ConnectionApproval)
+						{
+							// Ask application if this connection is allowed to proceed
+							NetMessage app = CreateMessage();
+							app.m_msgType = NetMessageType.ConnectionApproval;
+							app.m_data.Write(hailData);
+							app.m_sender = conn;
+							conn.m_approved = false;
+							lock (m_receivedMessages)
+								m_receivedMessages.Enqueue(app);
+							// Don't add connection; it's done as part of the approval procedure
+							return;
+						}
+
+						// it's ok
+						AddConnection(now, conn);
 						break;
 					case NetSystemType.ConnectionEstablished:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
@@ -313,6 +322,23 @@ namespace Lidgren.Network
 			Debug.Assert(message.m_type == NetMessageLibraryType.User);
 
 			message.m_sender.HandleUserMessage(message);
+		}
+
+		internal void AddConnection(double now, NetConnection conn)
+		{
+			// send response; even if connected
+			NetMessage response = CreateSystemMessage(NetSystemType.ConnectResponse);
+			conn.m_unsentMessages.Enqueue(response);
+
+			if (conn.m_status != NetConnectionStatus.Connecting)
+				conn.SetStatus(NetConnectionStatus.Connecting, "Connecting...");
+
+			conn.m_handshakeInitiated = now;
+			
+			conn.m_approved = true;
+			lock (m_connections)
+				m_connections.Add(conn);
+			m_connectionLookup.Add(conn.m_remoteEndPoint, conn);
 		}
 
 		/*

@@ -25,7 +25,7 @@ namespace DurableClient
 			NetBuffer buffer = client.CreateBuffer();
 
 			// connect to localhost
-			client.Connect("localhost", 14242, null);
+			client.Connect("localhost", 14242, new byte[] { 42 }); // send a single byte, 42, as hail data
 
 			// enable some library messages
 			client.SetMessageTypeEnabled(NetMessageType.BadMessageReceived, true);
@@ -65,7 +65,7 @@ namespace DurableClient
 				}
 
 				// send a message every second
-				if (sw.Elapsed.TotalSeconds >= 1)
+				if (client.Status == NetConnectionStatus.Connected && sw.Elapsed.TotalSeconds >= 1)
 				{
 					loops++;
 					//Console.WriteLine("Sending message #" + loops);

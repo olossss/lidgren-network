@@ -21,12 +21,13 @@ namespace Lidgren.Network
 		private double m_ackWithholdingStarted;
 		private float m_throttleDebt;
 		private double m_lastSentUnsentMessages;
+		internal bool m_approved;
 
 		private double m_futureClose;
 		private string m_futureDisconnectReason;
 
 		private bool m_isInitiator; // if true: we sent Connect; if false: we received Connect
-		private double m_handshakeInitiated;
+		internal double m_handshakeInitiated;
 		private int m_handshakeAttempts;
 
 		/// <summary>
@@ -525,6 +526,9 @@ namespace Lidgren.Network
 					Disconnect(msg.m_data.ReadString(), 0.75f + ((float)m_currentAvgRoundtrip * 4), false);
 					break;
 				case NetSystemType.Connect:
+
+					// should never get here!
+					throw new NotImplementedException();
 
 					string appIdent = msg.m_data.ReadString();
 					if (appIdent != m_owner.m_config.ApplicationIdentifier)
