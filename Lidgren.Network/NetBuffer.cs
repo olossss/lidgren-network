@@ -54,6 +54,17 @@ namespace Lidgren.Network
 			Buffer.BlockCopy(copyData, copyData.Length, Data, 0, copyData.Length);
 		}
 
+		/// <summary>
+		/// Data is NOT copied; but now owned by the NetBuffer
+		/// </summary>
+		public static NetBuffer FromData(byte[] data)
+		{
+			NetBuffer retval = new NetBuffer(false);
+			retval.Data = data;
+			retval.LengthBytes = data.Length;
+			return retval;
+		}
+
 		internal NetBuffer(bool createDataStorage)
 		{
 			if (createDataStorage)

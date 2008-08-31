@@ -15,6 +15,8 @@ namespace DurableServer
 			config.Port = 14242;
 			NetServer server = new NetServer(config);
 
+			server.SetMessageTypeEnabled(NetMessageType.ConnectionApproval, true);
+
 			server.SimulatedMinimumLatency = 0.05f;
 			server.SimulatedLatencyVariance = 0.025f;
 			server.SimulatedLoss = 0.03f;
@@ -44,6 +46,18 @@ namespace DurableServer
 							// All these types of messages all contain a single string in the buffer; display it
 							//
 							Console.WriteLine(buffer.ReadString());
+							break;
+						case NetMessageType.ConnectionApproval:
+							byte hailByte = buffer.ReadByte();
+							if (hailByte == 42)
+							{
+								Console.WriteLine("Hail ok!");
+								sender.Approve();
+							}
+							else
+							{
+								sender.Disapprove("Wrong hail!");
+							}
 							break;
 						case NetMessageType.Data:
 							string str = buffer.ReadString();
