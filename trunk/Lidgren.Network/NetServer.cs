@@ -135,6 +135,10 @@ namespace Lidgren.Network
 
 			if (message.m_sender == null)
 			{
+				//
+				// Handle unconnected message
+				//
+
 				// not a connected sender; only allow System messages
 				if (message.m_type != NetMessageLibraryType.System)
 				{
@@ -255,7 +259,10 @@ namespace Lidgren.Network
 
 			if (message.m_type == NetMessageLibraryType.System)
 			{
-				// handle system messages from connected source
+				//
+				// Handle system messages from connected source
+				//
+
 				if (payLen < 1)
 				{
 					if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
@@ -446,9 +453,9 @@ namespace Lidgren.Network
 
 #if DEBUG
 			if (msg.m_data == null)
-				throw new NetException("Ouch!");
+				throw new NetException("Ouch, no data!");
 			if (msg.m_data.Position != 0)
-				throw new NetException("Ouch!");
+				throw new NetException("Ouch, stale data!");
 #endif
 			
 			sender = msg.m_sender;

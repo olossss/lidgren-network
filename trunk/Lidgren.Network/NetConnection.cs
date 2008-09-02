@@ -491,7 +491,7 @@ namespace Lidgren.Network
 					released = false;
 					foreach (NetMessage wm in m_withheldMessages)
 					{
-						if (wm.m_sequenceNumber == nextSeq)
+						if ((int)wm.m_sequenceChannel == chanNr && wm.m_sequenceNumber == nextSeq)
 						{
 							m_owner.LogVerbose("Releasing withheld message " + wm, this);
 							m_withheldMessages.Remove(wm);
@@ -508,6 +508,7 @@ namespace Lidgren.Network
 
 			// Common to Sequenced and Ordered
 
+			m_owner.LogVerbose("Setting next expected for " + (NetChannel)chanNr + " to " + nextSeq);
 			m_nextExpectedSequence[chanNr] = nextSeq;
 
 			return;
@@ -527,9 +528,8 @@ namespace Lidgren.Network
 					break;
 				case NetSystemType.Connect:
 
-					// should never get here!
-					throw new NotImplementedException();
-
+					// ConnectReponse must have been losts
+					
 					string appIdent = msg.m_data.ReadString();
 					if (appIdent != m_owner.m_config.ApplicationIdentifier)
 					{
@@ -556,10 +556,6 @@ namespace Lidgren.Network
 					response = m_owner.CreateSystemMessage(NetSystemType.ConnectResponse);
 					m_unsentMessages.Enqueue(response);
 
-					if (m_status != NetConnectionStatus.Connecting)
-						SetStatus(NetConnectionStatus.Connecting, "Connecting...");
-
-					m_handshakeInitiated = now;
 					break;
 				case NetSystemType.ConnectResponse:
 					if (m_status != NetConnectionStatus.Connecting && m_status != NetConnectionStatus.Connected)
