@@ -28,6 +28,14 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Connects to the specified endpoint
+		/// </summary>
+		private void Connect(IPEndPoint remoteEndpoint)
+		{
+			Connect(remoteEndpoint, null);
+		}
+
+		/// <summary>
 		/// Connects to the specified endpoint; passing hailData to the server
 		/// </summary>
 		private void Connect(IPEndPoint remoteEndpoint, byte[] hailData)

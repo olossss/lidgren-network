@@ -69,11 +69,17 @@ namespace Lidgren.Network
 			Connect(new IPEndPoint(ip, port), hailData);
 		}
 
+		/// <summary>
+		/// Connects to the specified remove endpoint
+		/// </summary>
 		public void Connect(IPEndPoint remoteEndpoint)
 		{
 			Connect(remoteEndpoint, null);
 		}
 
+		/// <summary>
+		/// Connects to the specified remote endpoint; passing hailData to the server
+		/// </summary>
 		public void Connect(IPEndPoint remoteEndpoint, byte[] hailData)
 		{
 			m_connectRequested = true;
