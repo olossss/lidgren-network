@@ -41,7 +41,11 @@ namespace ChatClient
 					{
 						case NetMessageType.ServerDiscovered:
 							// just connect to any server found!
-							client.Connect(buffer.ReadIPEndPoint());
+
+							// make hail
+							NetBuffer buf = client.CreateBuffer();
+							buf.Write("Hail from " + Environment.MachineName);
+							client.Connect(buffer.ReadIPEndPoint(), buf.ToArray());
 							break;
 						case NetMessageType.DebugMessage:
 							Console.WriteLine(buffer.ReadString());

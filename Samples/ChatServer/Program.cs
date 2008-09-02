@@ -17,6 +17,7 @@ namespace ChatServer
 
 			// create server and start listening for connections
 			NetServer server = new NetServer(config);
+			server.SetMessageTypeEnabled(NetMessageType.ConnectionApproval, true);
 			server.Start();
 
 			// create a buffer to read data into
@@ -37,6 +38,10 @@ namespace ChatServer
 					{
 						case NetMessageType.DebugMessage:
 							Console.WriteLine(buffer.ReadString());
+							break;
+						case NetMessageType.ConnectionApproval:
+							Console.WriteLine("Approval; hail is " + buffer.ReadString());
+							sender.Approve();
 							break;
 						case NetMessageType.StatusChanged:
 							Console.WriteLine("New status for " + sender + ": " + sender.Status + " (" + buffer.ReadString() + ")");
