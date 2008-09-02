@@ -469,6 +469,8 @@ namespace Lidgren.Network
 			// swap content of buffers
 			byte[] tmp = intoBuffer.Data;
 			intoBuffer.Data = content.Data;
+			if (tmp == null)
+				tmp = new byte[8]; // application must have lost it somehow
 			content.Data = tmp;
 
 			// set correct values for returning value (ignore the other, it's being recycled anyway)
