@@ -69,10 +69,13 @@ namespace Lidgren.Network
 		{
 			if (enabled)
 			{
+#if DEBUG
+#else
 				if ((type | NetMessageType.DebugMessage) == NetMessageType.DebugMessage)
 					throw new NetException("Not possible to enable Debug messages in a Release build!");
 				if ((type | NetMessageType.VerboseDebugMessage) == NetMessageType.VerboseDebugMessage)
 					throw new NetException("Not possible to enable VerboseDebug messages in a Release build!");
+#endif
 				m_enabledMessageTypes |= type;
 			}
 			else
@@ -361,14 +364,17 @@ namespace Lidgren.Network
 
 			if (useBroadcast)
 			{
+				bool wasSSL = m_suppressSimulatedLag;
 				try
 				{
+					m_suppressSimulatedLag = true;
 					m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
 					SendPacket(remoteEP);
 				}
 				finally
 				{
 					m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, false);
+					m_suppressSimulatedLag = wasSSL;
 				}
 			}
 			else
@@ -477,7 +483,7 @@ namespace Lidgren.Network
 			{
 				//m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
 				int bytesSent = m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
-				LogVerbose("Sent " + bytesSent + " bytes");
+				//LogVerbose("Sent " + bytesSent + " bytes");
 				return;
 			}
 			catch (SocketException sex)

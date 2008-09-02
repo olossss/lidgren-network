@@ -263,6 +263,20 @@ namespace Lidgren.Network
 
 			Debug.Assert(message.m_type == NetMessageLibraryType.User || message.m_type == NetMessageLibraryType.UserFragmented);
 
+			if (m_serverConnection.Status == NetConnectionStatus.Connecting)
+			{
+				// lost connectresponse packet?
+				// Emulate it; 
+				LogVerbose("Received user message before ConnectResponse; emulating ConnectResponse...", m_serverConnection);
+				NetMessage emuMsg = CreateMessage();
+				emuMsg.m_type = NetMessageLibraryType.System;
+				emuMsg.m_data.Reset();
+				emuMsg.m_data.Write((byte)NetSystemType.ConnectResponse);
+				m_serverConnection.HandleSystemMessage(emuMsg, now);
+
+				// ... and proceed to pick up user message
+			}
+
 			// add to pick-up queue
 			m_serverConnection.HandleUserMessage(message);
 		}
