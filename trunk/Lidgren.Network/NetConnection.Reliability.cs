@@ -273,8 +273,11 @@ namespace Lidgren.Network
 			}
 
 			// recycle
-			m_owner.m_bufferPool.Push(ackMessage.m_data);
+			NetBuffer rb = ackMessage.m_data;
+			rb.m_refCount = 0; // ack messages can't be used by more than one message
 			ackMessage.m_data = null;
+
+			m_owner.m_bufferPool.Push(rb);
 			m_owner.m_messagePool.Push(ackMessage);
 		}
 	}

@@ -363,9 +363,15 @@ namespace Lidgren.Network
 				}
 				else
 				{
-					// not reliable, don't store - recycle at once
-					m_owner.m_bufferPool.Push(msg.m_data);
+					// not reliable, don't store - recycle
+					NetBuffer b = msg.m_data;
+					b.m_refCount--;
+
 					msg.m_data = null;
+
+					if (b.m_refCount <= 0)
+						m_owner.m_bufferPool.Push(b);
+
 					m_owner.m_messagePool.Push(msg);
 				}
 				messagesInPacket++;

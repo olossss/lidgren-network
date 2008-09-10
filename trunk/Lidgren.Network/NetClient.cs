@@ -54,8 +54,6 @@ namespace Lidgren.Network
 			m_messagePool = new NetPool<NetMessage>(64, 4);
 			m_bufferPool = new NetPool<NetBuffer>(64, 4);
 			m_startLock = new object();
-			m_lockedMessagePool = new NetQueue<NetMessage>();
-			m_lockedBufferPool = new NetQueue<NetBuffer>();
 		}
 
 		/// <summary>
@@ -133,25 +131,6 @@ namespace Lidgren.Network
 		protected override void Heartbeat()
 		{
 			double now = NetTime.Now;
-
-			//
-			// Drain locked pools
-			//
-			// m_messagePool and m_bufferPool is only accessed from this thread; thus no locking
-			// is required for those objects
-			//
-			lock (m_lockedBufferPool)
-			{
-				NetBuffer lb;
-				while ((lb = m_lockedBufferPool.Dequeue()) != null)
-					m_bufferPool.Push(lb);
-			}
-			lock (m_lockedMessagePool)
-			{
-				NetMessage lm;
-				while ((lm = m_lockedMessagePool.Dequeue()) != null)
-					m_messagePool.Push(lm);
-			}
 
 			if (m_shutdownRequested)
 			{
@@ -320,8 +299,7 @@ namespace Lidgren.Network
 			msg.m_data = null;
 			type = msg.m_msgType;
 
-			lock(m_lockedMessagePool)
-				m_lockedMessagePool.Enqueue(msg);
+			m_messagePool.Push(msg);
 
 			// swap content of buffers
 			byte[] tmp = intoBuffer.Data;
@@ -334,9 +312,7 @@ namespace Lidgren.Network
 
 			// recycle
 			content.m_refCount = 0;
-
-			lock(m_lockedBufferPool)
-				m_lockedBufferPool.Enqueue(content);
+			m_bufferPool.Push(content);
 
 			return true;
 		}

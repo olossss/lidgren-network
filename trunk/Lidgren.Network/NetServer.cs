@@ -53,8 +53,6 @@ namespace Lidgren.Network
 			m_connectionLookup = new Dictionary<IPEndPoint, NetConnection>();
 			m_messagePool = new NetPool<NetMessage>(256, 4);
 			m_bufferPool = new NetPool<NetBuffer>(256, 4);
-			m_lockedMessagePool = new NetQueue<NetMessage>();
-			m_lockedBufferPool = new NetQueue<NetBuffer>();
 		}
 		
 		/// <summary>
@@ -69,26 +67,7 @@ namespace Lidgren.Network
 				PerformShutdown(m_shutdownReason);
 				return;
 			}
-
-			//
-			// Drain locked pools
-			//
-			// m_messagePool and m_bufferPool is only accessed from this thread; thus no locking
-			// is required for those objects
-			//
-			lock (m_lockedBufferPool)
-			{
-				NetBuffer lb;
-				while ((lb = m_lockedBufferPool.Dequeue()) != null)
-					m_bufferPool.Push(lb);
-			}
-			lock (m_lockedMessagePool)
-			{
-				NetMessage lm;
-				while ((lm = m_lockedMessagePool.Dequeue()) != null)
-					m_messagePool.Push(lm);
-			}
-
+						
 			// read messages from network
 			BaseHeartbeat(now);
 
@@ -412,8 +391,7 @@ namespace Lidgren.Network
 			msg.m_data = null;
 			type = msg.m_msgType;
 
-			lock (m_lockedMessagePool)
-				m_lockedMessagePool.Enqueue(msg);
+			m_messagePool.Push(msg);
 
 			Debug.Assert(content.Position == 0);
 
@@ -428,9 +406,7 @@ namespace Lidgren.Network
 
 			// recycle NetBuffer object (incl. old intoBuffer byte array)
 			content.m_refCount = 0;
-
-			lock (m_lockedBufferPool)
-				m_lockedBufferPool.Enqueue(content);
+			m_bufferPool.Push(content);
 
 			return true;
 		}
@@ -460,7 +436,10 @@ namespace Lidgren.Network
 			
 			sender = msg.m_sender;
 
-			// recycle NetMessage object
+			//
+			// recycle NetMessage object and NetBuffer
+			//
+
 			NetBuffer content = msg.m_data;
 
 			msg.m_data = null;
@@ -477,16 +456,12 @@ namespace Lidgren.Network
 			intoBuffer.m_bitLength = content.m_bitLength;
 			intoBuffer.m_readPosition = 0;
 
-			// recycle NetBuffer object (incl. old intoBuffer byte array)
+			// recycle message
+			m_messagePool.Push(msg);
+
+			// recycle buffer
 			content.m_refCount = 0;
-
-			// put new message in frontend queue
-			lock (m_lockedMessagePool)
-				m_lockedMessagePool.Enqueue(msg);
-
-			// recycle content
-			lock (m_lockedBufferPool)
-				m_lockedBufferPool.Enqueue(content);
+			m_bufferPool.Push(content);
 
 			return true;
 		}

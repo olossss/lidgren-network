@@ -43,10 +43,6 @@ namespace Lidgren.Network
 		protected string m_shutdownReason;
 		protected bool m_shutdownComplete;
 
-		// pools accessed by user thread (not library thread)
-		internal NetQueue<NetMessage> m_lockedMessagePool;
-		internal NetQueue<NetBuffer> m_lockedBufferPool;
-
 		// ready for reading by the application
 		internal NetQueue<NetMessage> m_receivedMessages;
 
