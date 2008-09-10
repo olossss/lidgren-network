@@ -8,7 +8,7 @@ This is done by enabling the `NetMessageType.ConnectionApproval` type like this:
 myServer.SetMessageTypeEnabled(NetMessageType.ConnectionApproval, true);
 }}}
 
-When you enable this type of message you might receive a `ConnectionApproval` message when calling `ReadMessage`, and you can then examine the hail data supplied and the IP of the connecting party. You then have two options:
+When you enable this type of message you might receive a `ConnectionApproval` message when calling `ReadMessage`, and you can then examine the hail data contained in the NetBuffer returned by the call and the IP of the connecting party. You then have two options:
 
 {{{
 senderConnection.Approve();
