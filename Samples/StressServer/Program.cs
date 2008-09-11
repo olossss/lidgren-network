@@ -94,8 +94,15 @@ namespace StressServer
 					s_userMessagesReceived++;
 
 					// simulate some processing of the message here
-					for (int i = 0; i < buffer.LengthBytes; i++)
+					for (int i = 0; i < buffer.LengthBytes - 2; i++)
 						buffer.ReadByte();
+
+					// check checksum
+					ushort checksum = NetChecksum.Adler16(buffer.Data, 0, buffer.LengthBytes - 2);
+					ushort given = buffer.ReadUInt16();
+					if (checksum != given)
+						WriteToConsole("Wrong checksum! Expected " + checksum + " found given " + given);
+
 					double b = s_userMessagesReceived;
 					for (int i = 0; i < 1000; i++)
 						b += Math.Sqrt((double)i) / Math.Sin(s_tmp);
