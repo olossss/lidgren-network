@@ -122,6 +122,7 @@ namespace Lidgren.Network
 				{
 					NetMessage fmsg = m_owner.m_messagePool.Pop();
 					fmsg.m_type = NetMessageLibraryType.UserFragmented;
+					fmsg.m_msgType = NetMessageType.Data;
 
 					NetBuffer fragBuf = m_owner.CreateBuffer();
 					fragBuf.Write(fragId);
@@ -168,6 +169,7 @@ namespace Lidgren.Network
 			//
 
 			NetMessage msg = m_owner.m_messagePool.Pop();
+			msg.m_msgType = NetMessageType.Data;
 			msg.m_type = NetMessageLibraryType.User;
 			msg.m_data = data;
 			msg.m_data.m_refCount++;

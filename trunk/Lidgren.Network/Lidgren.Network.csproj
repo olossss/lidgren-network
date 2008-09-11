@@ -43,6 +43,7 @@
     <Compile Include="NetBuffer.Peek.cs" />
     <Compile Include="NetBuffer.Read.cs" />
     <Compile Include="NetBuffer.Write.cs" />
+    <Compile Include="NetChecksum.cs" />
     <Compile Include="NetClient.cs" />
     <Compile Include="NetConfiguration.cs" />
     <Compile Include="NetConnection.Approval.cs" />

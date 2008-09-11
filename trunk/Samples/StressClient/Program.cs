@@ -89,6 +89,11 @@ namespace StressClient
 							sendBuffer.Reset();
 							NetRandom.Instance.NextBytes(s_randomData);
 							sendBuffer.Write(s_randomData);
+
+							// calculate and append checksum
+							ushort checksum = NetChecksum.Adler16(s_randomData, 0, s_randomData.Length);
+							sendBuffer.Write(checksum);
+					
 							//m_buffer.Write("Nr: " + s_messagesSent);
 							s_client.SendMessage(sendBuffer, m_sendOnChannel);
 							s_messagesSent++;
