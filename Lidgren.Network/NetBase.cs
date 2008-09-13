@@ -61,6 +61,9 @@ namespace Lidgren.Network
 		/// </summary>
 		public NetMessageType EnabledMessageTypes { get { return m_enabledMessageTypes; } set { m_enabledMessageTypes = value; } }
 
+		/// <summary>
+		/// Enables or disables a particular type of message
+		/// </summary>
 		public void SetMessageTypeEnabled(NetMessageType type, bool enabled)
 		{
 			if (enabled)
@@ -577,6 +580,9 @@ namespace Lidgren.Network
 				m_receivedMessages.Enqueue(msg);
 		}
 		
+		/// <summary>
+		/// Initiates a shutdown
+		/// </summary>
 		public void Shutdown(string reason)
 		{
 			LogWrite("Shutdown initiated (" + reason + ")");

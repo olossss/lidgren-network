@@ -36,18 +36,27 @@ namespace Lidgren.Network
 		[SuppressMessage("Microsoft.Design", "CA1051:DoNotDeclareVisibleInstanceFields")]
 		public byte[] Data;
 
+		/// <summary>
+		/// Creates a new NetBuffer
+		/// </summary>
 		public NetBuffer()
 		{
 			Data = new byte[8];
 		}
 
-		public NetBuffer(int capacity)
+		/// <summary>
+		/// Creates a new NetBuffer initially capable of holding 'capacity' bytes
+		/// </summary>
+		public NetBuffer(int capacityBytes)
 		{
-			if (capacity < 0)
-				capacity = 4;
-			Data = new byte[capacity];
+			if (capacityBytes < 0)
+				capacityBytes = 4;
+			Data = new byte[capacityBytes];
 		}
 
+		/// <summary>
+		/// Creates a new NetBuffer and copies the data supplied
+		/// </summary>
 		public NetBuffer(byte[] copyData)
 		{
 			InternalEnsureBufferSize(m_bitLength + copyData.Length);
@@ -112,8 +121,12 @@ namespace Lidgren.Network
 		{
 			m_bitLength = 0;
 			m_readPosition = 0;
+			m_refCount = 0;
 		}
 		
+		/// <summary>
+		/// Ensures this buffer can hold the specified number of bits prior to a write operation
+		/// </summary>
 		public void EnsureBufferSize(int numberOfBits)
 		{
 			int byteLen = (numberOfBits >> 3) + ((numberOfBits & 7) > 0 ? 1 : 0);
@@ -140,6 +153,9 @@ namespace Lidgren.Network
 			return;
 		}
 
+		/// <summary>
+		/// Copies the content of the buffer to a new byte array
+		/// </summary>
 		public byte[] ToArray()
 		{
 			int len = LengthBytes;

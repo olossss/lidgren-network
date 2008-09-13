@@ -35,6 +35,9 @@ namespace Lidgren.Network
 		protected Dictionary<IPEndPoint, NetConnection> m_connectionLookup;
 		protected bool m_allowOutgoingConnections; // used by NetPeer
 
+		/// <summary>
+		/// Gets a copy of the list of connections
+		/// </summary>
 		public List<NetConnection> Connections
 		{
 			get
@@ -46,6 +49,9 @@ namespace Lidgren.Network
 			}
 		}
 
+		/// <summary>
+		/// Creates a new NetServer
+		/// </summary>
 		public NetServer(NetConfiguration config)
 			: base(config)
 		{

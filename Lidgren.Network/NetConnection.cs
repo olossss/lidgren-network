@@ -142,7 +142,7 @@ namespace Lidgren.Network
 						fragBuf.Write(data.Data, i * chunkSize, bytesInLast);
 					}
 					fmsg.m_data = fragBuf;
-					fmsg.m_data.m_refCount++;
+					fmsg.m_data.m_refCount = 1; // since it's just been created
 
 					fmsg.m_numSent = 0;
 					fmsg.m_nextResend = double.MaxValue;
@@ -365,12 +365,13 @@ namespace Lidgren.Network
 				}
 				else
 				{
-					// not reliable, don't store - recycle
+					// not reliable, don't store - recycle...
 					NetBuffer b = msg.m_data;
 					b.m_refCount--;
 
 					msg.m_data = null;
 
+					// ... unless someone else is using the buffer
 					if (b.m_refCount <= 0)
 						m_owner.m_bufferPool.Push(b);
 

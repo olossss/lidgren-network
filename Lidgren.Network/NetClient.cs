@@ -36,8 +36,14 @@ namespace Lidgren.Network
 		private IPEndPoint m_connectEndpoint;
 		private object m_startLock;
 
+		/// <summary>
+		/// Gets the connection to the server
+		/// </summary>
 		public NetConnection ServerConnection { get { return m_serverConnection; } }
 
+		/// <summary>
+		/// Gets the status of the connection to the server
+		/// </summary>
 		public NetConnectionStatus Status
 		{
 			get
@@ -48,6 +54,9 @@ namespace Lidgren.Network
 			}
 		}
 
+		/// <summary>
+		/// Creates a new NetClient
+		/// </summary>
 		public NetClient(NetConfiguration config)
 			: base(config)
 		{
