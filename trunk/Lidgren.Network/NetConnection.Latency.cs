@@ -25,6 +25,7 @@ namespace Lidgren.Network
 	public sealed partial class NetConnection
 	{
 		private double m_lastSentPing;
+		private double m_lastPongReceived;
 		private double[] m_latencyHistory = new double[3];
 		private double m_currentAvgRoundtrip = 0.5f; // large to avoid initial resends
 		private float m_ackMaxDelayTime = 0.0f;
@@ -58,10 +59,12 @@ namespace Lidgren.Network
 
 		private void CheckPing(double now)
 		{
-			if (m_status == NetConnectionStatus.Connected && now - m_lastSentPing > m_owner.Configuration.PingFrequency)
+			if (m_status == NetConnectionStatus.Connected &&
+				now - m_lastSentPing > m_owner.Configuration.PingFrequency
+			)
 			{
 				// check for timeout
-				if (now - m_lastSentPing > m_owner.Configuration.TimeoutDelay)
+				if (now - m_lastPongReceived > m_owner.Configuration.TimeoutDelay)
 				{
 					// Time out!
 					Disconnect("Connection timed out", 1.0f, true);
@@ -94,6 +97,7 @@ namespace Lidgren.Network
 		private void ReceivedPong(double rtSeconds, NetMessage pong)
 		{
 			double now = NetTime.Now;
+			m_lastPongReceived = now;
 			if (pong != null)
 			{
 				ushort remote = pong.m_data.ReadUInt16();
