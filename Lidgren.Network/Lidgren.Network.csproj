@@ -53,6 +53,7 @@
     <Compile Include="NetConnection.Reliability.cs" />
     <Compile Include="NetConnection.Statistics.cs" />
     <Compile Include="NetConstants.cs" />
+    <Compile Include="NetDiscovery.cs" />
     <Compile Include="NetEnums.cs" />
     <Compile Include="NetEventArgs.cs" />
     <Compile Include="NetException.cs" />

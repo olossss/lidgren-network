@@ -355,11 +355,18 @@ namespace Lidgren.Network
 			m_sendBuffer.Write((ushort)0);
 
 			// payload length; variable byte encoded
-			int dataLen = data.LengthBytes;
-			m_sendBuffer.WriteVariableUInt32((uint)(dataLen + 1));
-
-			m_sendBuffer.Write((byte)tp);
-			m_sendBuffer.Write(data.Data, 0, dataLen);
+			if (data == null)
+			{
+				m_sendBuffer.WriteVariableUInt32((uint)1);
+				m_sendBuffer.Write((byte)tp);
+			}
+			else
+			{
+				int dataLen = data.LengthBytes;
+				m_sendBuffer.WriteVariableUInt32((uint)(dataLen + 1));
+				m_sendBuffer.Write((byte)tp);
+				m_sendBuffer.Write(data.Data, 0, dataLen);
+			}
 
 			if (useBroadcast)
 			{

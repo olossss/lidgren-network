@@ -208,23 +208,24 @@ namespace Lidgren.Network
 							NotifyApplication(NetMessageType.BadMessageReceived, "Connection established received from non-connection! " + senderEndpoint, null);
 						return;
 					case NetSystemType.Discovery:
-						// check app ident
-						if (payLen < 5)
-						{
-							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-								NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Discovery message received from " + senderEndpoint, null);
-							return;
-						}
-						string appIdent2 = message.m_data.ReadString();
-						if (appIdent2 != m_config.ApplicationIdentifier)
-						{
-							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-								NotifyApplication(NetMessageType.BadMessageReceived, "Discovery for different application identification received: " + appIdent2, null);
-							return;
-						}
 
+						if (!NetDiscovery.VerifyIdentifiers(this, message, senderEndpoint))
+							return; // bad app ident or self discovery
+											
 						// send discovery response
-						SendDiscoveryResponse(senderEndpoint);
+						NetDiscovery.SendDiscoveryResponse(this, senderEndpoint);
+						break;
+					case NetSystemType.DiscoveryResponse:
+						if (m_allowOutgoingConnections)
+						{
+							// NetPeer
+							NetMessage resMsg = NetDiscovery.CreateMessageFromResponse(this, message, senderEndpoint);
+							if (resMsg != null)
+							{
+								lock (m_receivedMessages)
+									m_receivedMessages.Enqueue(resMsg);
+							}
+						}
 						break;
 					default:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
@@ -297,7 +298,7 @@ namespace Lidgren.Network
 							break;
 
 						// send discovery response
-						SendDiscoveryResponse(senderEndpoint);
+						NetDiscovery.SendDiscoveryResponse(this, senderEndpoint);
 						break;
 					default:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
@@ -529,18 +530,6 @@ namespace Lidgren.Network
 			if (connection != null)
 				connection.Disconnect("Connection forcibly closed", 0, false);
 			return;
-		}
-
-		private void SendDiscoveryResponse(IPEndPoint senderEndpoint)
-		{
-			m_scratchBuffer.Reset();
-
-			SendSingleUnreliableSystemMessage(
-				NetSystemType.DiscoveryResponse,
-				m_scratchBuffer,
-				senderEndpoint,
-				false
-			);
 		}
 
 		protected override void PerformShutdown(string reason)

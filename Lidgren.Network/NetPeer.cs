@@ -30,7 +30,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Connects to the specified endpoint
 		/// </summary>
-		private void Connect(IPEndPoint remoteEndpoint)
+		public void Connect(IPEndPoint remoteEndpoint)
 		{
 			Connect(remoteEndpoint, null);
 		}
@@ -38,7 +38,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Connects to the specified endpoint; passing hailData to the server
 		/// </summary>
-		private void Connect(IPEndPoint remoteEndpoint, byte[] hailData)
+		public void Connect(IPEndPoint remoteEndpoint, byte[] hailData)
 		{
 			// ensure we're bound to socket
 			if (!m_isBound)
@@ -71,16 +71,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void DiscoverLocalPeers(int port)
 		{
-			if (!m_isBound)
-				Start();
-
-			NetBuffer data = CreateBuffer();
-			//data.Write((byte)NetSystemType.Discovery);
-			data.Write(m_config.ApplicationIdentifier);
-
-			LogWrite("Broadcasting local peer discovery ping...");
-			//BroadcastUnconnectedMessage(data, port);
-			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, new IPEndPoint(IPAddress.Broadcast, port), true);
+			NetDiscovery.SendDiscoveryRequest(this, new IPEndPoint(IPAddress.Broadcast, port), true);
 		}
 
 		/// <summary>
@@ -89,23 +80,16 @@ namespace Lidgren.Network
 		public void DiscoverKnownPeer(string host, int serverPort)
 		{
 			IPAddress address = NetUtility.Resolve(host);
-			IPEndPoint ep = new IPEndPoint(address, serverPort);
-			DiscoverKnownPeer(ep, false);
+			IPEndPoint endPoint = new IPEndPoint(address, serverPort);
+			NetDiscovery.SendDiscoveryRequest(this, endPoint, false);
 		}
 
 		/// <summary>
 		/// Emit a discovery signal to a host or subnet
 		/// </summary>
-		public void DiscoverKnownPeer(IPEndPoint address, bool useBroadcast)
+		public void DiscoverKnownPeer(IPEndPoint endPoint, bool useBroadcast)
 		{
-			if (!m_isBound)
-				Start();
-
-			NetBuffer data = new NetBuffer(m_config.ApplicationIdentifier.Length);
-			data.Write(m_config.ApplicationIdentifier);
-
-			LogWrite("Discovering known server " + address.ToString() + "...");
-			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, address, useBroadcast);
+			NetDiscovery.SendDiscoveryRequest(this, endPoint, useBroadcast);
 		}
 	}
 }

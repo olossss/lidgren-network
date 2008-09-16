@@ -181,31 +181,12 @@ namespace Lidgren.Network
 					NetSystemType sysType = (NetSystemType)message.m_data.Data[0];
 					if (sysType == NetSystemType.DiscoveryResponse)
 					{
-						// DiscoveryResponse found
-						if ((m_enabledMessageTypes & NetMessageType.ServerDiscovered) != NetMessageType.ServerDiscovered)
-							return; // disabled
-
-						byte[] discoverData = new byte[payLen - 1];
-						if (payLen > 1)
-							Buffer.BlockCopy(message.m_data.Data, 1, discoverData, 0, payLen - 1);
-
-						NetMessage resMsg = CreateMessage();
-						resMsg.m_msgType = NetMessageType.ServerDiscovered;
-
-						NetBuffer resBuf = CreateBuffer();
-						resMsg.m_data = resBuf;
-
-						// write sender, assume ipv4
-						resBuf.Write(senderEndpoint);
-						resBuf.Write(discoverData);
-
-						resBuf.Write(BitConverter.ToUInt32(senderEndpoint.Address.GetAddressBytes(), 0));
-						resBuf.Write(senderEndpoint.Port);
-						resBuf.Write(discoverData);
-
-						lock (m_receivedMessages)
-							m_receivedMessages.Enqueue(resMsg);
-
+						NetMessage resMsg = NetDiscovery.CreateMessageFromResponse(this, message, senderEndpoint);
+						if (resMsg != null)
+						{
+							lock (m_receivedMessages)
+								m_receivedMessages.Enqueue(resMsg);
+						}
 						return;
 					}
 				}
@@ -341,16 +322,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void DiscoverLocalServers(int serverPort)
 		{
-			if (!m_isBound)
-				Start();
-
-			NetBuffer data = new NetBuffer(m_config.ApplicationIdentifier.Length);
-			//data.Write((byte)NetSystemType.Discovery);
-			data.Write(m_config.ApplicationIdentifier);
-
-			LogWrite("Broadcasting server discovery ping...");
-			//BroadcastUnconnectedMessage(data, serverPort);
-			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, new IPEndPoint(IPAddress.Broadcast, serverPort), true);
+			NetDiscovery.SendDiscoveryRequest(this, new IPEndPoint(IPAddress.Broadcast, serverPort), true);
 		}
 		
 		/// <summary>
@@ -360,7 +332,8 @@ namespace Lidgren.Network
 		{
 			IPAddress address = NetUtility.Resolve(host);
 			IPEndPoint ep = new IPEndPoint(address, serverPort);
-			DiscoverKnownServer(ep, false);
+
+			NetDiscovery.SendDiscoveryRequest(this, ep, false);
 		}
 
 		/// <summary>
@@ -368,14 +341,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void DiscoverKnownServer(IPEndPoint address, bool useBroadcast)
 		{
-			if (!m_isBound)
-				Start();
-
-			NetBuffer data = new NetBuffer(m_config.ApplicationIdentifier.Length);
-			data.Write(m_config.ApplicationIdentifier);
-			
-			LogWrite("Discovering known server " + address.ToString() + "...");
-			SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, address, useBroadcast);
+			NetDiscovery.SendDiscoveryRequest(this, address, useBroadcast);
 		}
 
 		internal override void HandleConnectionForciblyClosed(NetConnection connection, SocketException sex)
