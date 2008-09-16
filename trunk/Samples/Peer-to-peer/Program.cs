@@ -26,7 +26,7 @@ namespace PeerToPeer
 			s_peer = new NetPeer(config);
 			//s_peer.VerboseLog = true;
 
-			s_peer.SetMessageTypeEnabled(NetMessageType.ConnectionRejected | NetMessageType.BadMessageReceived, true);
+			s_peer.SetMessageTypeEnabled(NetMessageType.ConnectionRejected | NetMessageType.BadMessageReceived | NetMessageType.VerboseDebugMessage, true);
 
 			// start listening for incoming connections
 			s_peer.Start();
@@ -60,12 +60,17 @@ namespace PeerToPeer
 			switch (type)
 			{
 				case NetMessageType.DebugMessage:
+				case NetMessageType.VerboseDebugMessage:
 				case NetMessageType.BadMessageReceived:
 				case NetMessageType.ConnectionRejected:
 					WriteToConsole(buffer.ReadString());
 					break;
 				case NetMessageType.Data:
 					WriteToConsole(source.RemoteEndpoint + " writes: " + buffer.ReadString());
+					break;
+				case NetMessageType.ServerDiscovered:
+					// discovered another peer!
+					s_peer.Connect(buffer.ReadIPEndPoint());
 					break;
 				default:
 					// unhandled
@@ -90,6 +95,12 @@ namespace PeerToPeer
 
 		internal static void Input(string str)
 		{
+			if (str.StartsWith("discover "))
+			{
+				s_peer.DiscoverLocalPeers(Int32.Parse(str.Substring(9)));
+				return;
+			}
+
 			if (str.StartsWith("connect "))
 			{
 				int idx = str.IndexOf(' ', 8);
