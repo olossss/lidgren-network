@@ -140,6 +140,9 @@ namespace Lidgren.Network
 						int bitsInLast = data.LengthBits - (chunkSize * (numFragments - 1) * 8);
 						int bytesInLast = dataLen - (chunkSize * (numFragments - 1));
 						fragBuf.Write(data.Data, i * chunkSize, bytesInLast);
+
+						// add receipt only to last message
+						fmsg.m_receiptData = receiptData;
 					}
 					fmsg.m_data = fragBuf;
 					fmsg.m_data.m_refCount = 1; // since it's just been created
@@ -148,7 +151,6 @@ namespace Lidgren.Network
 					fmsg.m_nextResend = double.MaxValue;
 					fmsg.m_sequenceChannel = channel;
 					fmsg.m_sequenceNumber = -1;
-					fmsg.m_receiptData = receiptData;
 
 					if (isLibraryThread)
 					{
@@ -161,6 +163,8 @@ namespace Lidgren.Network
 					}
 				}
 
+				// TODO: recycle the original, unfragmented data
+
 				return;
 			}
 
@@ -172,7 +176,7 @@ namespace Lidgren.Network
 			msg.m_msgType = NetMessageType.Data;
 			msg.m_type = NetMessageLibraryType.User;
 			msg.m_data = data;
-			msg.m_data.m_refCount++;
+			msg.m_data.m_refCount++; // it could have been sent earlier also
 			msg.m_numSent = 0;
 			msg.m_nextResend = double.MaxValue;
 			msg.m_sequenceChannel = channel;

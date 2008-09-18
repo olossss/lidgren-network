@@ -134,6 +134,10 @@ namespace Lidgren.Network
 		/// </summary>
 		public NetBuffer CreateBuffer()
 		{
+			// TODO: remove when recycling is fixed
+			return new NetBuffer();
+
+
 			NetBuffer retval = m_bufferPool.Pop();
 			retval.Reset();
 			return retval;
@@ -144,6 +148,16 @@ namespace Lidgren.Network
 		/// </summary>
 		internal NetMessage CreateMessage()
 		{
+			// TODO: remove when recycling is fixed
+			NetBuffer buf = new NetBuffer();
+			NetMessage msg = new NetMessage();
+			msg.m_sequenceNumber = -1;
+			msg.m_numSent = 0;
+			msg.m_nextResend = double.MaxValue;
+			msg.m_msgType = NetMessageType.Data;
+			msg.m_data = buf;
+			return msg;
+
 			NetMessage retval = m_messagePool.Pop();
 
 			Debug.Assert(retval.m_data == null);

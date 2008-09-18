@@ -23,6 +23,7 @@ namespace LargePacketServer
 			config.Port = 14242;
 			config.MaxConnections = 16;
 			m_server = new NetServer(config);
+			//m_server.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
 			m_server.Start();
 
 			m_readBuffer = m_server.CreateBuffer();
@@ -61,7 +62,7 @@ namespace LargePacketServer
 									throw new NetException("Bad data!");
 							}
 
-							NativeMethods.AppendText(m_mainForm.richTextBox1, "Received " + m_readBuffer.LengthBytes + " bytes in a single message");
+							NativeMethods.AppendText(m_mainForm.richTextBox1, "Verified " + m_readBuffer.LengthBytes + " bytes in a single message");
 							
 							break;
 					}
