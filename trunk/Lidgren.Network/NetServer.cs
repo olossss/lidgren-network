@@ -308,8 +308,8 @@ namespace Lidgren.Network
 				return;
 			}
 
-			if (message.m_type == NetMessageLibraryType.UserFragmented)
-				throw new NotImplementedException();
+			//if (message.m_type == NetMessageLibraryType.UserFragmented)
+			//	throw new NotImplementedException();
 
 			// Must be user message at this point
 			Debug.Assert(message.m_type == NetMessageLibraryType.User);
