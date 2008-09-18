@@ -2,6 +2,8 @@
 #labels Featured
 
 || Date || Change ||
+|| 2008.09.18 || LargePacket sample added. Fragmentation fixed. Recycling disabled until fixed. ||
+|| 2008.09.16 || NetDiscovery refactored and fixed for `NetPeer`. ||
 || 2008.09.02 || Added `NetChecksum` from old library. `NetBuffer` recycling fixes ||
 || 2008.09.02 || Fixed a bug causing withheld messages to be released prematurely. Now emulating `ConnectResponse` on Client when receiving user messages before connection has been established. Fixed enabling verbose debug messages throwing exception. ||
 || 2008.08.31 || `ConnectionApproval` feature added where server/peer can reject connections due to IP or hail data before they're properly connected ||
