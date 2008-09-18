@@ -312,7 +312,7 @@ namespace Lidgren.Network
 			//	throw new NotImplementedException();
 
 			// Must be user message at this point
-			Debug.Assert(message.m_type == NetMessageLibraryType.User);
+			//Debug.Assert(message.m_type == NetMessageLibraryType.User);
 
 			message.m_sender.HandleUserMessage(message);
 		}
@@ -423,6 +423,9 @@ namespace Lidgren.Network
 		/// </summary>
 		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type, out NetConnection sender)
 		{
+			if (intoBuffer == null)
+				throw new ArgumentNullException("intoBuffer");
+
 			NetMessage msg;
 			lock(m_receivedMessages)
 				msg = m_receivedMessages.Dequeue();

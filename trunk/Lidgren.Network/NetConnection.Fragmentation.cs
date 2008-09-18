@@ -94,7 +94,7 @@ namespace Lidgren.Network
 			// release
 			m_owner.LogVerbose("Accepted " + msg, this);
 
-			Debug.Assert(msg.m_type == NetMessageLibraryType.User);
+			// Debug.Assert(msg.m_type == NetMessageLibraryType.User);
 
 			lock(m_owner.m_receivedMessages)
 				m_owner.m_receivedMessages.Enqueue(msg);
