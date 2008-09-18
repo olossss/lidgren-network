@@ -36,6 +36,18 @@ namespace SamplesCommon
 			}
 		}
 
+		public static void AppendText(RichTextBox box, string line)
+		{
+			try
+			{
+				box.AppendText(line + Environment.NewLine);
+				ScrollRichTextBox(box);
+			}
+			catch
+			{
+			}
+		}
+
 		public static void ScrollRichTextBox(RichTextBox box)
 		{
 			if (box == null || box.IsDisposed || box.Disposing)

@@ -318,6 +318,18 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Sends a message using the specified channel, with the specified data as receipt
+		/// </summary>
+		public void SendMessage(NetBuffer data, NetChannel channel, NetBuffer receipt)
+		{
+			if (m_serverConnection == null || m_serverConnection.Status != NetConnectionStatus.Connected)
+				throw new NetException("You must be connected first!");
+			if ((m_enabledMessageTypes & NetMessageType.Receipt) != NetMessageType.Receipt)
+				LogVerbose("Warning; Receipt messagetype is not enabled!");
+			m_serverConnection.SendMessage(data, channel, receipt);
+		}
+
+		/// <summary>
 		/// Emit a discovery signal to your subnet
 		/// </summary>
 		public void DiscoverLocalServers(int serverPort)
