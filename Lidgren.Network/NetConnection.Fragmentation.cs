@@ -67,7 +67,7 @@ namespace Lidgren.Network
 				fmsg.BitLength += (msg.m_data.m_bitLength - msg.m_data.Position);
 				fmsg.FragmentsReceived++;
 
-				m_owner.LogVerbose("Fragment " + id + " - " + number + "/" + total + " received; chunksize " + fmsg.ChunkSize + " this size " + payloadLen, this);
+				m_owner.LogVerbose("Fragment " + id + " - " + (number+1) + "/" + total + " received; chunksize " + fmsg.ChunkSize + " this size " + payloadLen, this);
 
 				if (fmsg.FragmentsReceived < fmsg.TotalFragments)
 				{

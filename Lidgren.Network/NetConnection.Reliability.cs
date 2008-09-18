@@ -245,7 +245,6 @@ namespace Lidgren.Network
 							NetMessage msg = list[o];
 							if (msg.m_sequenceNumber == seqNr)
 							{
-								m_owner.LogVerbose("Got ack, removed from storage: " + msg, this);
 
 								//LogWrite("Removed stored message: " + msg);
 								list.RemoveAt(o);
@@ -255,7 +254,14 @@ namespace Lidgren.Network
 
 								// fire receipt
 								if (msg.m_receiptData != null)
+								{
+									m_owner.LogVerbose("Got ack, removed from storage: " + msg + " firing receipt; " + msg.m_receiptData, this);
 									m_owner.FireReceipt(this, msg.m_receiptData);
+								}
+								else
+								{
+									m_owner.LogVerbose("Got ack, removed from storage: " + msg, this);
+								}
 
 								// recycle
 								msg.m_data.m_refCount--;

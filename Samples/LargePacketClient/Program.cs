@@ -23,11 +23,12 @@ namespace LargePacketClient
 			m_mainForm = new Form1();
 
 			NetConfiguration config = new NetConfiguration("largepacket");
+			config.SendBufferSize = 128000;
 			m_client = new NetClient(config);
+			//m_client.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
+			m_client.SetMessageTypeEnabled(NetMessageType.Receipt, true);
 
 			m_readBuffer = m_client.CreateBuffer();
-
-			m_client.SetMessageTypeEnabled(NetMessageType.Receipt, true);
 
 			Application.Idle += new EventHandler(OnAppIdle);
 			Application.Run(m_mainForm);
@@ -49,8 +50,18 @@ namespace LargePacketClient
 							break;
 						case NetMessageType.Receipt:
 							NativeMethods.AppendText(m_mainForm.richTextBox1, "Got receipt for packet sized " + m_readBuffer.ReadInt32());
-							m_nextSize *= 2;
-							SendPacket();
+							if (m_client.Status == NetConnectionStatus.Connected)
+							{
+								m_nextSize *= 2;
+								if (m_nextSize > m_client.Configuration.SendBufferSize)
+								{
+									// this is enough
+									NativeMethods.AppendText(m_mainForm.richTextBox1, "Done");
+									m_client.Disconnect("Done");
+									return;
+								}
+								SendPacket();
+							}
 							break;
 						case NetMessageType.VerboseDebugMessage:
 						case NetMessageType.DebugMessage:
@@ -73,7 +84,7 @@ namespace LargePacketClient
 
 		private static void SendPacket()
 		{
-			NetBuffer buf = m_client.CreateBuffer();
+			NetBuffer buf = new NetBuffer(); //  m_client.CreateBuffer();
 			buf.EnsureBufferSize(m_nextSize * 8);
 
 			int cnt = m_nextSize / 4;
