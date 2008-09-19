@@ -72,7 +72,7 @@ namespace DurableClient
 				}
 
 				// send a message every second
-				if (client.Status == NetConnectionStatus.Connected && sw.Elapsed.TotalMilliseconds >= 12)
+				if (client.Status == NetConnectionStatus.Connected && sw.Elapsed.TotalMilliseconds >= 16)
 				{
 					loops++;
 					//Console.WriteLine("Sending message #" + loops);
@@ -86,7 +86,7 @@ namespace DurableClient
 					sw.Start();
 				}
 
-				Thread.Sleep(5);
+				Thread.Sleep(1);
 			}
 
 			// clean shutdown

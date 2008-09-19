@@ -60,8 +60,6 @@ namespace Lidgren.Network
 		public NetClient(NetConfiguration config)
 			: base(config)
 		{
-			m_messagePool = new NetPool<NetMessage>(64, 4);
-			m_bufferPool = new NetPool<NetBuffer>(64, 4);
 			m_startLock = new object();
 		}
 
@@ -289,7 +287,7 @@ namespace Lidgren.Network
 			msg.m_data = null;
 			type = msg.m_msgType;
 
-			m_messagePool.Push(msg);
+			//m_messagePool.Push(msg);
 
 			// swap content of buffers
 			byte[] tmp = intoBuffer.Data;
@@ -301,8 +299,7 @@ namespace Lidgren.Network
 			intoBuffer.m_readPosition = 0;
 
 			// recycle
-			content.m_refCount = 0;
-			m_bufferPool.Push(content);
+			RecycleBuffer(content);
 
 			return true;
 		}

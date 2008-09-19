@@ -11,7 +11,7 @@ namespace Lidgren.Network
 	/// Doesn't cast exceptions when failing to Peek() or Dequeue()
 	/// EnqueueFirst() to push an item on the beginning of the queue
 	/// </summary>
-	public sealed class NetQueue<T> where T : class
+	public sealed class NetQueue<T> : IEnumerable<T> where T : class
 	{
 		private const int m_defaultCapacity = 4;
 
@@ -201,6 +201,36 @@ namespace Lidgren.Network
 			m_items = destinationArray;
 			m_head = 0;
 			m_tail = (m_size == capacity) ? 0 : m_size;
+		}
+
+		public IEnumerator<T> GetEnumerator()
+		{
+			int bufLen = m_items.Length;
+
+			int ptr = m_head;
+			int len = m_size;
+			while (len-- > 0)
+			{
+				yield return m_items[ptr];
+				ptr++;
+				if (ptr >= bufLen)
+					ptr = 0;
+			}
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			int bufLen = m_items.Length;
+
+			int ptr = m_head;
+			int len = m_size;
+			while (len-- > 0)
+			{
+				yield return m_items[ptr];
+				ptr++;
+				if (ptr >= bufLen)
+					ptr = 0;
+			}
 		}
 	}
 }
