@@ -24,7 +24,12 @@ namespace LargePacketClient
 
 			NetConfiguration config = new NetConfiguration("largepacket");
 			config.SendBufferSize = 128000;
+			config.ThrottleBytesPerSecond = 4096;
 			m_client = new NetClient(config);
+			m_client.SimulatedLoss = 0.03f; // 3 %
+			m_client.SimulatedMinimumLatency = 0.1f; // 100 ms
+			m_client.SimulatedLatencyVariance = 0.05f; // 100-150 ms actually
+
 			//m_client.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
 			m_client.SetMessageTypeEnabled(NetMessageType.Receipt, true);
 
@@ -53,9 +58,9 @@ namespace LargePacketClient
 							if (m_client.Status == NetConnectionStatus.Connected)
 							{
 								m_nextSize *= 2;
-								if (m_nextSize > m_client.Configuration.SendBufferSize)
+								if (m_nextSize > 1000000)
 								{
-									// this is enough
+									// 1 meg message is enough
 									NativeMethods.AppendText(m_mainForm.richTextBox1, "Done");
 									m_client.Disconnect("Done");
 									return;
@@ -77,7 +82,9 @@ namespace LargePacketClient
 							break;
 					}
 				}
-								
+
+				if (m_client != null && m_client.ServerConnection != null)
+					m_mainForm.Text = m_client.ServerConnection.Statistics.CurrentlyUnsentMessagesCount + " unsent messages";
 				System.Threading.Thread.Sleep(1);
 			}
 		}

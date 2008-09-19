@@ -220,6 +220,8 @@ namespace Lidgren.Network
 				if (m_simulatedDuplicateChance > 0.0f)
 					LogWrite("Simulating " + (m_simulatedDuplicateChance * 100.0f) + "% chance of packet duplication");
 
+				if (m_config.m_throttleBytesPerSecond > 0)
+					LogWrite("Throtting to " + m_config.m_throttleBytesPerSecond + " bytes per second");
 				m_isBound = true;
 				m_shutdownComplete = false;
 				m_shutdownRequested = false;

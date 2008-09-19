@@ -109,7 +109,7 @@ namespace Lidgren.Network
 		public float DisconnectLingerMaxDelay { get { return m_disconnectLingerMaxDelay; } set { m_disconnectLingerMaxDelay = value; } }
 
 		/// <summary>
-		/// Gets or sets the amount of bytes allowed to be sent per second
+		/// Gets or sets the amount of bytes allowed to be sent per second; set to 0 for no throttling
 		/// </summary>
 		public float ThrottleBytesPerSecond
 		{
