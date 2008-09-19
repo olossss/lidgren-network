@@ -23,6 +23,10 @@ namespace LargePacketServer
 			config.Port = 14242;
 			config.MaxConnections = 16;
 			m_server = new NetServer(config);
+			m_server.SimulatedLoss = 0.03f; // 3 %
+			m_server.SimulatedMinimumLatency = 0.1f; // 100 ms
+			m_server.SimulatedLatencyVariance = 0.05f; // 100-150 ms actually
+
 			//m_server.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
 			m_server.Start();
 

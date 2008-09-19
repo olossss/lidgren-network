@@ -301,6 +301,17 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Current number of unsent messages (possibly due to throttling) for this connection
+		/// </summary>
+		public int CurrentlyUnsentMessagesCount
+		{
+			get
+			{
+				return m_connection.m_unsentMessages.Count;
+			}
+		}
+
+		/// <summary>
 		/// Current number of withheld messages for this connection
 		/// </summary>
 		public int CurrentlyWithheldMessagesCount
@@ -520,7 +531,7 @@ namespace Lidgren.Network
 				window.CountAcknowledgesSent(numberOfAcks);
 		}
 
-		#if !USE_RELEASE_STATISTICS
+#if !USE_RELEASE_STATISTICS
 		[Conditional("DEBUG")]
 #endif
 		internal void CountAcknowledgesReceived(int numberOfAcks)
