@@ -509,6 +509,7 @@ namespace Lidgren.Network
 							m_owner.LogVerbose("Releasing withheld message " + wm, this);
 							m_withheldMessages.Remove(wm);
 							AcceptMessage(wm);
+							SetReceivedRound(wm.m_sequenceNumber, chanNr);
 							nextSeq++;
 							if (nextSeq >= NetConstants.NumSequenceNumbers)
 								nextSeq -= NetConstants.NumSequenceNumbers;
@@ -521,7 +522,7 @@ namespace Lidgren.Network
 
 			// Common to Sequenced and Ordered
 
-			m_owner.LogVerbose("Setting next expected for " + (NetChannel)chanNr + " to " + nextSeq);
+			//m_owner.LogVerbose("Setting next expected for " + (NetChannel)chanNr + " to " + nextSeq);
 			m_nextExpectedSequence[chanNr] = nextSeq;
 
 			return;
