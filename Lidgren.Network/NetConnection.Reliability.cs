@@ -95,20 +95,6 @@ namespace Lidgren.Network
 			return -diff;
 		}
 
-		/// <summary>
-		/// Only use this for messages not using RelateToExpected; ie. when releasing withheld messages
-		/// </summary>
-		private void SetReceivedRound(int receivedSequenceNumber, int chanIdx)
-		{
-			int bufIdx = receivedSequenceNumber % NetConstants.NumKeptSequenceNumbers;
-			uint round = m_currentSequenceRound[chanIdx];
-
-			m_receivedSequences[chanIdx][bufIdx] = round;
-
-			// advance rounds
-			m_currentSequenceRound[chanIdx]++;
-		}
-
 		private void SetSequenceNumber(NetMessage msg)
 		{
 			int idx = (int)msg.m_sequenceChannel;
