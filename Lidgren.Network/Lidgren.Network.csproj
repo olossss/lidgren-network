@@ -36,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="NetBase.cs" />
+    <Compile Include="NetBase.Recycling.cs" />
     <Compile Include="NetBase.SimulateLag.cs" />
     <Compile Include="NetBase.Statistics.cs" />
     <Compile Include="NetBitWriter.cs" />
@@ -59,7 +60,6 @@
     <Compile Include="NetException.cs" />
     <Compile Include="NetMessage.cs" />
     <Compile Include="NetPeer.cs" />
-    <Compile Include="NetPool.cs" />
     <Compile Include="NetQueue.cs" />
     <Compile Include="NetRandom.cs" />
     <Compile Include="NetServer.cs" />

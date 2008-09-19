@@ -35,8 +35,6 @@ namespace Lidgren.Network
 		private EndPoint m_senderRemote;
 		internal bool m_isBound;
 		internal byte[] m_randomIdentifier;
-		internal NetPool<NetMessage> m_messagePool; // created in NetServer, NetClient and NetPeer
-		internal NetPool<NetBuffer> m_bufferPool; // created in NetServer, NetClient and NetPeer
 
 		private object m_bindLock;
 		protected bool m_shutdownRequested;
@@ -129,49 +127,20 @@ namespace Lidgren.Network
 				NetMessageType.DebugMessage | NetMessageType.Receipt;
 		}
 
-		/// <summary>
-		/// Creates (or retrieves a recycled) NetBuffer for sending a message
-		/// </summary>
-		public NetBuffer CreateBuffer()
-		{
-			// TODO: remove when recycling is fixed
-			return new NetBuffer();
-
-
-			NetBuffer retval = m_bufferPool.Pop();
-			retval.Reset();
-			return retval;
-		}
 
 		/// <summary>
 		/// Creates a new NetMessage with a resetted NetBuffer, increasing refCount
 		/// </summary>
 		internal NetMessage CreateMessage()
 		{
-			// TODO: remove when recycling is fixed
-			NetBuffer buf = new NetBuffer();
+			// no recycling for messages
 			NetMessage msg = new NetMessage();
 			msg.m_sequenceNumber = -1;
 			msg.m_numSent = 0;
 			msg.m_nextResend = double.MaxValue;
 			msg.m_msgType = NetMessageType.Data;
-			msg.m_data = buf;
+			msg.m_data = CreateBuffer();
 			return msg;
-
-			NetMessage retval = m_messagePool.Pop();
-
-			Debug.Assert(retval.m_data == null);
-
-			retval.m_sequenceNumber = -1;
-			retval.m_numSent = 0;
-			retval.m_nextResend = double.MaxValue;
-			retval.m_msgType = NetMessageType.Data;
-			NetBuffer buffer = m_bufferPool.Pop();
-			buffer.Reset();
-			retval.m_data = buffer;
-			buffer.m_refCount++;
-
-			return retval;
 		}
 
 		/// <summary>
@@ -222,6 +191,7 @@ namespace Lidgren.Network
 
 				if (m_config.m_throttleBytesPerSecond > 0)
 					LogWrite("Throtting to " + m_config.m_throttleBytesPerSecond + " bytes per second");
+
 				m_isBound = true;
 				m_shutdownComplete = false;
 				m_shutdownRequested = false;

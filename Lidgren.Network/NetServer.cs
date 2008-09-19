@@ -57,8 +57,6 @@ namespace Lidgren.Network
 		{
 			m_connections = new List<NetConnection>();
 			m_connectionLookup = new Dictionary<IPEndPoint, NetConnection>();
-			m_messagePool = new NetPool<NetMessage>(256, 4);
-			m_bufferPool = new NetPool<NetBuffer>(256, 4);
 		}
 		
 		/// <summary>
@@ -398,7 +396,7 @@ namespace Lidgren.Network
 			msg.m_data = null;
 			type = msg.m_msgType;
 
-			m_messagePool.Push(msg);
+			// m_messagePool.Push(msg);
 
 			Debug.Assert(content.Position == 0);
 
@@ -412,8 +410,7 @@ namespace Lidgren.Network
 			intoBuffer.m_readPosition = 0;
 
 			// recycle NetBuffer object (incl. old intoBuffer byte array)
-			content.m_refCount = 0;
-			m_bufferPool.Push(content);
+			RecycleBuffer(content);
 
 			return true;
 		}
@@ -467,11 +464,10 @@ namespace Lidgren.Network
 			intoBuffer.m_readPosition = 0;
 
 			// recycle message
-			m_messagePool.Push(msg);
+			// m_messagePool.Push(msg);
 
 			// recycle buffer
-			content.m_refCount = 0;
-			m_bufferPool.Push(content);
+			RecycleBuffer(content);
 
 			return true;
 		}

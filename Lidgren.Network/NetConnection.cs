@@ -377,9 +377,9 @@ namespace Lidgren.Network
 
 					// ... unless someone else is using the buffer
 					if (b.m_refCount <= 0)
-						m_owner.m_bufferPool.Push(b);
+						m_owner.RecycleBuffer(b);
 
-					m_owner.m_messagePool.Push(msg);
+					//m_owner.m_messagePool.Push(msg);
 				}
 				messagesInPacket++;
 			}

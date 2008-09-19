@@ -24,7 +24,7 @@ namespace LargePacketClient
 
 			NetConfiguration config = new NetConfiguration("largepacket");
 			config.SendBufferSize = 128000;
-			config.ThrottleBytesPerSecond = 4096;
+			config.ThrottleBytesPerSecond = 8192;
 			m_client = new NetClient(config);
 			m_client.SimulatedLoss = 0.03f; // 3 %
 			m_client.SimulatedMinimumLatency = 0.1f; // 100 ms
@@ -44,7 +44,6 @@ namespace LargePacketClient
 			while (NativeMethods.AppStillIdle)
 			{
 				NetMessageType type;
-				NetConnection source;
 				if (m_client.ReadMessage(m_readBuffer, out type))
 				{
 					switch (type)
@@ -91,7 +90,7 @@ namespace LargePacketClient
 
 		private static void SendPacket()
 		{
-			NetBuffer buf = new NetBuffer(); //  m_client.CreateBuffer();
+			NetBuffer buf = m_client.CreateBuffer();
 			buf.EnsureBufferSize(m_nextSize * 8);
 
 			int cnt = m_nextSize / 4;

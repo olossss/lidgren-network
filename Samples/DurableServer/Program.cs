@@ -91,7 +91,7 @@ namespace DurableServer
 							break;
 					}
 				}
-				Thread.Sleep(5);
+				Thread.Sleep(1);
 			}
 
 			// clean shutdown
