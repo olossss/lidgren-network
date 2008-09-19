@@ -4,6 +4,7 @@ using System.Text;
 using Lidgren.Network;
 using System.Threading;
 using System.Diagnostics;
+using System.IO;
 
 namespace DurableClient
 {
@@ -31,6 +32,11 @@ namespace DurableClient
 			client.SetMessageTypeEnabled(NetMessageType.BadMessageReceived, true);
 			client.SetMessageTypeEnabled(NetMessageType.ConnectionRejected, true);
 
+			FileStream fs = new FileStream("./clientlog.txt", FileMode.Create, FileAccess.Write, FileShare.Read);
+			StreamWriter wrt = new StreamWriter(fs);
+			Output(wrt, "Log started at " + DateTime.Now);
+			wrt.Flush();
+
 			// create a stopwatch
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
@@ -44,28 +50,29 @@ namespace DurableClient
 					switch (type)
 					{
 						case NetMessageType.StatusChanged:
-							Console.WriteLine("New status: " + client.Status + " (" + buffer.ReadString() + ")");
+							Output(wrt, "New status: " + client.Status + " (" + buffer.ReadString() + ")");
 							break;
 						case NetMessageType.BadMessageReceived:
 						case NetMessageType.ConnectionRejected:
 						case NetMessageType.DebugMessage:
+						case NetMessageType.VerboseDebugMessage:
 							//
-							// These three types of messages all contain a string in the buffer; display it.
+							// These types of messages all contain a string in the buffer; display it.
 							//
-							Console.WriteLine(buffer.ReadString());
+							Output(wrt, buffer.ReadString());
 							break;
 						case NetMessageType.Data:
 						default:
 							//
 							// For this application; server doesn't send any data... so Data messages are unhandled
 							//
-							Console.WriteLine("Unhandled: " + type + " " + buffer.ToString());
+							Output(wrt, "Unhandled: " + type + " " + buffer.ToString());
 							break;
 					}
 				}
 
 				// send a message every second
-				if (client.Status == NetConnectionStatus.Connected && sw.Elapsed.TotalSeconds >= 1)
+				if (client.Status == NetConnectionStatus.Connected && sw.Elapsed.TotalMilliseconds >= 12)
 				{
 					loops++;
 					//Console.WriteLine("Sending message #" + loops);
@@ -73,7 +80,7 @@ namespace DurableClient
 
 					NetBuffer send = client.CreateBuffer();
 					send.Write("Message #" + loops);
-					client.SendMessage(send, NetChannel.ReliableUnordered);
+					client.SendMessage(send, NetChannel.ReliableInOrder14);
 
 					sw.Reset();
 					sw.Start();
@@ -84,6 +91,13 @@ namespace DurableClient
 
 			// clean shutdown
 			client.Shutdown("Application exiting");
+			wrt.Close();
+		}
+
+		private static void Output(StreamWriter wrt, string str)
+		{
+			Console.WriteLine(str);
+			wrt.WriteLine(str);
 		}
 	}
 }

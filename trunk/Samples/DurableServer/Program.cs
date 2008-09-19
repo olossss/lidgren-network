@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Lidgren.Network;
 using System.Threading;
+using System.IO;
 
 namespace DurableServer
 {
@@ -16,12 +17,18 @@ namespace DurableServer
 			NetServer server = new NetServer(config);
 
 			server.SetMessageTypeEnabled(NetMessageType.ConnectionApproval, true);
+			server.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
 
 			server.SimulatedMinimumLatency = 0.05f;
 			server.SimulatedLatencyVariance = 0.025f;
 			server.SimulatedLoss = 0.03f;
 
 			server.Start();
+
+			FileStream fs = new FileStream("./serverlog.txt", FileMode.Create, FileAccess.Write, FileShare.Read);
+			StreamWriter wrt = new StreamWriter(fs);
+			Output(wrt, "Log started at " + DateTime.Now);
+			wrt.Flush();
 
 			NetBuffer buffer = server.CreateBuffer();
 
@@ -37,7 +44,7 @@ namespace DurableServer
 					switch (type)
 					{
 						case NetMessageType.StatusChanged:
-							Console.WriteLine("New status: " + sender.Status + " (" + buffer.ReadString() + ")");
+							Output(wrt, "New status: " + sender.Status + " (" + buffer.ReadString() + ")");
 							break;
 						case NetMessageType.BadMessageReceived:
 						case NetMessageType.ConnectionRejected:
@@ -45,13 +52,16 @@ namespace DurableServer
 							//
 							// All these types of messages all contain a single string in the buffer; display it
 							//
-							Console.WriteLine(buffer.ReadString());
+							Output(wrt, buffer.ReadString());
+							break;
+						case NetMessageType.VerboseDebugMessage:
+							wrt.WriteLine(buffer.ReadString()); // don't output to console
 							break;
 						case NetMessageType.ConnectionApproval:
 							byte hailByte = buffer.ReadByte();
 							if (hailByte == 42)
 							{
-								Console.WriteLine("Hail ok!");
+								Output(wrt, "Hail ok!");
 								sender.Approve();
 							}
 							else
@@ -67,7 +77,7 @@ namespace DurableServer
 
 							if (nr != expected)
 							{
-								Console.WriteLine("Warning! Expected " + expected + "; received " + nr);
+								Output(wrt, "Warning! Expected " + expected + "; received " + nr + " str is ---" + str + "---");
 							}
 							else
 							{
@@ -77,7 +87,7 @@ namespace DurableServer
 
 							break;
 						default:
-							Console.WriteLine("Unhandled: " + type + " " + buffer.ToString());
+							Output(wrt, "Unhandled: " + type + " " + buffer.ToString());
 							break;
 					}
 				}
@@ -85,7 +95,14 @@ namespace DurableServer
 			}
 
 			// clean shutdown
+			wrt.Close();
 			server.Shutdown("Application exiting");
+		}
+
+		private static void Output(StreamWriter wrt, string str)
+		{
+			Console.WriteLine(str);
+			wrt.WriteLine(str);
 		}
 	}
 }
