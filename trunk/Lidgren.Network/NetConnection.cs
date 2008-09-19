@@ -120,7 +120,7 @@ namespace Lidgren.Network
 
 				for (int i = 0; i < numFragments; i++)
 				{
-					NetMessage fmsg = m_owner.m_messagePool.Pop();
+					NetMessage fmsg = m_owner.CreateMessage();
 					fmsg.m_type = NetMessageLibraryType.UserFragmented;
 					fmsg.m_msgType = NetMessageType.Data;
 
@@ -172,7 +172,7 @@ namespace Lidgren.Network
 			// Normal, unfragmented, message
 			//
 
-			NetMessage msg = m_owner.m_messagePool.Pop();
+			NetMessage msg = m_owner.CreateMessage();
 			msg.m_msgType = NetMessageType.Data;
 			msg.m_type = NetMessageLibraryType.User;
 			msg.m_data = data;
@@ -509,7 +509,7 @@ namespace Lidgren.Network
 							m_owner.LogVerbose("Releasing withheld message " + wm, this);
 							m_withheldMessages.Remove(wm);
 							AcceptMessage(wm);
-							SetReceivedRound(wm.m_sequenceNumber, chanNr);
+							// no need to set rounds for this message; it was one when first related() and withheld
 							nextSeq++;
 							if (nextSeq >= NetConstants.NumSequenceNumbers)
 								nextSeq -= NetConstants.NumSequenceNumbers;
