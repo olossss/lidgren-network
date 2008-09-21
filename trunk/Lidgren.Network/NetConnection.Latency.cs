@@ -46,10 +46,6 @@ namespace Lidgren.Network
 			if (roundtripTime > 2.0)
 				roundtripTime = 2.0; // sounds awfully high?
 
-			roundtripTime -= 0.1f;
-			if (roundtripTime < 0.005)
-				roundtripTime = 0.005; // minimum 5 ms
-
 			m_latencyHistory[2] = roundtripTime * 1.25 + 0.01; // overestimate
 			m_latencyHistory[1] = roundtripTime * 1.15 + 0.005; // overestimate
 			m_latencyHistory[0] = roundtripTime * 1.1; // overestimate
@@ -72,26 +68,38 @@ namespace Lidgren.Network
 				}
 
 				// send ping
-				SendPingPong(now, NetSystemType.Ping);
+				SendPing(now);
 			}
 
 		}
 
-		private void SendPingPong(double now, NetSystemType pingOrPong)
+		private void SendPing(double now)
 		{
-			Debug.Assert(pingOrPong == NetSystemType.Ping || pingOrPong == NetSystemType.Pong);
-
 			ushort nowEnc = NetTime.Encoded(now);
 			NetBuffer buffer = m_owner.m_scratchBuffer;
 			buffer.Reset();
 			buffer.Write(nowEnc);
 			m_owner.SendSingleUnreliableSystemMessage(
-				pingOrPong,
+				NetSystemType.Ping,
 				buffer,
 				m_remoteEndPoint,
 				false
 			);
 			m_lastSentPing = now;
+		}
+
+		private void SendPong(double now)
+		{
+			ushort nowEnc = NetTime.Encoded(now);
+			NetBuffer buffer = m_owner.m_scratchBuffer;
+			buffer.Reset();
+			buffer.Write(nowEnc);
+			m_owner.SendSingleUnreliableSystemMessage(
+				NetSystemType.Pong,
+				buffer,
+				m_remoteEndPoint,
+				false
+			);
 		}
 
 		private void ReceivedPong(double rtSeconds, NetMessage pong)
@@ -106,7 +114,7 @@ namespace Lidgren.Network
 				if (diff < 0)
 					diff += ushort.MaxValue;
 				m_remoteTimeOffset = diff; // TODO: slowly go towards? (m_remoteTimeOffset + diff) / 2;
-				//LogWrite("GOT PONG; remote is " + remote + " local is " + local + " = offset " + m_remoteTimeOffset);
+				//m_owner.LogWrite("GOT PONG; remote is " + remote + " local is " + local + " = offset " + m_remoteTimeOffset);
 			}
 
 			m_latencyHistory[2] = m_latencyHistory[1];

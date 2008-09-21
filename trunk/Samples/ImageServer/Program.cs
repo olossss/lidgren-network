@@ -82,6 +82,8 @@ namespace ImageServer
 						if (conn.Status == NetConnectionStatus.Connected)
 						{
 							NetBuffer outBuf = null;
+							if (conn.Tag == null)
+								continue;
 							switch ((ImageClientStatus)conn.Tag)
 							{
 								case ImageClientStatus.JustConnected:

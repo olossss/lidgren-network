@@ -312,13 +312,20 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Current number of withheld messages for this connection
+		/// Current number of all withheld messages for this connection
 		/// </summary>
 		public int CurrentlyWithheldMessagesCount
 		{
 			get
 			{
-				return m_connection.m_withheldMessages.Count;
+				int retval = 0;
+				for (int i = 0; i < m_connection.m_withheldMessages.Length; i++)
+				{
+					List<NetMessage> list = m_connection.m_withheldMessages[i];
+					if (list != null)
+						retval += list.Count;
+				}
+				return retval;
 			}
 		}
 

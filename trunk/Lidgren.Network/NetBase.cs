@@ -49,7 +49,7 @@ namespace Lidgren.Network
 		internal NetBuffer m_sendBuffer;
 		internal NetBuffer m_scratchBuffer;
 
-		private Thread m_heartbeatThread;
+		internal Thread m_heartbeatThread;
 		private int m_runSleep = 1;
 
 		internal NetMessageType m_enabledMessageTypes;

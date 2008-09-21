@@ -8,34 +8,35 @@ namespace LargePacketServer
 {
 	static class Program
 	{
-		private static NetServer m_server;
-		private static NetBuffer m_readBuffer;
-		private static Form1 m_mainForm;
+		private static NetServer s_server;
+		private static NetBuffer s_readBuffer;
+		private static Form1 s_mainForm;
+		private static double s_nextDisplay;
  
 		[STAThread]
 		static void Main()
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			m_mainForm = new Form1();
+			s_mainForm = new Form1();
 
 			NetConfiguration config = new NetConfiguration("largepacket");
 			config.Port = 14242;
 			config.MaxConnections = 16;
-			m_server = new NetServer(config);
-			m_server.SimulatedLoss = 0.03f; // 3 %
-			m_server.SimulatedMinimumLatency = 0.1f; // 100 ms
-			m_server.SimulatedLatencyVariance = 0.05f; // 100-150 ms actually
+			s_server = new NetServer(config);
+			s_server.SimulatedLoss = 0.03f; // 3 %
+			s_server.SimulatedMinimumLatency = 0.1f; // 100 ms
+			s_server.SimulatedLatencyVariance = 0.05f; // 100-150 ms actually
 
 			//m_server.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
-			m_server.Start();
+			s_server.Start();
 
-			m_readBuffer = m_server.CreateBuffer();
+			s_readBuffer = s_server.CreateBuffer();
 
 			Application.Idle += new EventHandler(OnAppIdle);
-			Application.Run(m_mainForm);
+			Application.Run(s_mainForm);
 
-			m_server.Shutdown("Application exiting");
+			s_server.Shutdown("Application exiting");
 		}
 
 		static void OnAppIdle(object sender, EventArgs e)
@@ -44,7 +45,7 @@ namespace LargePacketServer
 			{
 				NetMessageType type;
 				NetConnection source;
-				if (m_server.ReadMessage(m_readBuffer, out type, out source))
+				if (s_server.ReadMessage(s_readBuffer, out type, out source))
 				{
 					switch (type)
 					{
@@ -52,24 +53,31 @@ namespace LargePacketServer
 						case NetMessageType.DebugMessage:
 						case NetMessageType.BadMessageReceived:
 						case NetMessageType.StatusChanged:
-							NativeMethods.AppendText(m_mainForm.richTextBox1, m_readBuffer.ReadString());
+							NativeMethods.AppendText(s_mainForm.richTextBox1, s_readBuffer.ReadString());
 							break;
 						case NetMessageType.Data:
-							int cnt = m_readBuffer.LengthBytes / 4;
-							if (cnt * 4 != m_readBuffer.LengthBytes)
+							int cnt = s_readBuffer.LengthBytes / 4;
+							if (cnt * 4 != s_readBuffer.LengthBytes)
 								throw new NetException("Bad size!");
 
 							for (int i = 0; i < cnt; i++)
 							{
-								int a = m_readBuffer.ReadInt32();
+								int a = s_readBuffer.ReadInt32();
 								if (a != i)
 									throw new NetException("Bad data!");
 							}
 
-							NativeMethods.AppendText(m_mainForm.richTextBox1, "Verified " + m_readBuffer.LengthBytes + " bytes in a single message");
+							NativeMethods.AppendText(s_mainForm.richTextBox1, "Verified " + s_readBuffer.LengthBytes + " bytes in a single message");
 							
 							break;
 					}
+				}
+
+				if (NetTime.Now > s_nextDisplay)
+				{
+					if (s_server.Connections.Count > 0)
+						s_mainForm.label1.Text = s_server.GetStatisticsString(s_server.Connections[0]);
+					s_nextDisplay = NetTime.Now + 0.2; // five times per second
 				}
 
 				System.Threading.Thread.Sleep(1);

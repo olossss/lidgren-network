@@ -48,6 +48,11 @@ namespace Lidgren.Network
 			}
 		}
 
+		public static string ToMillis(double time)
+		{
+			return ((int)(time * 1000.0)).ToString();
+		}
+
 		/// <summary>
 		/// Get encoded cyclic ushort from a certain timestamp
 		/// </summary>
