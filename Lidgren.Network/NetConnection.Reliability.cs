@@ -8,28 +8,35 @@ namespace Lidgren.Network
 	{
 		internal double[] m_earliestResend;
 		internal Queue<int> m_acknowledgesToSend;
-		internal ushort[] m_nextExpectedSequence;
+		//internal ushort[] m_nextExpectedSequence;
 		internal List<NetMessage>[] m_storedMessages;
-		internal List<NetMessage> m_withheldMessages;
+		//internal List<NetMessage> m_withheldMessages;
 		internal List<NetMessage> m_removeList;
-		internal uint[][] m_receivedSequences;
+		//internal uint[][] m_receivedSequences;
 		private int[] m_nextSequenceToSend;
-		private uint[] m_currentSequenceRound;
+		//private uint[] m_currentSequenceRound;
+
+
+		// next expected UnreliableOrdered
+		private int[] m_nextExpectedSequenced = new int[16];
+		private bool[][] m_reliableReceived = new bool[NetConstants.NumSequenceChannels][];
+		internal List<NetMessage>[] m_withheldMessages = new List<NetMessage>[16]; // number of reliable channels
+		private int[] m_allReliableReceivedUpTo = new int[16];
 
 		internal void InitializeReliability()
 		{
 			m_storedMessages = new List<NetMessage>[NetConstants.NumReliableChannels];
-			m_withheldMessages = new List<NetMessage>(2);
-			m_nextExpectedSequence = new ushort[NetConstants.NumSequenceChannels];
+			//m_withheldMessages = new List<NetMessage>(2);
+			//m_nextExpectedSequence = new ushort[NetConstants.NumSequenceChannels];
 			m_nextSequenceToSend = new int[NetConstants.NumSequenceChannels];
 
-			m_currentSequenceRound = new uint[NetConstants.NumSequenceChannels];
-			for (int i = 0; i < m_currentSequenceRound.Length; i++)
-				m_currentSequenceRound[i] = NetConstants.NumKeptSequenceNumbers;
+			//m_currentSequenceRound = new uint[NetConstants.NumSequenceChannels];
+			//for (int i = 0; i < m_currentSequenceRound.Length; i++)
+			//	m_currentSequenceRound[i] = NetConstants.NumKeptSequenceNumbers;
 
-			m_receivedSequences = new uint[NetConstants.NumSequenceChannels][];
-			for (int i = 0; i < m_receivedSequences.Length; i++)
-				m_receivedSequences[i] = new uint[NetConstants.NumKeptSequenceNumbers];
+			//m_receivedSequences = new uint[NetConstants.NumSequenceChannels][];
+			//for (int i = 0; i < m_receivedSequences.Length; i++)
+			//	m_receivedSequences[i] = new uint[NetConstants.NumKeptSequenceNumbers];
 
 			m_earliestResend = new double[NetConstants.NumReliableChannels];
 			for (int i = 0; i < m_earliestResend.Length; i++)
@@ -43,19 +50,26 @@ namespace Lidgren.Network
 		{
 			for (int i = 0; i < m_storedMessages.Length; i++)
 				m_storedMessages[i] = null;
-			m_withheldMessages.Clear();
 
-			for(int i=0;i<NetConstants.NumSequenceChannels;i++)
+			for (int i = 0; i < m_allReliableReceivedUpTo.Length; i++)
+				m_allReliableReceivedUpTo[i] = 0;
+
+			for (int i = 0; i < m_withheldMessages.Length; i++)
 			{
-				m_nextExpectedSequence[i] = 0;
-				m_nextSequenceToSend[i] = 0;
-				m_currentSequenceRound[i] = NetConstants.NumKeptSequenceNumbers;
+				if (m_withheldMessages[i] != null)
+					m_withheldMessages[i].Clear();
 			}
 
-			for (int i = 0; i < m_receivedSequences.Length; i++)
+			for(int i=0;i<m_nextExpectedSequenced.Length;i++)
+				m_nextExpectedSequenced[i] = 0;
+		
+			for(int i=0;i<NetConstants.NumSequenceChannels;i++)
 			{
-				for (int o = 0; o < m_receivedSequences[i].Length; o++)
-					m_receivedSequences[i][o] = 0;
+				if (m_reliableReceived[i] != null)
+				{
+					for (int o = 0; o < m_reliableReceived[i].Length; o++)
+						m_reliableReceived[i][o] = false;
+				}
 			}
 
 			m_acknowledgesToSend.Clear();
@@ -64,38 +78,173 @@ namespace Lidgren.Network
 
 		/// <summary>
 		/// Returns positive numbers for early, 0 for as expected, negative numbers for late message
-		/// Does NOT increase expected sequence number, but does set round
 		/// </summary>
-		private int RelateToExpected(int receivedSequenceNumber, int chanIdx, out bool isDuplicate)
+		private int Relate(int receivedSequenceNumber, int expected)
 		{
-			int bufIdx = receivedSequenceNumber % NetConstants.NumKeptSequenceNumbers;
-
-			int expected = m_nextExpectedSequence[chanIdx];
-			uint round = m_currentSequenceRound[chanIdx];
-
 			int diff = expected - receivedSequenceNumber;
 			if (diff < -NetConstants.EarlyArrivalWindowSize)
 				diff += NetConstants.NumSequenceNumbers;
 			else if (diff > NetConstants.EarlyArrivalWindowSize)
 				diff -= NetConstants.NumSequenceNumbers;
-
-			if (round - m_receivedSequences[chanIdx][bufIdx] < NetConstants.NumKeptSequenceNumbers / 3)
-			{
-				isDuplicate = true;
-			}
-			else
-			{
-				isDuplicate = false;
-				m_receivedSequences[chanIdx][bufIdx] = round;
-
-				// advance rounds
-				m_currentSequenceRound[chanIdx]++;
-			}
-
 			return -diff;
 		}
 
-		private void SetSequenceNumber(NetMessage msg)
+		/// <summary>
+		/// Process a user message
+		/// </summary>
+		internal void HandleUserMessage(NetMessage msg)
+		{
+#if DEBUG
+			if (System.Threading.Thread.CurrentThread != m_owner.m_heartbeatThread)
+				throw new Exception("Threading error; should be heartbeat thread. Please check callstack!");
+#endif
+
+			//
+			// Unreliable
+			//
+			if (msg.m_sequenceChannel == NetChannel.Unreliable)
+			{
+				AcceptMessage(msg);
+				return;
+			}
+
+			//
+			// Sequenced
+			//
+			if (msg.m_sequenceChannel >= NetChannel.UnreliableInOrder1 && msg.m_sequenceChannel <= NetChannel.UnreliableInOrder15)
+			{
+				// relate to expected
+				int seqChanNr = (int)msg.m_sequenceChannel - (int)NetChannel.UnreliableInOrder1;
+				int sdiff = Relate(msg.m_sequenceNumber, m_nextExpectedSequenced[seqChanNr]);
+
+				if (sdiff < 0)
+				{
+					// Reject late sequenced message
+					m_owner.LogVerbose("Rejecting late sequenced " + msg, this);
+					return;
+				}
+				AcceptMessage(msg);
+			}
+
+			//
+			// Reliable and ReliableOrdered
+			//
+
+			// Send ack, regardless of anything
+			m_acknowledgesToSend.Enqueue(((int)msg.m_sequenceChannel << 16) | msg.m_sequenceNumber);
+
+			// relate to all received up to
+			int relChanNr = (int)msg.m_sequenceChannel - (int)NetChannel.ReliableUnordered;
+			int arut = m_allReliableReceivedUpTo[relChanNr];
+			int diff = Relate(msg.m_sequenceNumber, arut);
+
+			if (diff < 0)
+			{
+				// Reject duplicate
+				m_statistics.CountDuplicateMessage(msg);
+				m_owner.LogVerbose("Rejecting(1) duplicate reliable " + msg, this);
+				return;
+			}
+
+			bool isOrdered = (msg.m_sequenceChannel >= NetChannel.ReliableInOrder1);
+
+			if (arut == msg.m_sequenceNumber)
+			{
+				// Right on time
+				AcceptMessage(msg);
+				PostAcceptReliableMessage(msg, arut);
+				return;
+			}
+
+			// get bools list we must check
+			bool[] recList = m_reliableReceived[relChanNr];
+			if (recList == null)
+			{
+				recList = new bool[NetConstants.NumSequenceNumbers];
+				m_reliableReceived[relChanNr] = recList;
+			}
+
+			if (recList[msg.m_sequenceNumber])
+			{
+				// Reject duplicate
+				m_statistics.CountDuplicateMessage(msg);
+				m_owner.LogVerbose("Rejecting(2) duplicate reliable " + msg, this);
+				return;
+			}
+
+			// It's an early reliable message
+			if (m_reliableReceived[relChanNr] == null)
+				m_reliableReceived[relChanNr] = new bool[NetConstants.NumSequenceNumbers];
+			m_reliableReceived[relChanNr][msg.m_sequenceNumber] = true;
+
+			if (!isOrdered)
+			{
+				AcceptMessage(msg);
+				return;
+			}
+
+			// Early ordered message; withhold
+			List<NetMessage> wmlist = m_withheldMessages[relChanNr];
+			if (wmlist == null)
+			{
+				wmlist = new List<NetMessage>();
+				m_withheldMessages[relChanNr] = wmlist;
+			}
+
+			m_owner.LogVerbose("Withholding " + msg + " (waiting for " + arut + ")", this);
+			wmlist.Add(msg);
+			return;
+		}
+
+		/// <summary>
+		/// Run this when current ARUT arrives
+		/// </summary>
+		private void PostAcceptReliableMessage(NetMessage msg, int arut)
+		{
+			int seqChan = (int)msg.m_sequenceChannel;
+			int relChanNr = seqChan - (int)NetChannel.ReliableUnordered;
+
+			// step forward until next AllReliableReceivedUpTo (arut)
+			bool nextArutAlreadyReceived = false;
+			do
+			{
+				if (m_reliableReceived[relChanNr] == null)
+					m_reliableReceived[relChanNr] = new bool[NetConstants.NumSequenceNumbers];
+				m_reliableReceived[relChanNr][arut] = false;
+				arut++;
+				if (arut >= NetConstants.NumSequenceNumbers)
+					arut = 0;
+				nextArutAlreadyReceived = m_reliableReceived[relChanNr][arut];
+				if (nextArutAlreadyReceived)
+				{
+					// ordered?
+					if (seqChan >= (int)NetChannel.ReliableInOrder1)
+					{
+						// this should be a withheld message
+						int wmlidx = (int)seqChan - (int)NetChannel.ReliableUnordered;
+						bool foundWithheld = false;
+						foreach (NetMessage wm in m_withheldMessages[wmlidx])
+						{
+							if ((int)wm.m_sequenceChannel == seqChan && wm.m_sequenceNumber == arut)
+							{
+								// Found withheld message due for delivery
+								m_owner.LogVerbose("Releasing withheld message " + wm, this);
+								AcceptMessage(wm);
+								foundWithheld = true;
+								m_withheldMessages[wmlidx].Remove(wm);
+								break;
+							}
+						}
+						if (!foundWithheld)
+							throw new NetException("Failed to find withheld message!");
+					}
+				}
+			} while (nextArutAlreadyReceived);
+
+			m_allReliableReceivedUpTo[relChanNr] = arut;
+		}
+
+		private void AssignSequenceNumber(NetMessage msg)
 		{
 			int idx = (int)msg.m_sequenceChannel;
 			int nr = m_nextSequenceToSend[idx];
@@ -118,12 +267,12 @@ namespace Lidgren.Network
 			}
 			list.Add(msg);
 
-			m_owner.LogVerbose("Stored " + msg, this);
-
 			// schedule resend
 			float multiplier = (1 + (msg.m_numSent * msg.m_numSent)) * m_owner.m_config.m_resendTimeMultiplier;
 			double nextResend = now + (0.025f + (float)m_currentAvgRoundtrip * 1.1f * multiplier);
 			msg.m_nextResend = nextResend;
+
+			m_owner.LogVerbose("Stored " + msg + " @ " + NetTime.ToMillis(now) + " next resend in " + NetTime.ToMillis(msg.m_nextResend - now) + " ms", this);
 
 			// earliest?
 			if (nextResend < m_earliestResend[chanBufIdx])
@@ -147,7 +296,9 @@ namespace Lidgren.Network
 						if (now > resend)
 						{
 							// Re-enqueue message in unsent list
-							m_owner.LogVerbose("Resending " + msg, this);
+							m_owner.LogVerbose("Resending " + msg +
+								" now: " + NetTime.ToMillis(now) +
+								" nextResend: " + NetTime.ToMillis(msg.m_nextResend), this);
 							m_statistics.CountMessageResent(msg.m_type);
 							m_removeList.Add(msg);
 							m_unsentMessages.Enqueue(msg);

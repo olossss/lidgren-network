@@ -23,6 +23,9 @@ namespace Lidgren.Network
 		private double m_lastSentUnsentMessages;
 		internal bool m_approved;
 
+		private bool m_requestDisconnect;
+		private float m_requestLinger;
+		private bool m_requestSendGoodbye;
 		private double m_futureClose;
 		private string m_futureDisconnectReason;
 
@@ -256,6 +259,9 @@ namespace Lidgren.Network
 				CheckPing(now);
 			}
 
+			if (m_requestDisconnect)
+				InitiateDisconnect();
+
 			if (now > m_futureClose)
 				FinalizeDisconnect();
 
@@ -264,12 +270,6 @@ namespace Lidgren.Network
 
 			// send all unsent messages
 			SendUnsentMessages(now);
-		}
-
-		private void FinalizeDisconnect()
-		{
-			SetStatus(NetConnectionStatus.Disconnected, m_futureDisconnectReason);
-			ResetReliability();
 		}
 
 		private void SendUnsentMessages(double now)
@@ -349,7 +349,7 @@ namespace Lidgren.Network
 				}
 
 				if (msg.m_sequenceNumber == -1)
-					SetSequenceNumber(msg);
+					AssignSequenceNumber(msg);
 
 				// pop and encode message
 				m_unsentMessages.Dequeue();
@@ -396,6 +396,7 @@ namespace Lidgren.Network
 			}
 		}
 
+		/*
 		internal void HandleUserMessage(NetMessage msg)
 		{
 			int seqNr = msg.m_sequenceNumber;
@@ -527,6 +528,7 @@ namespace Lidgren.Network
 
 			return;
 		}
+		*/
 
 		internal void HandleSystemMessage(NetMessage msg, double now)
 		{
@@ -612,7 +614,7 @@ namespace Lidgren.Network
 					}
 
 					//LogWrite("Received ping; sending pong...");
-					SendPingPong(now, NetSystemType.Pong);
+					SendPong(now);
 					break;
 				case NetSystemType.Pong:
 					double twoWayLatency = now - m_lastSentPing;
@@ -639,11 +641,19 @@ namespace Lidgren.Network
 			if (m_status == NetConnectionStatus.Disconnected)
 				return;
 
-			if (sendGoodbye)
+			m_futureDisconnectReason = reason;
+			m_requestLinger = lingerSeconds;
+			m_requestSendGoodbye = sendGoodbye;
+			m_requestDisconnect = true;
+		}
+
+		private void InitiateDisconnect()
+		{
+			if (m_requestSendGoodbye)
 			{
 				NetBuffer scratch = m_owner.m_scratchBuffer;
 				scratch.Reset();
-				scratch.Write(string.IsNullOrEmpty(reason) ? "" : reason);
+				scratch.Write(string.IsNullOrEmpty(m_futureDisconnectReason) ? "" : m_futureDisconnectReason);
 				m_owner.SendSingleUnreliableSystemMessage(
 					NetSystemType.Disconnect,
 					scratch,
@@ -652,19 +662,27 @@ namespace Lidgren.Network
 				);
 			}
 
-			if (lingerSeconds <= 0)
+			if (m_requestLinger <= 0)
 			{
-				SetStatus(NetConnectionStatus.Disconnected, reason);
+				SetStatus(NetConnectionStatus.Disconnected, m_futureDisconnectReason);
 				FinalizeDisconnect();
 				m_futureClose = double.MaxValue;
-				m_futureDisconnectReason = null;
 			}
 			else
 			{
-				SetStatus(NetConnectionStatus.Disconnecting, reason);
-				m_futureClose = NetTime.Now + lingerSeconds;
-				m_futureDisconnectReason = reason;
+				SetStatus(NetConnectionStatus.Disconnecting, m_futureDisconnectReason);
+				m_futureClose = NetTime.Now + m_requestLinger;
 			}
+
+			m_requestDisconnect = false;
 		}
+
+		private void FinalizeDisconnect()
+		{
+			SetStatus(NetConnectionStatus.Disconnected, m_futureDisconnectReason);
+			ResetReliability();
+		}
+
+
 	}
 }

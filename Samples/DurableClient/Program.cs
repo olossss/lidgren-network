@@ -30,6 +30,7 @@ namespace DurableClient
 
 			// enable some library messages
 			client.SetMessageTypeEnabled(NetMessageType.BadMessageReceived, true);
+			client.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
 			client.SetMessageTypeEnabled(NetMessageType.ConnectionRejected, true);
 
 			FileStream fs = new FileStream("./clientlog.txt", FileMode.Create, FileAccess.Write, FileShare.Read);
@@ -72,12 +73,13 @@ namespace DurableClient
 				}
 
 				// send a message every second
-				if (client.Status == NetConnectionStatus.Connected && sw.Elapsed.TotalMilliseconds >= 16)
+				if (client.Status == NetConnectionStatus.Connected && sw.Elapsed.TotalMilliseconds >= 516)
 				{
 					loops++;
 					//Console.WriteLine("Sending message #" + loops);
 					Console.Title = "Client; Messages sent: " + loops;
 
+					Output(wrt, "Sending #" + loops + " at " + NetTime.ToMillis(NetTime.Now));
 					NetBuffer send = client.CreateBuffer();
 					send.Write("Message #" + loops);
 					client.SendMessage(send, NetChannel.ReliableInOrder14);

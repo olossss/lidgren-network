@@ -14,6 +14,7 @@ namespace LargePacketClient
 		private static NetClient m_client;
 		private static NetBuffer m_readBuffer;
 		private static int m_nextSize;
+		private static double s_nextDisplay;
 
 		[STAThread]
 		static void Main()
@@ -84,6 +85,13 @@ namespace LargePacketClient
 
 				if (m_client != null && m_client.ServerConnection != null)
 					m_mainForm.Text = m_client.ServerConnection.Statistics.CurrentlyUnsentMessagesCount + " unsent messages";
+
+				if (NetTime.Now > s_nextDisplay)
+				{
+					m_mainForm.label1.Text = m_client.GetStatisticsString(m_client.ServerConnection);
+					s_nextDisplay = NetTime.Now + 0.2; // five times per second
+				}
+
 				System.Threading.Thread.Sleep(1);
 			}
 		}

@@ -19,6 +19,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 
 namespace Lidgren.Network
 {
@@ -132,6 +133,10 @@ namespace Lidgren.Network
 
 		private void DelayPacket(byte[] data, int length, IPEndPoint remoteEP, float delay)
 		{
+#if DEBUG
+			if (Thread.CurrentThread != m_heartbeatThread)
+				throw new Exception("Threading error; should be heartbeat thread. Please check callstack!");
+#endif
 			DelayedPacket pk = new DelayedPacket();
 			pk.Data = new byte[length];
 			Buffer.BlockCopy(data, 0, pk.Data, 0, length);
