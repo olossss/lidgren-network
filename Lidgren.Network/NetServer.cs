@@ -116,6 +116,19 @@ namespace Lidgren.Network
 
 			int payLen = message.m_data.LengthBytes;
 
+			// Out of band?
+			if (message.m_type == NetMessageLibraryType.OutOfBand)
+			{
+				if ((m_enabledMessageTypes & NetMessageType.OutOfBandData) != NetMessageType.OutOfBandData)
+					return; // drop
+
+				// just deliever
+				message.m_msgType = NetMessageType.OutOfBandData;
+				lock (m_receivedMessages)
+					m_receivedMessages.Enqueue(message);
+				return;
+			}
+
 			if (message.m_sender == null)
 			{
 				//

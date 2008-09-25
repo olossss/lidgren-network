@@ -26,14 +26,15 @@ namespace Lidgren.Network
 	{
 		None = 0,
 		Data = 1 << 0,
-		StatusChanged = 1 << 1,
-		ServerDiscovered = 1 << 2,
-		ConnectionApproval = 1 << 3,
-		Receipt = 1 << 4,
-		DebugMessage = 1 << 5,
-		VerboseDebugMessage = 1 << 6,
-		BadMessageReceived = 1 << 7,
-		ConnectionRejected = 1 << 8,
+		OutOfBandData = 1 << 1,
+		StatusChanged = 1 << 2,
+		ServerDiscovered = 1 << 3,
+		ConnectionApproval = 1 << 4,
+		Receipt = 1 << 5,
+		DebugMessage = 1 << 6,
+		VerboseDebugMessage = 1 << 7,
+		BadMessageReceived = 1 << 8,
+		ConnectionRejected = 1 << 9,
 	}
 
 	/// <summary>
@@ -46,7 +47,7 @@ namespace Lidgren.Network
 		UserFragmented = 2,		  // Library/Application message
 		Acknowledge = 3,		  // Library message
 		AckBitVector = 4,		  // Library message
-		Unused1 = 5,			  // Library message
+		OutOfBand = 5,			  // Application message
 		Unused2 = 6,			  // Library message
 		System = 7,				  // Library message
 	}
