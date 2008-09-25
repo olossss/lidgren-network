@@ -325,6 +325,32 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Send a single, out-of-band unreliable message
+		/// </summary>
+		public void SendOutOfBandMessage(NetBuffer data, IPEndPoint recipient)
+		{
+			m_sendBuffer.Reset();
+
+			// message type and channel
+			m_sendBuffer.Write((byte)((int)NetMessageLibraryType.OutOfBand | ((int)NetChannel.Unreliable << 3)));
+			m_sendBuffer.Write((ushort)0);
+
+			// payload length; variable byte encoded
+			if (data == null)
+			{
+				m_sendBuffer.WriteVariableUInt32((uint)0);
+			}
+			else
+			{
+				int dataLen = data.LengthBytes;
+				m_sendBuffer.WriteVariableUInt32((uint)(dataLen));
+				m_sendBuffer.Write(data.Data, 0, dataLen);
+			}
+
+			SendPacket(recipient);
+		}
+
+		/// <summary>
 		/// Pushes a single system message onto the wire directly
 		/// </summary>
 		internal void SendSingleUnreliableSystemMessage(

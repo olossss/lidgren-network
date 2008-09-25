@@ -190,6 +190,19 @@ namespace Lidgren.Network
 				}
 			}
 
+			// Out of band?
+			if (message.m_type == NetMessageLibraryType.OutOfBand)
+			{
+				if ((m_enabledMessageTypes & NetMessageType.OutOfBandData) != NetMessageType.OutOfBandData)
+					return; // drop
+
+				// just deliever
+				message.m_msgType = NetMessageType.OutOfBandData;
+				lock (m_receivedMessages)
+					m_receivedMessages.Enqueue(message);
+				return;
+			}
+
 			if (message.m_sender != m_serverConnection)
 				return; // don't talk to strange senders
 
@@ -228,7 +241,10 @@ namespace Lidgren.Network
 				}
 			}
 
-			Debug.Assert(message.m_type == NetMessageLibraryType.User || message.m_type == NetMessageLibraryType.UserFragmented);
+			Debug.Assert(
+				message.m_type == NetMessageLibraryType.User ||
+				message.m_type == NetMessageLibraryType.UserFragmented
+			);
 
 			if (m_serverConnection.Status == NetConnectionStatus.Connecting)
 			{
