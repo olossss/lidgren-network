@@ -202,7 +202,8 @@ namespace Lidgren.Network
 							// Ask application if this connection is allowed to proceed
 							NetMessage app = CreateMessage();
 							app.m_msgType = NetMessageType.ConnectionApproval;
-							app.m_data.Write(hailData);
+							if (hailData != null)
+								app.m_data.Write(hailData);
 							app.m_sender = conn;
 							conn.m_approved = false;
 							lock (m_receivedMessages)

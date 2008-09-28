@@ -27,19 +27,10 @@ namespace Lidgren.Network
 			if (m_approved == true)
 				throw new NetException("Connection is already approved!");
 
-			if (!string.IsNullOrEmpty(reason))
-			{
-				NetBuffer bye = new NetBuffer();
-				bye.Write(reason);
-				m_owner.SendSingleUnreliableSystemMessage(
-					NetSystemType.Disconnect,
-					bye,
-					m_remoteEndPoint,
-					false
-				);
-			}
-
-			// throw it away
+			m_requestDisconnect = true;
+			m_requestLinger = 0.0f;
+			m_requestSendGoodbye = !string.IsNullOrEmpty(reason);
+			m_futureDisconnectReason = reason;
 		}
 	}
 }
