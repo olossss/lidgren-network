@@ -44,6 +44,9 @@ namespace Lidgren.Network
 		// ready for reading by the application
 		internal NetQueue<NetMessage> m_receivedMessages;
 
+		private NetQueue<NetBuffer> m_unsentOutOfBandMessages;
+		private NetQueue<IPEndPoint> m_unsentOutOfBandRecipients;
+
 		internal NetConfiguration m_config;
 		internal NetBuffer m_receiveBuffer;
 		internal NetBuffer m_sendBuffer;
@@ -120,6 +123,9 @@ namespace Lidgren.Network
 
 			m_randomIdentifier = new byte[8];
 			NetRandom.Instance.NextBytes(m_randomIdentifier);
+
+			m_unsentOutOfBandMessages = new NetQueue<NetBuffer>();
+			m_unsentOutOfBandRecipients = new NetQueue<IPEndPoint>();
 
 			// default enabled message types
 			m_enabledMessageTypes =
@@ -235,6 +241,20 @@ namespace Lidgren.Network
 			if (!m_isBound)
 				return;
 
+			// Send out-of-band messages
+			if (m_unsentOutOfBandMessages.Count > 0)
+			{
+				lock (m_unsentOutOfBandMessages)
+				{
+					while (m_unsentOutOfBandMessages.Count > 0)
+					{
+						NetBuffer buf = m_unsentOutOfBandMessages.Dequeue();
+						IPEndPoint ep = m_unsentOutOfBandRecipients.Dequeue();
+						DoSendOutOfBandMessage(buf, ep);
+					}
+				}
+			}
+
 			try
 			{
 #if DEBUG
@@ -329,6 +349,18 @@ namespace Lidgren.Network
 		/// </summary>
 		public void SendOutOfBandMessage(NetBuffer data, IPEndPoint recipient)
 		{
+			lock (m_unsentOutOfBandMessages)
+			{
+				m_unsentOutOfBandMessages.Enqueue(data);
+				m_unsentOutOfBandRecipients.Enqueue(recipient);
+			}
+		}
+
+		/// <summary>
+		/// Send a single, out-of-band unreliable message
+		/// </summary>
+		internal void DoSendOutOfBandMessage(NetBuffer data, IPEndPoint recipient)
+		{
 			m_sendBuffer.Reset();
 
 			// message type and channel
@@ -348,6 +380,9 @@ namespace Lidgren.Network
 			}
 
 			SendPacket(recipient);
+
+			// unreliable; we can recycle this immediately
+			RecycleBuffer(data);
 		}
 
 		/// <summary>
