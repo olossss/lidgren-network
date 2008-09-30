@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Lidgren.Network;
 using SamplesCommon;
 using System.Threading;
+using System.Net;
 
 namespace OutOfBandServer
 {
@@ -42,12 +43,13 @@ namespace OutOfBandServer
 			{
 				NetConnection conn;
 				NetMessageType tp;
-				while (s_server.ReadMessage(s_readBuffer, out tp, out conn))
+				IPEndPoint ep;
+				while (s_server.ReadMessage(s_readBuffer, out tp, out conn, out ep))
 				{
 					switch (tp)
 					{
 						case NetMessageType.OutOfBandData:
-							NativeMethods.AppendText(s_mainForm.richTextBox1, "Received message: " + s_readBuffer.ReadString());
+							NativeMethods.AppendText(s_mainForm.richTextBox1, "Received message: " + s_readBuffer.ReadString() + " from " + ep);
 							break;
 						case NetMessageType.DebugMessage:
 							NativeMethods.AppendText(s_mainForm.richTextBox1, "Debug message: " + s_readBuffer.ReadString());
