@@ -40,7 +40,8 @@ namespace OutOfBandClient
 			{
 				NetConnection conn;
 				NetMessageType tp;
-				while (s_client.ReadMessage(s_readBuffer, out tp))
+				IPEndPoint ep;
+				while (s_client.ReadMessage(s_readBuffer, out tp, out ep))
 				{
 					switch (tp)
 					{
