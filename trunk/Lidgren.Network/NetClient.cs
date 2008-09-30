@@ -288,22 +288,35 @@ namespace Lidgren.Network
 		/// <returns>true if a message was read</returns>
 		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type)
 		{
+			IPEndPoint senderEndPoint; // unused
+			return ReadMessage(intoBuffer, out type, out senderEndPoint);
+		}
+
+		/// <summary>
+		/// Reads the content of an available message into 'intoBuffer' and returns true. If no message is available it returns false.
+		/// </summary>
+		/// <param name="intoBuffer">A NetBuffer whose content will be overwritten with the read message</param>
+		/// <returns>true if a message was read</returns>
+		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type, out IPEndPoint senderEndpoint)
+		{
 			NetMessage msg;
-			lock(m_receivedMessages)
+			lock (m_receivedMessages)
 				msg = m_receivedMessages.Dequeue();
 
 			if (msg == null)
 			{
 				type = NetMessageType.None;
+				senderEndpoint = null;
 				return false;
 			}
+
+			senderEndpoint = msg.m_senderEndPoint;
 
 			// recycle NetMessage object
 			NetBuffer content = msg.m_data;
 			msg.m_data = null;
 			type = msg.m_msgType;
 
-			//m_messagePool.Push(msg);
 
 			// swap content of buffers
 			byte[] tmp = intoBuffer.Data;

@@ -289,7 +289,7 @@ namespace Lidgren.Network
 						// read message header
 						NetMessage msg = CreateMessage();
 						msg.m_sender = sender;
-						msg.ReadFrom(m_receiveBuffer);
+						msg.ReadFrom(m_receiveBuffer, ipsender);
 
 						// statistics
 						if (sender != null)

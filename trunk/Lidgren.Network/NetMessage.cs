@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Net;
 
 namespace Lidgren.Network
 {
@@ -15,6 +16,7 @@ namespace Lidgren.Network
 	
 		internal NetBuffer m_data;
 		internal NetConnection m_sender;
+		internal IPEndPoint m_senderEndPoint;
 
 		internal int m_numSent;
 		internal double m_nextResend;
@@ -48,8 +50,10 @@ namespace Lidgren.Network
 		/// Read this message from the packet buffer
 		/// </summary>
 		/// <returns>new read pointer position</returns>
-		internal void ReadFrom(NetBuffer buffer)
+		internal void ReadFrom(NetBuffer buffer, IPEndPoint endpoint)
 		{
+			m_senderEndPoint = endpoint;
+
 			// read header
 			byte header = buffer.ReadByte();
 			m_type = (NetMessageLibraryType)(header & 7);
