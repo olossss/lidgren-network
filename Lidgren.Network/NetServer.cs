@@ -434,6 +434,15 @@ namespace Lidgren.Network
 		/// </summary>
 		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type, out NetConnection sender)
 		{
+			IPEndPoint senderEndPoint;
+			return ReadMessage(intoBuffer, out type, out sender, out senderEndPoint);
+		}
+
+		/// <summary>
+		/// Read any received message in any connection queue
+		/// </summary>
+		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type, out NetConnection sender, out IPEndPoint senderEndPoint)
+		{
 			if (intoBuffer == null)
 				throw new ArgumentNullException("intoBuffer");
 
@@ -445,6 +454,7 @@ namespace Lidgren.Network
 			{
 				sender = null;
 				type = NetMessageType.None;
+				senderEndPoint = null;
 				return false;
 			}
 
@@ -454,7 +464,8 @@ namespace Lidgren.Network
 			if (msg.m_data.Position != 0)
 				throw new NetException("Ouch, stale data!");
 #endif
-			
+
+			senderEndPoint = msg.m_senderEndPoint;
 			sender = msg.m_sender;
 
 			//
