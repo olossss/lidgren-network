@@ -2,6 +2,9 @@
 #labels Featured
 
 || Date || Change ||
+|| 2008.09.24 || Out-of-band messaging added ||
+|| 2008.09.21 || Duplicate detection refactored; ping calculation bug fix; Samples updated ||
+|| 2008.09.19 || Recycling refactored ||
 || 2008.09.18 || LargePacket sample added. Fragmentation fixed. Recycling disabled until fixed. ||
 || 2008.09.16 || NetDiscovery refactored and fixed for `NetPeer`. ||
 || 2008.09.02 || Added `NetChecksum` from old library. `NetBuffer` recycling fixes ||
