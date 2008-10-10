@@ -304,9 +304,9 @@ namespace Lidgren.Network
 			{
 				if (sex.ErrorCode == 10054)
 				{
-					// forcibly closed
-					NetConnection conn = GetConnection((IPEndPoint)m_senderRemote);
-					HandleConnectionForciblyClosed(conn, sex);
+					// forcibly closed; but m_senderRemote is unreliable, we can't trust it!
+					//NetConnection conn = GetConnection((IPEndPoint)m_senderRemote);
+					//HandleConnectionForciblyClosed(conn, sex);
 					return;
 				}
 			}
