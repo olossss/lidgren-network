@@ -43,9 +43,9 @@ namespace Lidgren.Network
 
 		// ready for reading by the application
 		internal NetQueue<NetMessage> m_receivedMessages;
-
 		private NetQueue<NetBuffer> m_unsentOutOfBandMessages;
 		private NetQueue<IPEndPoint> m_unsentOutOfBandRecipients;
+		private Queue<SUSystemMessage> m_susmQueue;
 
 		internal NetConfiguration m_config;
 		internal NetBuffer m_receiveBuffer;
@@ -126,6 +126,7 @@ namespace Lidgren.Network
 
 			m_unsentOutOfBandMessages = new NetQueue<NetBuffer>();
 			m_unsentOutOfBandRecipients = new NetQueue<IPEndPoint>();
+			m_susmQueue = new Queue<SUSystemMessage>();
 
 			// default enabled message types
 			m_enabledMessageTypes =
@@ -240,6 +241,19 @@ namespace Lidgren.Network
 		{
 			if (!m_isBound)
 				return;
+
+			// Send queued system messages
+			if (m_susmQueue.Count > 0)
+			{
+				lock (m_susmQueue)
+				{
+					while (m_susmQueue.Count > 0)
+					{
+						SUSystemMessage su = m_susmQueue.Dequeue();
+						SendSingleUnreliableSystemMessage(su.Type, su.Data, su.Destination, su.UseBroadcast);
+					}
+				}
+			}
 
 			// Send out-of-band messages
 			if (m_unsentOutOfBandMessages.Count > 0)
@@ -383,6 +397,24 @@ namespace Lidgren.Network
 
 			// unreliable; we can recycle this immediately
 			RecycleBuffer(data);
+		}
+
+		/// <summary>
+		/// Thread-safe SendSingleUnreliableSystemMessage()
+		/// </summary>
+		internal void QueueSingleUnreliableSystemMessage(
+			NetSystemType tp,
+			NetBuffer data,
+			IPEndPoint remoteEP,
+			bool useBroadcast)
+		{
+			SUSystemMessage susm = new SUSystemMessage();
+			susm.Type = tp;
+			susm.Data = data;
+			susm.Destination = remoteEP;
+			susm.UseBroadcast = useBroadcast;
+			lock (m_susmQueue)
+				m_susmQueue.Enqueue(susm);
 		}
 
 		/// <summary>
@@ -695,5 +727,13 @@ namespace Lidgren.Network
 				}
 			}
 		}
+	}
+
+	internal sealed class SUSystemMessage
+	{
+		public NetSystemType Type;
+		public NetBuffer Data;
+		public IPEndPoint Destination;
+		public bool UseBroadcast;
 	}
 }

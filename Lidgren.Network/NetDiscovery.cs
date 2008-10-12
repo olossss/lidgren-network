@@ -25,7 +25,7 @@ namespace Lidgren.Network
 			data.Write(netBase.m_randomIdentifier);
 
 			netBase.LogWrite("Discovering " + endPoint.ToString() + "...");
-			netBase.SendSingleUnreliableSystemMessage(NetSystemType.Discovery, data, endPoint, useBroadcast);
+			netBase.QueueSingleUnreliableSystemMessage(NetSystemType.Discovery, data, endPoint, useBroadcast);
 		}
 
 		internal static void SendDiscoveryResponse(NetBase netBase, IPEndPoint endPoint)
