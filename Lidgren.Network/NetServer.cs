@@ -552,7 +552,7 @@ namespace Lidgren.Network
 		internal override void HandleConnectionForciblyClosed(NetConnection connection, SocketException sex)
 		{
 			if (connection != null)
-				connection.Disconnect("Connection forcibly closed", 0, false);
+				connection.Disconnect("Connection forcibly closed", 0, false, false);
 			return;
 		}
 
@@ -560,7 +560,7 @@ namespace Lidgren.Network
 		{
 			foreach (NetConnection conn in m_connections)
 				if (conn.m_status != NetConnectionStatus.Disconnected)
-					conn.Disconnect(reason, 0, true);
+					conn.Disconnect(reason, 0, true, true);
 			base.PerformShutdown(reason);
 		}
 	}

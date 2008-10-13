@@ -235,7 +235,7 @@ namespace Lidgren.Network
 				{
 					if (m_handshakeAttempts >= m_owner.Configuration.HandshakeAttemptsMaxCount)
 					{
-						Disconnect("No answer from remote host", 0, false);
+						Disconnect("No answer from remote host", 0, false, true);
 						return;
 					}
 					m_handshakeAttempts++;
@@ -540,7 +540,7 @@ namespace Lidgren.Network
 				case NetSystemType.Disconnect:
 					if (m_status == NetConnectionStatus.Disconnected)
 						return;
-					Disconnect(msg.m_data.ReadString(), 0.75f + ((float)m_currentAvgRoundtrip * 4), false);
+					Disconnect(msg.m_data.ReadString(), 0.75f + ((float)m_currentAvgRoundtrip * 4), false, false);
 					break;
 				case NetSystemType.Connect:
 
@@ -633,10 +633,10 @@ namespace Lidgren.Network
 		/// </summary>
 		public void Disconnect(string reason, float lingerSeconds)
 		{
-			Disconnect(reason, lingerSeconds, true);
+			Disconnect(reason, lingerSeconds, true, false);
 		}
 
-		internal void Disconnect(string reason, float lingerSeconds, bool sendGoodbye)
+		internal void Disconnect(string reason, float lingerSeconds, bool sendGoodbye, bool forceRightNow)
 		{
 			if (m_status == NetConnectionStatus.Disconnected)
 				return;
@@ -645,6 +645,9 @@ namespace Lidgren.Network
 			m_requestLinger = lingerSeconds;
 			m_requestSendGoodbye = sendGoodbye;
 			m_requestDisconnect = true;
+
+			if (forceRightNow)
+				InitiateDisconnect();
 		}
 
 		private void InitiateDisconnect()
