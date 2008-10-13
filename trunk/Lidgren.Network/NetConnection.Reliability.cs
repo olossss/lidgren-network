@@ -124,6 +124,7 @@ namespace Lidgren.Network
 					return;
 				}
 				AcceptMessage(msg);
+				return;
 			}
 
 			//
