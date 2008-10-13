@@ -103,7 +103,7 @@ namespace Lidgren.Network
 
 			if (m_serverConnection != null)
 			{
-				m_serverConnection.Disconnect("New connect", 0, m_serverConnection.Status == NetConnectionStatus.Connected);
+				m_serverConnection.Disconnect("New connect", 0, m_serverConnection.Status == NetConnectionStatus.Connected, true);
 				if (m_serverConnection.RemoteEndpoint.Equals(m_connectEndpoint))
 					m_serverConnection = new NetConnection(this, m_connectEndpoint, m_hailData);
 			}
@@ -129,7 +129,7 @@ namespace Lidgren.Network
 				LogWrite("Disconnect - Not connected!");
 				return;
 			}
-			m_serverConnection.Disconnect(message, 1.0f, true);
+			m_serverConnection.Disconnect(message, 1.0f, true, false);
 		}
 
 		/// <summary>
@@ -390,12 +390,12 @@ namespace Lidgren.Network
 			if (m_serverConnection.Status == NetConnectionStatus.Connecting)
 			{
 				// failed to connect; server is not listening
-				m_serverConnection.Disconnect("Failed to connect; server is not listening", 0, false);
+				m_serverConnection.Disconnect("Failed to connect; server is not listening", 0, false, true);
 				return;
 			}
 
 			m_connectRequested = false;
-			m_serverConnection.Disconnect("Connection forcibly closed by server", 0, false);
+			m_serverConnection.Disconnect("Connection forcibly closed by server", 0, false, true);
 			return;
 		}
 
@@ -405,7 +405,7 @@ namespace Lidgren.Network
 		protected override void PerformShutdown(string reason)
 		{
 			if (m_serverConnection != null)
-				m_serverConnection.Disconnect(reason, 0, true);
+				m_serverConnection.Disconnect(reason, 0, true, true);
 			m_connectRequested = false;
 			base.PerformShutdown(reason);
 		}
