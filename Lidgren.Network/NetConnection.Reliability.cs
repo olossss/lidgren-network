@@ -120,10 +120,15 @@ namespace Lidgren.Network
 				if (sdiff < 0)
 				{
 					// Reject late sequenced message
-					m_owner.LogVerbose("Rejecting late sequenced " + msg, this);
+					m_owner.LogVerbose("Rejecting late sequenced " + msg);
+					m_statistics.CountDroppedSequencedMessage();
 					return;
 				}
 				AcceptMessage(msg);
+				int nextExpected = msg.m_sequenceNumber + 1;
+				if (nextExpected > NetConstants.NumSequenceNumbers)
+					nextExpected = 0;
+				m_nextExpectedSequenced[seqChanNr] = nextExpected;
 				return;
 			}
 
