@@ -1,10 +1,10 @@
 #summary Missing pieces of the library
 
-  * ConnectionRequest event functionality; ie. being able to reject incoming connections from user code.
-
   * Encryption
 
   * Introducer class for NAT punch-thru in the `NetPeer` class
+
+  * NetPeer functionality to share peer lists
 
   * Per-connection string tables
 
