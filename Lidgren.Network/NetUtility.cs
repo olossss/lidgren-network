@@ -25,6 +25,7 @@ using System.Globalization;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 
 namespace Lidgren.Network
 {
@@ -92,8 +93,79 @@ namespace Lidgren.Network
 			}
 		}
 
+		private static NetworkInterface GetNetworkInterface()
+		{
+			IPGlobalProperties computerProperties = IPGlobalProperties.GetIPGlobalProperties();
+			if (computerProperties == null)
+				return null;
+
+		    NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+			if (nics == null || nics.Length < 1)
+				return null;
+
+			foreach (NetworkInterface adapter in nics)
+			{
+				if (adapter.OperationalStatus != OperationalStatus.Up)
+					continue;
+				if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback || adapter.NetworkInterfaceType == NetworkInterfaceType.Unknown)
+					continue;
+				if (!adapter.Supports(NetworkInterfaceComponent.IPv4))
+					continue;
+
+				// A computer could have several adapters (more than one network card)
+				// here but just return the first one for now...
+				return adapter;
+			}
+			return null;
+		}
+
 		/// <summary>
-		/// returns how many bits are necessary to hold a certain number
+		/// Gets my local IP address (not necessarily external) and subnet mask
+		/// </summary>
+		public static IPAddress GetMyAddress(out IPAddress mask)
+		{
+			NetworkInterface ni = GetNetworkInterface();
+			if (ni == null)
+			{
+				mask = null;
+				return null;
+			}
+
+			IPInterfaceProperties properties = ni.GetIPProperties();
+			foreach (UnicastIPAddressInformation unicastAddress in properties.UnicastAddresses)
+			{
+				if (unicastAddress != null && unicastAddress.Address != null && unicastAddress.Address.AddressFamily == AddressFamily.InterNetwork)
+				{
+					mask = unicastAddress.IPv4Mask;
+					return unicastAddress.Address;
+				}
+			}
+
+			mask = null;
+			return null;
+		}
+
+		/// <summary>
+		/// Returns true if the IPAddress supplies is on the same subnet as this host
+		/// </summary>
+		public static bool IsLocal(IPAddress remote)
+		{
+			IPAddress mask;
+			IPAddress local = GetMyAddress(out mask);
+
+			if (mask == null)
+				return false;
+
+			uint maskBits = BitConverter.ToUInt32(mask.GetAddressBytes(), 0);
+			uint remoteBits = BitConverter.ToUInt32(remote.GetAddressBytes(), 0);
+			uint localBits = BitConverter.ToUInt32(local.GetAddressBytes(), 0);
+
+			// compare network portions
+			return ((remoteBits & maskBits) == (localBits & maskBits));
+		}
+
+		/// <summary>
+		/// Returns how many bits are necessary to hold a certain number
 		/// </summary>
 		[CLSCompliant(false)]
 		public static int BitsToHoldUInt(uint value)

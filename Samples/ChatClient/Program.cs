@@ -8,6 +8,8 @@ namespace ChatClient
 {
 	class Program
 	{
+		private static bool s_keepGoing = true;
+
 		static void Main(string[] args)
 		{
 			// create a client with a default configuration
@@ -29,8 +31,9 @@ namespace ChatClient
 
 			// keep running until the user presses a key
 			Console.WriteLine("Type 'quit' to exit client");
-			bool keepRunning = true;
-			while (keepRunning)
+			Console.CancelKeyPress += new ConsoleCancelEventHandler(Console_CancelKeyPress);
+			s_keepGoing = true;
+			while (s_keepGoing)
 			{
 				NetMessageType type;
 
@@ -71,7 +74,7 @@ namespace ChatClient
 							if (input == "quit")
 							{
 								// exit application
-								keepRunning = false;
+								s_keepGoing = false;
 							}
 							else
 							{
@@ -93,6 +96,11 @@ namespace ChatClient
 			}
 
 			client.Shutdown("Application exiting");
+		}
+
+		static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+		{
+			s_keepGoing = false;
 		}
 	}
 }
