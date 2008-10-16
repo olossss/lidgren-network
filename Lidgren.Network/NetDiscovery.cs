@@ -64,10 +64,6 @@ namespace Lidgren.Network
 			resBuf.Write(endPoint);
 			resBuf.Write(discoverData);
 
-			resBuf.Write(BitConverter.ToUInt32(endPoint.Address.GetAddressBytes(), 0));
-			resBuf.Write(endPoint.Port);
-			resBuf.Write(discoverData);
-
 			return resMsg;
 		}
 
