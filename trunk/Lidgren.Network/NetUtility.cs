@@ -146,7 +146,17 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Returns true if the IPAddress supplies is on the same subnet as this host
+		/// Returns true if the IPEndPoint supplied is on the same subnet as this host
+		/// </summary>
+		public static bool IsLocal(IPEndPoint endPoint)
+		{
+			if (endPoint == null)
+				return false;
+			return IsLocal(endPoint.Address);
+		}
+
+		/// <summary>
+		/// Returns true if the IPAddress supplied is on the same subnet as this host
 		/// </summary>
 		public static bool IsLocal(IPAddress remote)
 		{
