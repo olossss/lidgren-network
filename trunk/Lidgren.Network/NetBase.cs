@@ -35,6 +35,7 @@ namespace Lidgren.Network
 		private EndPoint m_senderRemote;
 		internal bool m_isBound;
 		internal byte[] m_randomIdentifier;
+		internal NetDiscovery m_discovery;
 
 		private object m_bindLock;
 		protected bool m_shutdownRequested;
@@ -120,6 +121,7 @@ namespace Lidgren.Network
 			m_receivedMessages = new NetQueue<NetMessage>(4);
 			m_scratchBuffer = new NetBuffer(32);
 			m_bindLock = new object();
+			m_discovery = new NetDiscovery(this);
 
 			m_randomIdentifier = new byte[8];
 			NetRandom.Instance.NextBytes(m_randomIdentifier);
@@ -241,6 +243,9 @@ namespace Lidgren.Network
 		{
 			if (!m_isBound)
 				return;
+
+			// discovery
+			m_discovery.Heartbeat(now);
 
 			// Send queued system messages
 			if (m_susmQueue.Count > 0)

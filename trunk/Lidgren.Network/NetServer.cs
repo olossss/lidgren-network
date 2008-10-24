@@ -220,18 +220,13 @@ namespace Lidgren.Network
 							NotifyApplication(NetMessageType.BadMessageReceived, "Connection established received from non-connection! " + senderEndpoint, null);
 						return;
 					case NetSystemType.Discovery:
-
-						if (!NetDiscovery.VerifyIdentifiers(this, message, senderEndpoint))
-							return; // bad app ident or self discovery
-											
-						// send discovery response
-						NetDiscovery.SendDiscoveryResponse(this, senderEndpoint);
+						m_discovery.HandleRequest(message, senderEndpoint);
 						break;
 					case NetSystemType.DiscoveryResponse:
 						if (m_allowOutgoingConnections)
 						{
 							// NetPeer
-							NetMessage resMsg = NetDiscovery.CreateMessageFromResponse(this, message, senderEndpoint);
+							NetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
 							if (resMsg != null)
 							{
 								lock (m_receivedMessages)
@@ -290,27 +285,7 @@ namespace Lidgren.Network
 						break;
 					case NetSystemType.Discovery:
 						// Allow discovery even if connected
-						// check app ident
-						if (payLen < 5)
-						{
-							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-								NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Discovery message received", null);
-							return;
-						}
-						string appIdent2 = message.m_data.ReadString();
-						if (appIdent2 != m_config.ApplicationIdentifier)
-						{
-							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-								NotifyApplication(NetMessageType.BadMessageReceived, "Discovery for different application identification received: " + appIdent2, null);
-							return;
-						}
-
-						// make sure we didn't send this request ourselves (in case of NetPeer)
-						if (IPAddress.IsLoopback(senderEndpoint.Address) && senderEndpoint.Port == this.ListenPort)
-							break;
-
-						// send discovery response
-						NetDiscovery.SendDiscoveryResponse(this, senderEndpoint);
+						m_discovery.HandleRequest(message, senderEndpoint);
 						break;
 					default:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
@@ -319,12 +294,6 @@ namespace Lidgren.Network
 				}
 				return;
 			}
-
-			//if (message.m_type == NetMessageLibraryType.UserFragmented)
-			//	throw new NotImplementedException();
-
-			// Must be user message at this point
-			//Debug.Assert(message.m_type == NetMessageLibraryType.User);
 
 			message.m_sender.HandleUserMessage(message);
 		}

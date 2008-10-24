@@ -71,7 +71,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void DiscoverLocalPeers(int port)
 		{
-			NetDiscovery.SendDiscoveryRequest(this, new IPEndPoint(IPAddress.Broadcast, port), true);
+			m_discovery.SendDiscoveryRequest(new IPEndPoint(IPAddress.Broadcast, port), true);
 		}
 
 		/// <summary>
@@ -81,7 +81,7 @@ namespace Lidgren.Network
 		{
 			IPAddress address = NetUtility.Resolve(host);
 			IPEndPoint endPoint = new IPEndPoint(address, serverPort);
-			NetDiscovery.SendDiscoveryRequest(this, endPoint, false);
+			m_discovery.SendDiscoveryRequest(endPoint, false);
 		}
 
 		/// <summary>
@@ -89,7 +89,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void DiscoverKnownPeer(IPEndPoint endPoint, bool useBroadcast)
 		{
-			NetDiscovery.SendDiscoveryRequest(this, endPoint, useBroadcast);
+			m_discovery.SendDiscoveryRequest(endPoint, useBroadcast);
 		}
 	}
 }
