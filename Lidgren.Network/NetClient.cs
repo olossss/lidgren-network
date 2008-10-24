@@ -176,10 +176,10 @@ namespace Lidgren.Network
 			{
 				if (payLen > 0)
 				{
-					NetSystemType sysType = (NetSystemType)message.m_data.Data[0];
+					NetSystemType sysType = (NetSystemType)message.m_data.ReadByte();
 					if (sysType == NetSystemType.DiscoveryResponse)
 					{
-						NetMessage resMsg = NetDiscovery.CreateMessageFromResponse(this, message, senderEndpoint);
+						NetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
 						if (resMsg != null)
 						{
 							lock (m_receivedMessages)
@@ -360,7 +360,15 @@ namespace Lidgren.Network
 		/// </summary>
 		public void DiscoverLocalServers(int serverPort)
 		{
-			NetDiscovery.SendDiscoveryRequest(this, new IPEndPoint(IPAddress.Broadcast, serverPort), true);
+			m_discovery.SendDiscoveryRequest(new IPEndPoint(IPAddress.Broadcast, serverPort), true);
+		}
+
+		/// <summary>
+		/// Emit a discovery signal to your subnet; polling every 'interval' second until 'timeout' seconds is reached
+		/// </summary>
+		public void DiscoverLocalServers(int serverPort, float interval, float timeout)
+		{
+			m_discovery.SendDiscoveryRequest(new IPEndPoint(IPAddress.Broadcast, serverPort), true, interval, timeout);
 		}
 		
 		/// <summary>
@@ -371,7 +379,7 @@ namespace Lidgren.Network
 			IPAddress address = NetUtility.Resolve(host);
 			IPEndPoint ep = new IPEndPoint(address, serverPort);
 
-			NetDiscovery.SendDiscoveryRequest(this, ep, false);
+			m_discovery.SendDiscoveryRequest(ep, false);
 		}
 
 		/// <summary>
@@ -379,7 +387,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void DiscoverKnownServer(IPEndPoint address, bool useBroadcast)
 		{
-			NetDiscovery.SendDiscoveryRequest(this, address, useBroadcast);
+			m_discovery.SendDiscoveryRequest(address, useBroadcast);
 		}
 
 		internal override void HandleConnectionForciblyClosed(NetConnection connection, SocketException sex)
