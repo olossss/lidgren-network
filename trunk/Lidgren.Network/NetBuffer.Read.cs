@@ -26,6 +26,8 @@ namespace Lidgren.Network
 {
 	public sealed partial class NetBuffer
 	{
+		private const string c_readOverflowError = "Trying to read past the buffer size - likely caused by mismatching Write/Reads, different size or order.";
+
 		/// <summary>
 		/// Will overwrite any existing data
 		/// </summary>
@@ -43,6 +45,7 @@ namespace Lidgren.Network
 		//
 		public bool ReadBoolean()
 		{
+			Debug.Assert(m_bitLength - m_readPosition >= 1, c_readOverflowError);
 			byte retval = NetBitWriter.ReadByte(Data, 1, m_readPosition);
 			m_readPosition += 1;
 			return (retval > 0 ? true : false);
@@ -53,6 +56,7 @@ namespace Lidgren.Network
 		//
 		public byte ReadByte()
 		{
+			Debug.Assert(m_bitLength - m_readPosition >= 8, c_readOverflowError);
 			byte retval = NetBitWriter.ReadByte(Data, 8, m_readPosition);
 			m_readPosition += 8;
 			return retval;
@@ -67,6 +71,8 @@ namespace Lidgren.Network
 
 		public byte[] ReadBytes(int numberOfBytes)
 		{
+			Debug.Assert(m_bitLength - m_readPosition >= (numberOfBytes * 8), c_readOverflowError);
+
 			byte[] retval = new byte[numberOfBytes];
 			NetBitWriter.ReadBytes(Data, numberOfBytes, m_readPosition, retval, 0);
 			m_readPosition += (8 * numberOfBytes);
@@ -78,7 +84,7 @@ namespace Lidgren.Network
 		//
 		public Int16 ReadInt16()
 		{
-			Debug.Assert(m_bitLength - m_readPosition >= 16, "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= 16, c_readOverflowError);
 			uint retval = NetBitWriter.ReadUInt32(Data, 16, m_readPosition);
 			m_readPosition += 16;
 			return (short)retval;
@@ -87,7 +93,7 @@ namespace Lidgren.Network
 		[CLSCompliant(false)]
 		public UInt16 ReadUInt16()
 		{
-			Debug.Assert(m_bitLength - m_readPosition >= 16, "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= 16, c_readOverflowError);
 			uint retval = NetBitWriter.ReadUInt32(Data, 16, m_readPosition);
 			m_readPosition += 16;
 			return (ushort)retval;
@@ -98,7 +104,7 @@ namespace Lidgren.Network
 		//
 		public Int32 ReadInt32()
 		{
-			Debug.Assert(m_bitLength - m_readPosition >= 32, "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= 32, c_readOverflowError);
 			uint retval = NetBitWriter.ReadUInt32(Data, 32, m_readPosition);
 			m_readPosition += 32;
 			return (Int32)retval;
@@ -107,7 +113,7 @@ namespace Lidgren.Network
 		public Int32 ReadInt32(int numberOfBits)
 		{
 			Debug.Assert((numberOfBits > 0 && numberOfBits <= 32), "ReadInt() can only read between 1 and 32 bits");
-			Debug.Assert(m_bitLength - m_readPosition >= numberOfBits, "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= numberOfBits, c_readOverflowError);
 
 			uint retval = NetBitWriter.ReadUInt32(Data, numberOfBits, m_readPosition);
 			m_readPosition += numberOfBits;
@@ -131,6 +137,7 @@ namespace Lidgren.Network
 		[CLSCompliant(false)]
 		public UInt32 ReadUInt32()
 		{
+			Debug.Assert(m_bitLength - m_readPosition >= 32, c_readOverflowError);
 			uint retval = NetBitWriter.ReadUInt32(Data, 32, m_readPosition);
 			m_readPosition += 32;
 			return retval;
@@ -153,7 +160,7 @@ namespace Lidgren.Network
 		[CLSCompliant(false)]
 		public UInt64 ReadUInt64()
 		{
-			Debug.Assert(m_bitLength - m_readPosition >= 64, "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= 64, c_readOverflowError);
 
 			ulong low = NetBitWriter.ReadUInt32(Data, 32, m_readPosition);
 			m_readPosition += 32;
@@ -167,7 +174,7 @@ namespace Lidgren.Network
 
 		public Int64 ReadInt64()
 		{
-			Debug.Assert(m_bitLength - m_readPosition >= 64, "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= 64, c_readOverflowError);
 			unchecked
 			{
 				ulong retval = ReadUInt64();
@@ -180,7 +187,7 @@ namespace Lidgren.Network
 		public UInt64 ReadUInt64(int numberOfBits)
 		{
 			Debug.Assert((numberOfBits > 0 && numberOfBits <= 64), "ReadUInt() can only read between 1 and 64 bits");
-			Debug.Assert(m_bitLength - m_readPosition >= numberOfBits, "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= numberOfBits, c_readOverflowError);
 
 			ulong retval;
 			if (numberOfBits <= 32)
@@ -212,7 +219,7 @@ namespace Lidgren.Network
 
 		public float ReadSingle()
 		{
-			Debug.Assert(m_bitLength - m_readPosition >= (4 * 8), "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= 32, c_readOverflowError);
 
 			if ((m_readPosition & 7) == 0) // read directly
 			{
@@ -228,7 +235,7 @@ namespace Lidgren.Network
 
 		public double ReadDouble()
 		{
-			Debug.Assert(m_bitLength - m_readPosition >= (8 * 8), "tried to read past buffer size");
+			Debug.Assert(m_bitLength - m_readPosition >= 64, c_readOverflowError);
 
 			if ((m_readPosition & 7) == 0) // read directly
 			{
@@ -343,14 +350,8 @@ namespace Lidgren.Network
 
 			if (byteLen == 0)
 				return String.Empty;
-#if DEBUG
-			// verify we have enough data
-			if (m_readPosition + (byteLen * 8) > m_bitLength)
-			{
-				int rem = (m_bitLength - m_readPosition) / 8;
-				throw new NetException("ReadString() tried to read " + byteLen + " bytes; but remainder of the NetBuffer only has " + rem + " bytes left");
-			}
-#endif
+
+			Debug.Assert(m_bitLength - m_readPosition >= (byteLen * 8), c_readOverflowError);
 
 			if ((m_readPosition & 7) == 0)
 			{
