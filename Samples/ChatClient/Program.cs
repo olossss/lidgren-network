@@ -15,6 +15,9 @@ namespace ChatClient
 			// create a client with a default configuration
 			NetConfiguration config = new NetConfiguration("chatApp");
 			NetClient client = new NetClient(config);
+			client.SetMessageTypeEnabled(NetMessageType.ConnectionRejected, true);
+			client.SetMessageTypeEnabled(NetMessageType.DebugMessage, true);
+			client.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
 			client.Start();
 
 			// Wait half a second to allow server to start up if run via Visual Studio
@@ -50,7 +53,11 @@ namespace ChatClient
 							buf.Write("Hail from " + Environment.MachineName);
 							client.Connect(buffer.ReadIPEndPoint(), buf.ToArray());
 							break;
+						case NetMessageType.ConnectionRejected:
+							Console.WriteLine("Rejected: " + buffer.ReadString());
+							break;
 						case NetMessageType.DebugMessage:
+						case NetMessageType.VerboseDebugMessage:
 							Console.WriteLine(buffer.ReadString());
 							break;
 						case NetMessageType.StatusChanged:
