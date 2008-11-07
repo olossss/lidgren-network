@@ -228,6 +228,7 @@ namespace Lidgren.Network
 					case NetSystemType.Ping:
 					case NetSystemType.Pong:
 					case NetSystemType.Disconnect:
+					case NetSystemType.ConnectionRejected:
 						m_serverConnection.HandleSystemMessage(message, now);
 						return;
 					case NetSystemType.Connect:

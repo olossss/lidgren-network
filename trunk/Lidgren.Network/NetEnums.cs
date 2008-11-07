@@ -61,7 +61,9 @@ namespace Lidgren.Network
 		Connect = 1,
 		ConnectResponse = 2,
 		ConnectionEstablished = 3,
-		Disconnect = 4,
+		ConnectionRejected = 4,
+		Disconnect = 5,
+
 		Discovery = 50,
 		DiscoveryResponse = 51,
 		Ping = 100,
