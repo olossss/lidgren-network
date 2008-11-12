@@ -64,6 +64,11 @@ namespace Lidgren.Network
 		public NetMessageType EnabledMessageTypes { get { return m_enabledMessageTypes; } set { m_enabledMessageTypes = value; } }
 
 		/// <summary>
+		/// Gets or sets how many milliseconds to sleep between heartbeat ticks; a higher value means less cpu is used
+		/// </summary>
+		public int RunSleep { get { return m_runSleep; } set { m_runSleep = value; } }
+
+		/// <summary>
 		/// Enables or disables a particular type of message
 		/// </summary>
 		public void SetMessageTypeEnabled(NetMessageType type, bool enabled)
