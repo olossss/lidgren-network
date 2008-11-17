@@ -6,9 +6,9 @@ namespace Lidgren.Network
 {
 	public partial class NetBase
 	{
-		private const int c_smallBufferSize = 16;
+		private const int c_smallBufferSize = 24;
 		private const int c_maxSmallItems = 32;
-		private const int c_maxLargeItems = 8;
+		private const int c_maxLargeItems = 16;
 
 		private Stack<NetBuffer> m_smallBufferPool = new Stack<NetBuffer>(c_maxSmallItems);
 		private Stack<NetBuffer> m_largeBufferPool = new Stack<NetBuffer>(c_maxLargeItems);
@@ -38,27 +38,34 @@ namespace Lidgren.Network
 
 		public NetBuffer CreateBuffer(int initialCapacity)
 		{
-			NetBuffer retval;
-			if (initialCapacity <= c_smallBufferSize)
+			if (m_config.m_useBufferRecycling)
 			{
-				lock (m_smallBufferPoolLock)
+				NetBuffer retval;
+				if (initialCapacity <= c_smallBufferSize)
 				{
-					if (m_smallBufferPool.Count == 0)
+					lock (m_smallBufferPoolLock)
+					{
+						if (m_smallBufferPool.Count == 0)
+							return new NetBuffer(initialCapacity);
+						retval = m_smallBufferPool.Pop();
+					}
+					retval.Reset();
+					return retval;
+				}
+
+				lock (m_largeBufferPoolLock)
+				{
+					if (m_largeBufferPool.Count == 0)
 						return new NetBuffer(initialCapacity);
-					retval = m_smallBufferPool.Pop();
+					retval = m_largeBufferPool.Pop();
 				}
 				retval.Reset();
 				return retval;
 			}
-
-			lock (m_largeBufferPoolLock)
+			else
 			{
-				if (m_largeBufferPool.Count == 0)
-					return new NetBuffer(initialCapacity);
-				retval = m_largeBufferPool.Pop();
+				return new NetBuffer(initialCapacity);
 			}
-			retval.Reset();
-			return retval;
 		}
 
 		public NetBuffer CreateBuffer()
