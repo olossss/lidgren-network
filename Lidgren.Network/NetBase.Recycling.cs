@@ -17,6 +17,9 @@ namespace Lidgren.Network
 
 		internal void RecycleBuffer(NetBuffer item)
 		{
+			if (!m_config.m_useBufferRecycling)
+				return;
+
 			if (item.Data.Length <= c_smallBufferSize)
 			{
 				lock (m_smallBufferPoolLock)
