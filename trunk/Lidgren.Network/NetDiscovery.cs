@@ -215,6 +215,9 @@ namespace Lidgren.Network
 			if ((m_netBase.m_enabledMessageTypes & NetMessageType.ServerDiscovered) != NetMessageType.ServerDiscovered)
 				return null; // disabled
 
+			if (message.m_data == null)
+				return null;
+
 			ushort number = message.m_data.ReadUInt16();
 
 			// find corresponding request

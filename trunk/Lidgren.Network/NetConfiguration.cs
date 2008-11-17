@@ -39,6 +39,7 @@ namespace Lidgren.Network
 		internal float m_maxAckWithholdTime;
 		internal float m_disconnectLingerMaxDelay;
 		internal float m_throttleBytesPerSecond;
+		internal bool m_useBufferRecycling;
 
 		/// <summary>
 		/// Gets or sets the string identifying this particular application; distinquishing it from other Lidgren based applications. Ie. this needs to be the same on client and server.
@@ -61,7 +62,16 @@ namespace Lidgren.Network
 
 		public int ReceiveBufferSize { get { return m_receiveBufferSize; } set { m_receiveBufferSize = value; } }
 		public int SendBufferSize { get { return m_sendBufferSize; } set { m_sendBufferSize = value; } }
-	
+
+		/// <summary>
+		/// Gets or sets if buffer recycling is used
+		/// </summary>
+		public bool UseBufferRecycling
+		{
+			get { return m_useBufferRecycling; }
+			set { m_useBufferRecycling = value; }
+		}
+
 		/// <summary>
 		/// Gets or sets how many simultaneous connections a NetServer can have
 		/// </summary>
@@ -137,6 +147,7 @@ namespace Lidgren.Network
 			m_maxAckWithholdTime = 0.5f; // one half RT wait before sending explicit ack
 			m_disconnectLingerMaxDelay = 3.0f;
 			m_resendTimeMultiplier = 1.1f;
+			m_useBufferRecycling = false; // TODO: enable this when sure there's no threading issues
 		}
 	}
 }
