@@ -19,6 +19,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 
 namespace Lidgren.Network
 {
@@ -68,36 +69,35 @@ namespace Lidgren.Network
 				}
 
 				// send ping
-				SendPing(now);
+				SendPing(m_owner, m_remoteEndPoint, now);
+				m_lastSentPing = now;
 			}
-
 		}
 
-		private void SendPing(double now)
+		internal static void SendPing(NetBase netBase, IPEndPoint toEndPoint, double now)
 		{
 			ushort nowEnc = NetTime.Encoded(now);
-			NetBuffer buffer = m_owner.m_scratchBuffer;
+			NetBuffer buffer = netBase.m_scratchBuffer;
 			buffer.Reset();
 			buffer.Write(nowEnc);
-			m_owner.SendSingleUnreliableSystemMessage(
+			netBase.SendSingleUnreliableSystemMessage(
 				NetSystemType.Ping,
 				buffer,
-				m_remoteEndPoint,
+				toEndPoint,
 				false
 			);
-			m_lastSentPing = now;
 		}
 
-		private void SendPong(double now)
+		internal static void SendPong(NetBase netBase, IPEndPoint toEndPoint, double now)
 		{
 			ushort nowEnc = NetTime.Encoded(now);
-			NetBuffer buffer = m_owner.m_scratchBuffer;
+			NetBuffer buffer = netBase.m_scratchBuffer;
 			buffer.Reset();
 			buffer.Write(nowEnc);
-			m_owner.SendSingleUnreliableSystemMessage(
+			netBase.SendSingleUnreliableSystemMessage(
 				NetSystemType.Pong,
 				buffer,
-				m_remoteEndPoint,
+				toEndPoint,
 				false
 			);
 		}

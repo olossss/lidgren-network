@@ -617,7 +617,7 @@ namespace Lidgren.Network
 					}
 
 					//LogWrite("Received ping; sending pong...");
-					SendPong(now);
+					SendPong(m_owner, m_remoteEndPoint, now);
 					break;
 				case NetSystemType.Pong:
 					double twoWayLatency = now - m_lastSentPing;
