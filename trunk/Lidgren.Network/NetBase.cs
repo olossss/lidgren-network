@@ -381,6 +381,23 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Send a NAT introduction messages to one and two, allowing them to connect
+		/// </summary>
+		public void SendNATIntroduction(
+			IPEndPoint one,
+			IPEndPoint two
+		)
+		{
+			NetBuffer toOne = CreateBuffer();
+			toOne.Write(two);
+			QueueSingleUnreliableSystemMessage(NetSystemType.NatIntroduction, toOne, one, false);
+
+			NetBuffer toTwo = CreateBuffer();
+			toOne.Write(one);
+			QueueSingleUnreliableSystemMessage(NetSystemType.NatIntroduction, toTwo, two, false);
+		}
+
+		/// <summary>
 		/// Send a single, out-of-band unreliable message
 		/// </summary>
 		internal void DoSendOutOfBandMessage(NetBuffer data, IPEndPoint recipient)
@@ -669,6 +686,18 @@ namespace Lidgren.Network
 			// dito for message
 			NetMessage msg = new NetMessage();
 			msg.m_data = buf;
+			msg.m_msgType = tp;
+			msg.m_sender = conn;
+
+			lock (m_receivedMessages)
+				m_receivedMessages.Enqueue(msg);
+		}
+
+		internal void NotifyApplication(NetMessageType tp, NetBuffer buffer, NetConnection conn)
+		{
+			// dito for message
+			NetMessage msg = new NetMessage();
+			msg.m_data = buffer;
 			msg.m_msgType = tp;
 			msg.m_sender = conn;
 

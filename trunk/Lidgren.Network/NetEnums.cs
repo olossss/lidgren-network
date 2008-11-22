@@ -35,6 +35,7 @@ namespace Lidgren.Network
 		VerboseDebugMessage = 1 << 7,
 		BadMessageReceived = 1 << 8,
 		ConnectionRejected = 1 << 9,
+		NATIntroduction = 1 << 10,
 	}
 
 	/// <summary>
@@ -48,7 +49,7 @@ namespace Lidgren.Network
 		Acknowledge = 3,		  // Library message
 		AckBitVector = 4,		  // Library message
 		OutOfBand = 5,			  // Application message
-		Unused2 = 6,			  // Library message
+		Unused = 6,               // Library message
 		System = 7,				  // Library message
 	}
 
@@ -66,8 +67,11 @@ namespace Lidgren.Network
 
 		Discovery = 50,
 		DiscoveryResponse = 51,
+
+		NatIntroduction = 75,
+
 		Ping = 100,
-		Pong = 101
+		Pong = 101,
 	}
 
 	/// <summary>

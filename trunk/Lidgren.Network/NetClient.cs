@@ -176,9 +176,34 @@ namespace Lidgren.Network
 			{
 				if (payLen > 0)
 				{
-					NetSystemType sysType = (NetSystemType)message.m_data.ReadByte();
+					NetSystemType sysType = (NetSystemType)message.m_data.PeekByte();
+
+					// NAT introduction?
+					if (sysType == NetSystemType.NatIntroduction)
+					{
+						if ((m_enabledMessageTypes & NetMessageType.NATIntroduction) != NetMessageType.NATIntroduction)
+							return; // drop
+						try
+						{
+							message.m_data.ReadByte(); // step past system type byte
+							IPEndPoint presented = message.m_data.ReadIPEndPoint();
+							NetConnection.SendPing(this, presented, now);
+
+							NetBuffer info = CreateBuffer();
+							info.Write(presented);
+							NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender);
+							return;
+						}
+						catch (Exception ex)
+						{
+							NotifyApplication(NetMessageType.BadMessageReceived, "Bad NAT introduction message received", message.m_sender);
+							return;
+						}
+					}
+
 					if (sysType == NetSystemType.DiscoveryResponse)
 					{
+						message.m_data.ReadByte(); // step past system type byte
 						NetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
 						if (resMsg != null)
 						{

@@ -116,6 +116,32 @@ namespace Lidgren.Network
 
 			int payLen = message.m_data.LengthBytes;
 
+			// NAT introduction?
+			if (message.m_type == NetMessageLibraryType.System)
+			{
+				if (message.m_data.LengthBytes > 4 && message.m_data.PeekByte() == (byte)NetSystemType.NatIntroduction)
+				{
+					if ((m_enabledMessageTypes & NetMessageType.NATIntroduction) != NetMessageType.NATIntroduction)
+						return; // drop
+					try
+					{
+						message.m_data.ReadByte(); // step past system type byte
+						IPEndPoint presented = message.m_data.ReadIPEndPoint();
+						NetConnection.SendPing(this, presented, now);
+
+						NetBuffer info = CreateBuffer();
+						info.Write(presented);
+						NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender);
+						return;
+					}
+					catch (Exception ex)
+					{
+						NotifyApplication(NetMessageType.BadMessageReceived, "Bad NAT introduction message received", message.m_sender);
+						return;
+					}
+				}
+			}
+
 			// Out of band?
 			if (message.m_type == NetMessageLibraryType.OutOfBand)
 			{
