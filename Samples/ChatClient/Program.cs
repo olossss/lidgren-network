@@ -17,7 +17,7 @@ namespace ChatClient
 			NetClient client = new NetClient(config);
 			client.SetMessageTypeEnabled(NetMessageType.ConnectionRejected, true);
 			client.SetMessageTypeEnabled(NetMessageType.DebugMessage, true);
-			client.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
+			//client.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
 			client.Start();
 
 			// Wait half a second to allow server to start up if run via Visual Studio

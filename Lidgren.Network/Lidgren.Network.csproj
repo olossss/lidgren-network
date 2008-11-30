@@ -53,6 +53,7 @@
     <Compile Include="NetConnection.Latency.cs" />
     <Compile Include="NetConnection.Reliability.cs" />
     <Compile Include="NetConnection.Statistics.cs" />
+    <Compile Include="NetConnection.StringTable.cs" />
     <Compile Include="NetConstants.cs" />
     <Compile Include="NetDiscovery.cs" />
     <Compile Include="NetEnums.cs" />

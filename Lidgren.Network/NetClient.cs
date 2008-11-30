@@ -256,6 +256,7 @@ namespace Lidgren.Network
 					case NetSystemType.Pong:
 					case NetSystemType.Disconnect:
 					case NetSystemType.ConnectionRejected:
+					case NetSystemType.StringTableAck:
 						if (m_serverConnection != null)
 							m_serverConnection.HandleSystemMessage(message, now);
 						return;

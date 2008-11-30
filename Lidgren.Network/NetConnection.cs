@@ -64,8 +64,12 @@ namespace Lidgren.Network
 
 			m_owner.NotifyStatusChange(this, reason);
 		}
-
+#if DEBUG
+		// public constructor for unit tests
+		public NetConnection(NetBase owner, IPEndPoint remoteEndPoint, byte[] hailData)
+#else
 		internal NetConnection(NetBase owner, IPEndPoint remoteEndPoint, byte[] hailData)
+#endif
 		{
 			m_owner = owner;
 			m_remoteEndPoint = remoteEndPoint;
@@ -81,6 +85,7 @@ namespace Lidgren.Network
 
 			InitializeReliability();
 			InitializeFragmentation();
+			InitializeStringTable();
 			//InitializeCongestionControl(32);
 		}
 
@@ -624,6 +629,10 @@ namespace Lidgren.Network
 					if (twoWayLatency < 0)
 						break;
 					ReceivedPong(twoWayLatency, msg);
+					break;
+				case NetSystemType.StringTableAck:
+					ushort val = msg.m_data.ReadUInt16();
+					StringTableAcknowledgeReceived(val);
 					break;
 				default:
 					m_owner.LogWrite("Undefined behaviour in NetConnection for system message " + sysType, this);
