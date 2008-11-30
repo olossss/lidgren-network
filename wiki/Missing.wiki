@@ -2,8 +2,6 @@
 
   * Encryption
 
-  * Introducer class for NAT punch-thru in the `NetPeer` class
-
   * NetPeer functionality to share peer lists
 
   * Per-connection string tables
