@@ -179,7 +179,7 @@ namespace Lidgren.Network
 			if (payLen < 13)
 			{
 				if ((m_netBase.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-					m_netBase.NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Discovery message received from " + endPoint, null);
+					m_netBase.NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Discovery message received from " + endPoint, null, message.m_senderEndPoint);
 				return false;
 			}
 
@@ -188,7 +188,7 @@ namespace Lidgren.Network
 			if (appIdent2 != m_netBase.m_config.ApplicationIdentifier)
 			{
 				if ((m_netBase.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-					m_netBase.NotifyApplication(NetMessageType.BadMessageReceived, "Discovery for different application identification received: " + appIdent2, null);
+					m_netBase.NotifyApplication(NetMessageType.BadMessageReceived, "Discovery for different application identification received: " + appIdent2, null, message.m_senderEndPoint);
 				return false;
 			}
 

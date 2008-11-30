@@ -369,7 +369,7 @@ namespace Lidgren.Network
 			if ((len % 3) != 0)
 			{
 				if ((m_owner.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-					m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Malformed ack message; length must be multiple of 3; it's " + len, this);
+					m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Malformed ack message; length must be multiple of 3; it's " + len, this, ackMessage.m_senderEndPoint);
 				return;
 			}
 
@@ -387,7 +387,7 @@ namespace Lidgren.Network
 				if (chanIdx < 0)
 				{
 					if ((m_owner.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-						m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Malformed ack message; indicated netchannel " + chan, this);
+						m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Malformed ack message; indicated netchannel " + chan, this, ackMessage.m_senderEndPoint);
 					continue;
 				}
 

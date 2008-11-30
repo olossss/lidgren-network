@@ -21,6 +21,9 @@ using System.Collections.Generic;
 
 namespace Lidgren.Network
 {
+	/// <summary>
+	/// The message type delivered to the application
+	/// </summary>
 	[Flags]
 	public enum NetMessageType
 	{
@@ -39,7 +42,7 @@ namespace Lidgren.Network
 	}
 
 	/// <summary>
-	/// Internal type of the message
+	/// Internal type of the message; send in the header of the message
 	/// </summary>
 	internal enum NetMessageLibraryType
 	{
@@ -54,7 +57,7 @@ namespace Lidgren.Network
 	}
 
 	/// <summary>
-	/// Messages of type NetMessageType.System has this enum encoded in the first byte
+	/// Messages of type NetMessageLibraryType.System has this enum encoded in the first byte
 	/// </summary>
 	internal enum NetSystemType
 	{

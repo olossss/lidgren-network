@@ -172,46 +172,48 @@ namespace Lidgren.Network
 			int payLen = message.m_data.LengthBytes;
 
 			// Discovery response?
-			if (message.m_type == NetMessageLibraryType.System)
+			if (message.m_type == NetMessageLibraryType.System && payLen > 0)
 			{
-				if (payLen > 0)
+				NetSystemType sysType = (NetSystemType)message.m_data.PeekByte();
+
+				// NAT introduction?
+				if (sysType == NetSystemType.NatIntroduction)
 				{
-					NetSystemType sysType = (NetSystemType)message.m_data.PeekByte();
-
-					// NAT introduction?
-					if (sysType == NetSystemType.NatIntroduction)
-					{
-						if ((m_enabledMessageTypes & NetMessageType.NATIntroduction) != NetMessageType.NATIntroduction)
-							return; // drop
-						try
-						{
-							message.m_data.ReadByte(); // step past system type byte
-							IPEndPoint presented = message.m_data.ReadIPEndPoint();
-							NetConnection.SendPing(this, presented, now);
-
-							NetBuffer info = CreateBuffer();
-							info.Write(presented);
-							NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender);
-							return;
-						}
-						catch (Exception ex)
-						{
-							NotifyApplication(NetMessageType.BadMessageReceived, "Bad NAT introduction message received", message.m_sender);
-							return;
-						}
-					}
-
-					if (sysType == NetSystemType.DiscoveryResponse)
+					if ((m_enabledMessageTypes & NetMessageType.NATIntroduction) != NetMessageType.NATIntroduction)
+						return; // drop
+					try
 					{
 						message.m_data.ReadByte(); // step past system type byte
-						NetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
-						if (resMsg != null)
-						{
-							lock (m_receivedMessages)
-								m_receivedMessages.Enqueue(resMsg);
-						}
+						IPEndPoint presented = message.m_data.ReadIPEndPoint();
+
+						//
+						// TODO: send repeated ping packets with delay
+						//
+						NetConnection.SendPing(this, presented, now);
+
+						NetBuffer info = CreateBuffer();
+						info.Write(presented);
+						NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender, senderEndpoint);
 						return;
 					}
+					catch (Exception ex)
+					{
+						NotifyApplication(NetMessageType.BadMessageReceived, "Bad NAT introduction message received", message.m_sender, senderEndpoint);
+						return;
+					}
+				}
+
+				if (sysType == NetSystemType.DiscoveryResponse)
+				{
+					message.m_data.ReadByte(); // step past system type byte
+					NetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
+					if (resMsg != null)
+					{
+						resMsg.m_senderEndPoint = senderEndpoint;
+						lock (m_receivedMessages)
+							m_receivedMessages.Enqueue(resMsg);
+					}
+					return;
 				}
 			}
 
@@ -223,13 +225,14 @@ namespace Lidgren.Network
 
 				// just deliever
 				message.m_msgType = NetMessageType.OutOfBandData;
+				message.m_senderEndPoint = senderEndpoint;
 				lock (m_receivedMessages)
 					m_receivedMessages.Enqueue(message);
 				return;
 			}
 
-			if (message.m_sender != m_serverConnection)
-				return; // don't talk to strange senders
+			if (message.m_sender != m_serverConnection && m_serverConnection != null)
+				return; // don't talk to strange senders after this
 
 			if (message.m_type == NetMessageLibraryType.Acknowledge)
 			{
@@ -243,7 +246,7 @@ namespace Lidgren.Network
 				if (payLen < 1)
 				{
 					if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-						NotifyApplication(NetMessageType.BadMessageReceived, "Received malformed system message: " + message, m_serverConnection);
+						NotifyApplication(NetMessageType.BadMessageReceived, "Received malformed system message: " + message, m_serverConnection, senderEndpoint);
 					return;
 				}
 				NetSystemType sysType = (NetSystemType)message.m_data.Data[0];
@@ -254,7 +257,8 @@ namespace Lidgren.Network
 					case NetSystemType.Pong:
 					case NetSystemType.Disconnect:
 					case NetSystemType.ConnectionRejected:
-						m_serverConnection.HandleSystemMessage(message, now);
+						if (m_serverConnection != null)
+							m_serverConnection.HandleSystemMessage(message, now);
 						return;
 					case NetSystemType.Connect:
 					case NetSystemType.ConnectionEstablished:
@@ -262,7 +266,7 @@ namespace Lidgren.Network
 					case NetSystemType.Error:
 					default:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for client and " + sysType, m_serverConnection);
+							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for client and " + sysType, m_serverConnection, senderEndpoint);
 						return;
 				}
 			}

@@ -417,7 +417,7 @@ namespace Lidgren.Network
 		public void Write(IPEndPoint endPoint)
 		{
 			Write(BitConverter.ToUInt32(endPoint.Address.GetAddressBytes(), 0));
-			Write(endPoint.Port);
+			Write((ushort)endPoint.Port);
 		}
 
 		/// <summary>
