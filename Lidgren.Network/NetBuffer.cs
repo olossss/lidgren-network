@@ -119,8 +119,18 @@ namespace Lidgren.Network
 		/// </summary>
 		public void Reset()
 		{
-			m_bitLength = 0;
 			m_readPosition = 0;
+			m_bitLength = 0;
+			m_refCount = 0;
+		}
+
+		/// <summary>
+		/// Resets read and write pointers
+		/// </summary>
+		internal void Reset(int readPos, int writePos)
+		{
+			m_readPosition = readPos;
+			m_bitLength = writePos;
 			m_refCount = 0;
 		}
 		

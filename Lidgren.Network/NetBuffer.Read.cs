@@ -79,6 +79,16 @@ namespace Lidgren.Network
 			return retval;
 		}
 
+		public void ReadBytes(byte[] into, int offset, int numberOfBytes)
+		{
+			Debug.Assert(m_bitLength - m_readPosition >= (numberOfBytes * 8), c_readOverflowError);
+			Debug.Assert(offset + numberOfBytes <= into.Length);
+
+			NetBitWriter.ReadBytes(Data, numberOfBytes, m_readPosition, into, offset);
+			m_readPosition += (8 * numberOfBytes);
+			return;
+		}
+
 		//
 		// 16 bit
 		//
