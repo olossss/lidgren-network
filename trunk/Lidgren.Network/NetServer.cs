@@ -110,7 +110,7 @@ namespace Lidgren.Network
 			return null;
 		}
 
-		internal override void HandleReceivedMessage(NetMessage message, IPEndPoint senderEndpoint)
+		internal override void HandleReceivedMessage(IncomingNetMessage message, IPEndPoint senderEndpoint)
 		{
 			double now = NetTime.Now;
 
@@ -128,10 +128,9 @@ namespace Lidgren.Network
 						message.m_data.ReadByte(); // step past system type byte
 						IPEndPoint presented = message.m_data.ReadIPEndPoint();
 
-						//
-						// TODO: Send repeated packets when a delay between
-						//
 						NetConnection.SendPing(this, presented, now);
+						NetConnection.QueuePing(this, presented, now);
+						// TODO: send more spam to punch hole in NAT?
 
 						NetBuffer info = CreateBuffer();
 						info.Write(presented);
@@ -231,7 +230,7 @@ namespace Lidgren.Network
 						if ((m_enabledMessageTypes & NetMessageType.ConnectionApproval) == NetMessageType.ConnectionApproval)
 						{
 							// Ask application if this connection is allowed to proceed
-							NetMessage app = CreateMessage();
+							IncomingNetMessage app = CreateIncomingMessage();
 							app.m_msgType = NetMessageType.ConnectionApproval;
 							if (hailData != null)
 								app.m_data.Write(hailData);
@@ -257,7 +256,7 @@ namespace Lidgren.Network
 						if (m_allowOutgoingConnections)
 						{
 							// NetPeer
-							NetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
+							IncomingNetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
 							resMsg.m_senderEndPoint = senderEndpoint;
 							if (resMsg != null)
 							{
@@ -334,7 +333,7 @@ namespace Lidgren.Network
 		internal void AddConnection(double now, NetConnection conn)
 		{
 			// send response; even if connected
-			NetMessage response = CreateSystemMessage(NetSystemType.ConnectResponse);
+			OutgoingNetMessage response = CreateSystemMessage(NetSystemType.ConnectResponse);
 			conn.m_unsentMessages.Enqueue(response);
 
 			if (conn.m_status != NetConnectionStatus.Connecting)
@@ -376,9 +375,14 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Read any received message in any connection queue
 		/// </summary>
-		public bool ReadMessage(NetBuffer intoBuffer, List<NetConnection> onlyFor, bool includeNullConnectionMessages, out NetMessageType type, out NetConnection sender)
+		public bool ReadMessage(
+			NetBuffer intoBuffer,
+			List<NetConnection> onlyFor,
+			bool includeNullConnectionMessages,
+			out NetMessageType type,
+			out NetConnection sender)
 		{
-			NetMessage msg = null;
+			IncomingNetMessage msg = null;
 			lock (m_receivedMessages)
 			{
 				int sz = m_receivedMessages.Count;
@@ -443,12 +447,16 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Read any received message in any connection queue
 		/// </summary>
-		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type, out NetConnection sender, out IPEndPoint senderEndPoint)
+		public bool ReadMessage(
+			NetBuffer intoBuffer,
+			out NetMessageType type,
+			out NetConnection sender,
+			out IPEndPoint senderEndPoint)
 		{
 			if (intoBuffer == null)
 				throw new ArgumentNullException("intoBuffer");
 
-			NetMessage msg;
+			IncomingNetMessage msg;
 			lock(m_receivedMessages)
 				msg = m_receivedMessages.Dequeue();
 

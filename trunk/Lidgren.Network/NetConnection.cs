@@ -14,8 +14,8 @@ namespace Lidgren.Network
 	{
 		private NetBase m_owner;
 		internal IPEndPoint m_remoteEndPoint;
-		internal NetQueue<NetMessage> m_unsentMessages;
-		internal NetQueue<NetMessage> m_lockedUnsentMessages;
+		internal NetQueue<OutgoingNetMessage> m_unsentMessages;
+		internal NetQueue<OutgoingNetMessage> m_lockedUnsentMessages;
 		internal NetConnectionStatus m_status;
 		private byte[] m_hailData;
 		private double m_ackWithholdingStarted;
@@ -75,8 +75,8 @@ namespace Lidgren.Network
 			m_throttleDebt = owner.m_config.m_throttleBytesPerSecond; // slower start
 
 			m_statistics = new NetConnectionStatistics(this, 1.0f);
-			m_unsentMessages = new NetQueue<NetMessage>(6);
-			m_lockedUnsentMessages = new NetQueue<NetMessage>(3);
+			m_unsentMessages = new NetQueue<OutgoingNetMessage>(6);
+			m_lockedUnsentMessages = new NetQueue<OutgoingNetMessage>(3);
 			m_status = NetConnectionStatus.Connecting; // to prevent immediate removal on heartbeat thread
 
 			InitializeReliability();
@@ -123,7 +123,7 @@ namespace Lidgren.Network
 
 				for (int i = 0; i < numFragments; i++)
 				{
-					NetMessage fmsg = m_owner.CreateMessage();
+					OutgoingNetMessage fmsg = m_owner.CreateOutgoingMessage();
 					fmsg.m_type = NetMessageLibraryType.UserFragmented;
 					fmsg.m_msgType = NetMessageType.Data;
 
@@ -175,7 +175,7 @@ namespace Lidgren.Network
 			// Normal, unfragmented, message
 			//
 
-			NetMessage msg = m_owner.CreateMessage();
+			OutgoingNetMessage msg = m_owner.CreateOutgoingMessage();
 			msg.m_msgType = NetMessageType.Data;
 			msg.m_type = NetMessageLibraryType.User;
 			msg.m_data = data;
@@ -205,7 +205,7 @@ namespace Lidgren.Network
 			m_futureDisconnectReason = null;
 
 			m_owner.LogVerbose("Sending Connect request", this);
-			NetMessage msg = m_owner.CreateSystemMessage(NetSystemType.Connect);
+			OutgoingNetMessage msg = m_owner.CreateSystemMessage(NetSystemType.Connect);
 			msg.m_data.Write(m_owner.Configuration.ApplicationIdentifier);
 			msg.m_data.Write(m_owner.m_randomIdentifier);
 			if (m_hailData != null && m_hailData.Length > 0)
@@ -224,7 +224,7 @@ namespace Lidgren.Network
 			// drain messages from application into main unsent list
 			lock (m_lockedUnsentMessages)
 			{
-				NetMessage lm;
+				OutgoingNetMessage lm;
 				while ((lm = m_lockedUnsentMessages.Dequeue()) != null)
 					m_unsentMessages.Enqueue(lm);
 			}
@@ -330,7 +330,7 @@ namespace Lidgren.Network
 			sendBuffer.Reset();
 			while (m_unsentMessages.Count > 0)
 			{
-				NetMessage msg = m_unsentMessages.Peek();
+				OutgoingNetMessage msg = m_unsentMessages.Peek();
 				int estimatedMessageSize = msg.m_data.LengthBytes + 5;
 
 				// check if this message fits the throttle window
@@ -530,11 +530,11 @@ namespace Lidgren.Network
 		}
 		*/
 
-		internal void HandleSystemMessage(NetMessage msg, double now)
+		internal void HandleSystemMessage(IncomingNetMessage msg, double now)
 		{
 			msg.m_data.Position = 0;
 			NetSystemType sysType = (NetSystemType)msg.m_data.ReadByte();
-			NetMessage response = null;
+			OutgoingNetMessage response = null;
 			switch (sysType)
 			{
 				case NetSystemType.Disconnect:

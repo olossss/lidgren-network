@@ -6,45 +6,10 @@ using System.Net;
 
 namespace Lidgren.Network
 {
-	internal sealed class NetMessage
+	internal sealed class IncomingNetMessage : NetMessage
 	{
-		internal NetMessageType m_msgType;
-
-		internal NetMessageLibraryType m_type;
-		internal NetChannel m_sequenceChannel;
-		internal int m_sequenceNumber = -1;
-	
-		internal NetBuffer m_data;
 		internal NetConnection m_sender;
 		internal IPEndPoint m_senderEndPoint;
-
-		internal int m_numSent;
-		internal double m_nextResend;
-
-		internal NetBuffer m_receiptData;
-
-		public NetMessage()
-		{
-			m_msgType = NetMessageType.Data;
-		}
-
-		internal void Encode(NetBuffer intoBuffer)
-		{
-			Debug.Assert(m_sequenceNumber != -1);
-
-			// message type, netchannel and sequence number
-			intoBuffer.Write((byte)((int)m_type | ((int)m_sequenceChannel << 3)));
-			intoBuffer.Write((ushort)m_sequenceNumber);
-
-			// payload length
-			int len = m_data.LengthBytes;
-			intoBuffer.WriteVariableUInt32((uint)len);
-
-			// copy payload
-			intoBuffer.Write(m_data.Data, 0, len);
-
-			return;
-		}
 
 		/// <summary>
 		/// Read this message from the packet buffer
@@ -73,9 +38,58 @@ namespace Lidgren.Network
 		public override string ToString()
 		{
 			if (m_type == NetMessageLibraryType.System)
-				return "[" + (NetSystemType)m_data.Data[0] + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
+				return "[Incoming " + (NetSystemType)m_data.Data[0] + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
 
-			return "[" + m_type + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
+			return "[Incoming " + m_type + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
 		}
+	}
+
+	internal sealed class OutgoingNetMessage : NetMessage
+	{
+		internal int m_numSent;
+		internal double m_nextResend;
+		internal NetBuffer m_receiptData;
+
+		internal void Encode(NetBuffer intoBuffer)
+		{
+			Debug.Assert(m_sequenceNumber != -1);
+
+			// message type, netchannel and sequence number
+			intoBuffer.Write((byte)((int)m_type | ((int)m_sequenceChannel << 3)));
+			intoBuffer.Write((ushort)m_sequenceNumber);
+
+			// payload length
+			int len = m_data.LengthBytes;
+			intoBuffer.WriteVariableUInt32((uint)len);
+
+			// copy payload
+			intoBuffer.Write(m_data.Data, 0, len);
+
+			return;
+		}
+
+		public override string ToString()
+		{
+			if (m_type == NetMessageLibraryType.System)
+				return "[Outgoing " + (NetSystemType)m_data.Data[0] + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
+
+			return "[Outgoing " + m_type + " " + m_sequenceChannel + "|" + m_sequenceNumber + "]";
+		}
+	}
+
+	abstract class NetMessage
+	{
+		internal NetMessageType m_msgType;
+
+		internal NetMessageLibraryType m_type;
+		internal NetChannel m_sequenceChannel;
+		internal int m_sequenceNumber = -1;
+	
+		internal NetBuffer m_data;
+			
+		public NetMessage()
+		{
+			m_msgType = NetMessageType.Data;
+		}		
 	}
 }
