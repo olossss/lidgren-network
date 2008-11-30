@@ -43,7 +43,7 @@ namespace Lidgren.Network
 		protected bool m_shutdownComplete;
 
 		// ready for reading by the application
-		internal NetQueue<NetMessage> m_receivedMessages;
+		internal NetQueue<IncomingNetMessage> m_receivedMessages;
 		private NetQueue<NetBuffer> m_unsentOutOfBandMessages;
 		private NetQueue<IPEndPoint> m_unsentOutOfBandRecipients;
 		private Queue<SUSystemMessage> m_susmQueue;
@@ -123,7 +123,7 @@ namespace Lidgren.Network
 			m_sendBuffer = new NetBuffer(config.SendBufferSize);
 			m_senderRemote = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
 			m_statistics = new NetBaseStatistics();
-			m_receivedMessages = new NetQueue<NetMessage>(4);
+			m_receivedMessages = new NetQueue<IncomingNetMessage>(4);
 			m_scratchBuffer = new NetBuffer(32);
 			m_bindLock = new object();
 			m_discovery = new NetDiscovery(this);
@@ -143,15 +143,27 @@ namespace Lidgren.Network
 
 
 		/// <summary>
-		/// Creates a new NetMessage with a resetted NetBuffer, increasing refCount
+		/// Creates an outgoing net message
 		/// </summary>
-		internal NetMessage CreateMessage()
+		internal OutgoingNetMessage CreateOutgoingMessage()
 		{
 			// no recycling for messages
-			NetMessage msg = new NetMessage();
+			OutgoingNetMessage msg = new OutgoingNetMessage();
 			msg.m_sequenceNumber = -1;
 			msg.m_numSent = 0;
 			msg.m_nextResend = double.MaxValue;
+			msg.m_msgType = NetMessageType.Data;
+			msg.m_data = CreateBuffer();
+			return msg;
+		}
+
+		/// <summary>
+		/// Creates an incoming net message
+		/// </summary>
+		internal IncomingNetMessage CreateIncomingMessage()
+		{
+			// no recycling for messages
+			IncomingNetMessage msg = new IncomingNetMessage();
 			msg.m_msgType = NetMessageType.Data;
 			msg.m_data = CreateBuffer();
 			return msg;
@@ -311,7 +323,7 @@ namespace Lidgren.Network
 						int beginPosition = m_receiveBuffer.Position;
 
 						// read message header
-						NetMessage msg = CreateMessage();
+						IncomingNetMessage msg = CreateIncomingMessage();
 						msg.m_sender = sender;
 						msg.ReadFrom(m_receiveBuffer, ipsender);
 
@@ -344,7 +356,7 @@ namespace Lidgren.Network
 
 		internal abstract NetConnection GetConnection(IPEndPoint remoteEndpoint);
 
-		internal abstract void HandleReceivedMessage(NetMessage message, IPEndPoint senderEndpoint);
+		internal abstract void HandleReceivedMessage(IncomingNetMessage message, IPEndPoint senderEndpoint);
 
 		internal abstract void HandleConnectionForciblyClosed(NetConnection connection, SocketException sex);
 
@@ -358,9 +370,9 @@ namespace Lidgren.Network
 			NotifyApplication(NetMessageType.StatusChanged, reason, connection);
 		}
 
-		internal NetMessage CreateSystemMessage(NetSystemType systemType)
+		internal OutgoingNetMessage CreateSystemMessage(NetSystemType systemType)
 		{
-			NetMessage msg = CreateMessage();
+			OutgoingNetMessage msg = CreateOutgoingMessage();
 			msg.m_type = NetMessageLibraryType.System;
 			msg.m_sequenceChannel = NetChannel.Unreliable;
 			msg.m_sequenceNumber = 0;
@@ -633,7 +645,7 @@ namespace Lidgren.Network
 			if ((m_enabledMessageTypes & NetMessageType.Receipt) != NetMessageType.Receipt)
 				return; // disabled
 
-			NetMessage msg = CreateMessage();
+			IncomingNetMessage msg = CreateIncomingMessage();
 			msg.m_sender = connection;
 			msg.m_msgType = NetMessageType.Receipt;
 			msg.m_data = receiptData;
@@ -699,7 +711,7 @@ namespace Lidgren.Network
 
 		internal void NotifyApplication(NetMessageType tp, NetBuffer buffer, NetConnection conn, IPEndPoint ep)
 		{
-			NetMessage msg = new NetMessage();
+			IncomingNetMessage msg = new IncomingNetMessage();
 			msg.m_data = buffer;
 			msg.m_msgType = tp;
 			msg.m_sender = conn;

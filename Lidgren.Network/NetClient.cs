@@ -164,7 +164,7 @@ namespace Lidgren.Network
 			return null;
 		}
 
-		internal override void HandleReceivedMessage(NetMessage message, IPEndPoint senderEndpoint)
+		internal override void HandleReceivedMessage(IncomingNetMessage message, IPEndPoint senderEndpoint)
 		{
 			//LogWrite("NetClient received message " + message);
 			double now = NetTime.Now;
@@ -186,11 +186,10 @@ namespace Lidgren.Network
 						message.m_data.ReadByte(); // step past system type byte
 						IPEndPoint presented = message.m_data.ReadIPEndPoint();
 
-						//
-						// TODO: send repeated ping packets with delay
-						//
 						NetConnection.SendPing(this, presented, now);
-
+						NetConnection.QueuePing(this, presented, now);
+						// TODO: send more spam to punch hole in NAT?
+						
 						NetBuffer info = CreateBuffer();
 						info.Write(presented);
 						NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender, senderEndpoint);
@@ -206,7 +205,7 @@ namespace Lidgren.Network
 				if (sysType == NetSystemType.DiscoveryResponse)
 				{
 					message.m_data.ReadByte(); // step past system type byte
-					NetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
+					IncomingNetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
 					if (resMsg != null)
 					{
 						resMsg.m_senderEndPoint = senderEndpoint;
@@ -281,7 +280,7 @@ namespace Lidgren.Network
 				// lost connectresponse packet?
 				// Emulate it; 
 				LogVerbose("Received user message before ConnectResponse; emulating ConnectResponse...", m_serverConnection);
-				NetMessage emuMsg = CreateMessage();
+				IncomingNetMessage emuMsg = CreateIncomingMessage();
 				emuMsg.m_type = NetMessageLibraryType.System;
 				emuMsg.m_data.Reset();
 				emuMsg.m_data.Write((byte)NetSystemType.ConnectResponse);
@@ -329,7 +328,7 @@ namespace Lidgren.Network
 		/// <returns>true if a message was read</returns>
 		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type, out IPEndPoint senderEndpoint)
 		{
-			NetMessage msg;
+			IncomingNetMessage msg;
 			lock (m_receivedMessages)
 				msg = m_receivedMessages.Dequeue();
 
