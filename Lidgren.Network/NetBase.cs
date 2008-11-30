@@ -393,7 +393,7 @@ namespace Lidgren.Network
 			QueueSingleUnreliableSystemMessage(NetSystemType.NatIntroduction, toOne, one, false);
 
 			NetBuffer toTwo = CreateBuffer();
-			toOne.Write(one);
+			toTwo.Write(one);
 			QueueSingleUnreliableSystemMessage(NetSystemType.NatIntroduction, toTwo, two, false);
 		}
 
@@ -682,24 +682,28 @@ namespace Lidgren.Network
 		{
 			NetBuffer buf = CreateBuffer();
 			buf.Write(message);
+			NotifyApplication(tp, buf, conn);
+		}
 
-			// dito for message
-			NetMessage msg = new NetMessage();
-			msg.m_data = buf;
-			msg.m_msgType = tp;
-			msg.m_sender = conn;
-
-			lock (m_receivedMessages)
-				m_receivedMessages.Enqueue(msg);
+		internal void NotifyApplication(NetMessageType tp, string message, NetConnection conn, IPEndPoint ep)
+		{
+			NetBuffer buf = CreateBuffer();
+			buf.Write(message);
+			NotifyApplication(tp, buf, conn, ep);
 		}
 
 		internal void NotifyApplication(NetMessageType tp, NetBuffer buffer, NetConnection conn)
 		{
-			// dito for message
+			NotifyApplication(tp, buffer, conn, null);
+		}
+
+		internal void NotifyApplication(NetMessageType tp, NetBuffer buffer, NetConnection conn, IPEndPoint ep)
+		{
 			NetMessage msg = new NetMessage();
 			msg.m_data = buffer;
 			msg.m_msgType = tp;
 			msg.m_sender = conn;
+			msg.m_senderEndPoint = ep;
 
 			lock (m_receivedMessages)
 				m_receivedMessages.Enqueue(msg);

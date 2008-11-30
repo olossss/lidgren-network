@@ -371,7 +371,7 @@ namespace Lidgren.Network
 		public IPEndPoint ReadIPEndPoint()
 		{
 			uint address = ReadUInt32();
-			int port = ReadInt32();
+			int port = (int)ReadUInt16();
 			return new IPEndPoint(new IPAddress((long)address), port);
 		}
 

@@ -127,16 +127,20 @@ namespace Lidgren.Network
 					{
 						message.m_data.ReadByte(); // step past system type byte
 						IPEndPoint presented = message.m_data.ReadIPEndPoint();
+
+						//
+						// TODO: Send repeated packets when a delay between
+						//
 						NetConnection.SendPing(this, presented, now);
 
 						NetBuffer info = CreateBuffer();
 						info.Write(presented);
-						NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender);
+						NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender, message.m_senderEndPoint);
 						return;
 					}
 					catch (Exception ex)
 					{
-						NotifyApplication(NetMessageType.BadMessageReceived, "Bad NAT introduction message received", message.m_sender);
+						NotifyApplication(NetMessageType.BadMessageReceived, "Bad NAT introduction message received", message.m_sender, message.m_senderEndPoint);
 						return;
 					}
 				}
@@ -150,6 +154,7 @@ namespace Lidgren.Network
 
 				// just deliever
 				message.m_msgType = NetMessageType.OutOfBandData;
+				message.m_senderEndPoint = senderEndpoint;
 				lock (m_receivedMessages)
 					m_receivedMessages.Enqueue(message);
 				return;
@@ -165,7 +170,7 @@ namespace Lidgren.Network
 				if (message.m_type != NetMessageLibraryType.System)
 				{
 					if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-						NotifyApplication(NetMessageType.BadMessageReceived, "Rejecting non-system message from unconnected source: " + message, null);
+						NotifyApplication(NetMessageType.BadMessageReceived, "Rejecting non-system message from unconnected source: " + message, null, message.m_senderEndPoint);
 					return;
 				}
 
@@ -181,14 +186,14 @@ namespace Lidgren.Network
 						if (payLen < 4)
 						{
 							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-								NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Connect message received from " + senderEndpoint, null);
+								NotifyApplication(NetMessageType.BadMessageReceived, "Malformed Connect message received from " + senderEndpoint, null, senderEndpoint);
 							return;
 						}
 						string appIdent = message.m_data.ReadString();
 						if (appIdent != m_config.ApplicationIdentifier)
 						{
 							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-								NotifyApplication(NetMessageType.BadMessageReceived, "Connect for different application identification received: " + appIdent, null);
+								NotifyApplication(NetMessageType.BadMessageReceived, "Connect for different application identification received: " + appIdent, null, senderEndpoint);
 							return;
 						}
 
@@ -198,7 +203,7 @@ namespace Lidgren.Network
 						{
 							// don't allow self-connect
 							if ((m_enabledMessageTypes & NetMessageType.ConnectionRejected) == NetMessageType.ConnectionRejected)
-								NotifyApplication(NetMessageType.ConnectionRejected, "Connection to self not allowed", null);
+								NotifyApplication(NetMessageType.ConnectionRejected, "Connection to self not allowed", null, senderEndpoint);
 							return;
 						}
 
@@ -214,7 +219,7 @@ namespace Lidgren.Network
 						if (m_connections.Count >= m_config.m_maxConnections)
 						{
 							if ((m_enabledMessageTypes & NetMessageType.ConnectionRejected) == NetMessageType.ConnectionRejected)
-								NotifyApplication(NetMessageType.ConnectionRejected, "Server full; rejecting connect from " + senderEndpoint, null);
+								NotifyApplication(NetMessageType.ConnectionRejected, "Server full; rejecting connect from " + senderEndpoint, null, senderEndpoint);
 							return;
 						}
 
@@ -243,7 +248,7 @@ namespace Lidgren.Network
 						break;
 					case NetSystemType.ConnectionEstablished:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-							NotifyApplication(NetMessageType.BadMessageReceived, "Connection established received from non-connection! " + senderEndpoint, null);
+							NotifyApplication(NetMessageType.BadMessageReceived, "Connection established received from non-connection! " + senderEndpoint, null, senderEndpoint);
 						return;
 					case NetSystemType.Discovery:
 						m_discovery.HandleRequest(message, senderEndpoint);
@@ -253,6 +258,7 @@ namespace Lidgren.Network
 						{
 							// NetPeer
 							NetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
+							resMsg.m_senderEndPoint = senderEndpoint;
 							if (resMsg != null)
 							{
 								lock (m_receivedMessages)
@@ -262,7 +268,7 @@ namespace Lidgren.Network
 						break;
 					default:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for " + this + " receiving system type " + sysType + ": " + message + " from unconnected source", null);
+							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for " + this + " receiving system type " + sysType + ": " + message + " from unconnected source", null, senderEndpoint);
 						break;
 				}
 				// done
@@ -285,7 +291,7 @@ namespace Lidgren.Network
 				if (payLen < 1)
 				{
 					if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-						NotifyApplication(NetMessageType.BadMessageReceived, "Received malformed system message; payload length less than 1 byte", null);
+						NotifyApplication(NetMessageType.BadMessageReceived, "Received malformed system message; payload length less than 1 byte", null, senderEndpoint);
 					return;
 				}
 				NetSystemType sysType = (NetSystemType)message.m_data.ReadByte();
@@ -307,7 +313,7 @@ namespace Lidgren.Network
 						else
 						{
 							if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-								NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for server and system type " + sysType, null);
+								NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for server and system type " + sysType, null, senderEndpoint);
 						}
 						break;
 					case NetSystemType.Discovery:
@@ -316,7 +322,7 @@ namespace Lidgren.Network
 						break;
 					default:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for server and system type " + sysType, null);
+							NotifyApplication(NetMessageType.BadMessageReceived, "Undefined behaviour for server and system type " + sysType, null, senderEndpoint);
 						break;
 				}
 				return;
@@ -433,7 +439,7 @@ namespace Lidgren.Network
 			IPEndPoint senderEndPoint;
 			return ReadMessage(intoBuffer, out type, out sender, out senderEndPoint);
 		}
-
+				
 		/// <summary>
 		/// Read any received message in any connection queue
 		/// </summary>

@@ -543,7 +543,7 @@ namespace Lidgren.Network
 					Disconnect(msg.m_data.ReadString(), 0.75f + ((float)m_currentAvgRoundtrip * 4), false, false);
 					break;
 				case NetSystemType.ConnectionRejected:
-					m_owner.NotifyApplication(NetMessageType.ConnectionRejected, msg.m_data.ReadString(), msg.m_sender);
+					m_owner.NotifyApplication(NetMessageType.ConnectionRejected, msg.m_data.ReadString(), msg.m_sender, msg.m_senderEndPoint);
 					break;
 				case NetSystemType.Connect:
 
@@ -553,7 +553,7 @@ namespace Lidgren.Network
 					if (appIdent != m_owner.m_config.ApplicationIdentifier)
 					{
 						if ((m_owner.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-							m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Connect for different application identification received: " + appIdent, null);
+							m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Connect for different application identification received: " + appIdent, null, msg.m_senderEndPoint);
 						return;
 					}
 
@@ -563,7 +563,7 @@ namespace Lidgren.Network
 					{
 						// don't allow self-connect
 						if ((m_owner.m_enabledMessageTypes & NetMessageType.ConnectionRejected) == NetMessageType.ConnectionRejected)
-							m_owner.NotifyApplication(NetMessageType.ConnectionRejected, "Connection to self not allowed", null);
+							m_owner.NotifyApplication(NetMessageType.ConnectionRejected, "Connection to self not allowed", null, msg.m_senderEndPoint);
 						return;
 					}
 
@@ -597,7 +597,7 @@ namespace Lidgren.Network
 					if (m_status != NetConnectionStatus.Connecting)
 					{
 						if ((m_owner.m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
-							m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Received connection response but we're not connecting...", this);
+							m_owner.NotifyApplication(NetMessageType.BadMessageReceived, "Received connection response but we're not connecting...", this, msg.m_senderEndPoint);
 						return;
 					}
 					// send first ping 100-350ms after connected
