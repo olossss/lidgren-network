@@ -376,6 +376,14 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Reads a string using the string table
+		/// </summary>
+		public string ReadString(NetConnection sender)
+		{
+			return sender.ReadStringTable(this);
+		}
+
+		/// <summary>
 		/// Reads a stored IPv4 endpoint description
 		/// </summary>
 		public IPEndPoint ReadIPEndPoint()

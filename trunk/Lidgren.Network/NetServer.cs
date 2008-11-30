@@ -302,6 +302,7 @@ namespace Lidgren.Network
 					case NetSystemType.Pong:
 					case NetSystemType.Disconnect:
 					case NetSystemType.ConnectionRejected:
+					case NetSystemType.StringTableAck:
 						message.m_sender.HandleSystemMessage(message, now);
 						break;
 					case NetSystemType.ConnectResponse:

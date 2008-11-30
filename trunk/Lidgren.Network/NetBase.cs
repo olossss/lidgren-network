@@ -607,7 +607,7 @@ namespace Lidgren.Network
 			{
 				//m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
 				int bytesSent = m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
-				//LogVerbose("Sent " + bytesSent + " bytes");
+				LogVerbose("Sent " + bytesSent + " bytes");
 				return;
 			}
 			catch (SocketException sex)

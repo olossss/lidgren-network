@@ -411,6 +411,14 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Write a string using the string table
+		/// </summary>
+		public void Write(NetConnection recipient, string str)
+		{
+			recipient.WriteStringTable(this, str);
+		}
+
+		/// <summary>
 		/// Writes an IPv4 endpoint description
 		/// </summary>
 		/// <param name="endPoint"></param>
