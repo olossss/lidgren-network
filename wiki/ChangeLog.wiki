@@ -1,30 +1,4 @@
 #summary ChangeLog for all submits
 #labels Featured
 
-|| Date || Change ||
-|| 2008.09.24 || Out-of-band messaging added ||
-|| 2008.09.21 || Duplicate detection refactored; ping calculation bug fix; Samples updated ||
-|| 2008.09.19 || Recycling refactored ||
-|| 2008.09.18 || LargePacket sample added. Fragmentation fixed. Recycling disabled until fixed. ||
-|| 2008.09.16 || NetDiscovery refactored and fixed for `NetPeer`. ||
-|| 2008.09.02 || Added `NetChecksum` from old library. `NetBuffer` recycling fixes ||
-|| 2008.09.02 || Fixed a bug causing withheld messages to be released prematurely. Now emulating `ConnectResponse` on Client when receiving user messages before connection has been established. Fixed enabling verbose debug messages throwing exception. ||
-|| 2008.08.31 || `ConnectionApproval` feature added where server/peer can reject connections due to IP or hail data before they're properly connected ||
-|| 2008.08.24 || Verbose log message moved to its own `NetMessageType`. All log messages now have correct Sender set, if applicable. Withheld messages bug fixed. Stress sample extended. ||
-|| 2008.08.22 || Xna type serialization added ||
-|| 2008.08.19 || Duplicate detection bug fixed. More comments in samples ||
-|| 2008.08.18 || `DiscoverKnownServer()` and `DiscoverKnownPeer()` overrides added for broadcast; `NetRandom` default seed changed||
-|| 2008.08.18 || `NetPeer` bug fixed, self connection prevention added ||
-|| 2008.08.17 || Notification for bad messages received and connections rejected added as new `NetMessageType` enum entries. Dead code removed. Chat server/client rewritten as console applications.||
-|| 2008.08.13 || `DiscoverKnownServer()` and `DiscoverKnownPeer()` added ||
-|| 2008.08.11 || `WritePadBits()` and `SkipPadBits()` as faster alternatives to `WriteByte(int, int)` when padding to aligned byte for performance reasons ||
-|| 2008.08.09 || Initial submit ||
-
-
-
-
-
-
-
-
- 
+-- Page discontinued due to excellent auto-listing of changes at http://code.google.com/p/lidgren-network/source/list
