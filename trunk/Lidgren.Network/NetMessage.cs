@@ -62,9 +62,10 @@ namespace Lidgren.Network
 
 			int payLen = (int)buffer.ReadVariableUInt32();
 
-			// copy payload
-			m_data.Reset();
-			m_data.Write(buffer.ReadBytes(payLen)); // TODO: optimize
+			// copy payload into message buffer
+			m_data.EnsureBufferSize(payLen * 8);
+			buffer.ReadBytes(m_data.Data, 0, payLen);
+			m_data.Reset(0, payLen * 8);
 
 			return;
 		}

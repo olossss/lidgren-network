@@ -617,7 +617,7 @@ namespace Lidgren.Network
 					sex.SocketErrorCode == SocketError.ConnectionAborted)
 				{
 					LogWrite("Remote socket forcefully closed: " + sex.SocketErrorCode);
-					// TODO: notify connection somehow
+					// TODO: notify connection somehow?
 					return;
 				}
 
