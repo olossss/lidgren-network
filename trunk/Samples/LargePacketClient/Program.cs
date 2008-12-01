@@ -38,6 +38,8 @@ namespace LargePacketClient
 
 			Application.Idle += new EventHandler(OnAppIdle);
 			Application.Run(m_mainForm);
+
+			m_client.Shutdown("Application exiting");
 		}
 
 		static void OnAppIdle(object sender, EventArgs e)
