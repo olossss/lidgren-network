@@ -177,32 +177,10 @@ namespace Lidgren.Network
 				NetSystemType sysType = (NetSystemType)message.m_data.PeekByte();
 
 				// NAT introduction?
-				if (sysType == NetSystemType.NatIntroduction)
-				{
-					if ((m_enabledMessageTypes & NetMessageType.NATIntroduction) != NetMessageType.NATIntroduction)
-						return; // drop
-					try
-					{
-						message.m_data.ReadByte(); // step past system type byte
-						IPEndPoint presented = message.m_data.ReadIPEndPoint();
+				if (HandleNATIntroduction(message))
+					return;
 
-						LogVerbose("Received NATIntroduction to " + presented + "; sending punching ping...");
-
-						NetConnection.SendPing(this, presented, now);
-						NetConnection.QueuePing(this, presented, now);
-						// TODO: send more spam to punch hole in NAT?
-						
-						NetBuffer info = CreateBuffer();
-						info.Write(presented);
-						NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender, senderEndpoint);
-						return;
-					}
-					catch (Exception ex)
-					{
-						NotifyApplication(NetMessageType.BadMessageReceived, "Bad NAT introduction message received", message.m_sender, senderEndpoint);
-						return;
-					}
-				}
+				
 
 				if (sysType == NetSystemType.DiscoveryResponse)
 				{

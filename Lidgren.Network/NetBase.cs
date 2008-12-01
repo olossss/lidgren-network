@@ -47,6 +47,8 @@ namespace Lidgren.Network
 		private NetQueue<NetBuffer> m_unsentOutOfBandMessages;
 		private NetQueue<IPEndPoint> m_unsentOutOfBandRecipients;
 		private Queue<SUSystemMessage> m_susmQueue;
+		private Queue<IPEndPoint> m_holePunches;
+		private double m_lastHolePunch;
 
 		internal NetConfiguration m_config;
 		internal NetBuffer m_receiveBuffer;
@@ -264,6 +266,20 @@ namespace Lidgren.Network
 			// discovery
 			m_discovery.Heartbeat(now);
 
+			// hole punching
+			if (m_holePunches != null)
+			{
+				if (now > m_lastHolePunch + NetConstants.HolePunchingFrequency)
+				{
+					IPEndPoint dest = m_holePunches.Dequeue();
+					NotifyApplication(NetMessageType.DebugMessage, "Sending hole punch to " + dest, null);
+					NetConnection.SendPing(this, dest, now);
+					if (m_holePunches.Count < 1)
+						m_holePunches = null;
+					m_lastHolePunch = now;
+				}
+			}
+
 			// Send queued system messages
 			if (m_susmQueue.Count > 0)
 			{
@@ -359,6 +375,48 @@ namespace Lidgren.Network
 		internal abstract void HandleReceivedMessage(IncomingNetMessage message, IPEndPoint senderEndpoint);
 
 		internal abstract void HandleConnectionForciblyClosed(NetConnection connection, SocketException sex);
+
+		/// <summary>
+		/// Returns true if message should be dropped
+		/// </summary>
+		internal bool HandleNATIntroduction(IncomingNetMessage message)
+		{
+			if (message.m_type == NetMessageLibraryType.System)
+			{
+				if (message.m_data.LengthBytes > 4 && message.m_data.PeekByte() == (byte)NetSystemType.NatIntroduction)
+				{
+					if ((m_enabledMessageTypes & NetMessageType.NATIntroduction) != NetMessageType.NATIntroduction)
+						return true; // drop
+					try
+					{
+						message.m_data.ReadByte(); // step past system type byte
+						IPEndPoint presented = message.m_data.ReadIPEndPoint();
+
+						LogVerbose("Received NATIntroduction to " + presented + "; sending punching ping...");
+
+						double now = NetTime.Now;
+						NetConnection.SendPing(this, presented, now);
+
+						if (m_holePunches == null)
+							m_holePunches = new Queue<IPEndPoint>();
+
+						for (int i = 0; i < 5; i++)
+							m_holePunches.Enqueue(new IPEndPoint(presented.Address, presented.Port));
+
+						NetBuffer info = CreateBuffer();
+						info.Write(presented);
+						NotifyApplication(NetMessageType.NATIntroduction, info, message.m_sender, message.m_senderEndPoint);
+						return true;
+					}
+					catch (Exception ex)
+					{
+						NotifyApplication(NetMessageType.BadMessageReceived, "Bad NAT introduction message received: " + ex.Message, message.m_sender, message.m_senderEndPoint);
+						return true;
+					}
+				}
+			}
+			return false;
+		}
 
 		/// <summary>
 		/// Notify application that a connection changed status
