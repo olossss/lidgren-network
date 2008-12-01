@@ -186,6 +186,8 @@ namespace Lidgren.Network
 						message.m_data.ReadByte(); // step past system type byte
 						IPEndPoint presented = message.m_data.ReadIPEndPoint();
 
+						LogVerbose("Received NATIntroduction to " + presented + "; sending punching ping...");
+
 						NetConnection.SendPing(this, presented, now);
 						NetConnection.QueuePing(this, presented, now);
 						// TODO: send more spam to punch hole in NAT?
