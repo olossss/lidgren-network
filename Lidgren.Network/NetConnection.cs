@@ -62,6 +62,12 @@ namespace Lidgren.Network
 			NetConnectionStatus oldStatus = m_status;
 			m_status = status;
 
+			if (m_status == NetConnectionStatus.Connected)
+			{
+				// no need for further hole punching
+				m_owner.CeaseHolePunching(m_remoteEndPoint);
+			}
+
 			m_owner.NotifyStatusChange(this, reason);
 		}
 #if DEBUG
