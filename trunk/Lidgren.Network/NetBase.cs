@@ -47,7 +47,7 @@ namespace Lidgren.Network
 		private NetQueue<NetBuffer> m_unsentOutOfBandMessages;
 		private NetQueue<IPEndPoint> m_unsentOutOfBandRecipients;
 		private Queue<SUSystemMessage> m_susmQueue;
-		private Queue<IPEndPoint> m_holePunches;
+		internal List<IPEndPoint> m_holePunches;
 		private double m_lastHolePunch;
 
 		internal NetConfiguration m_config;
@@ -255,6 +255,30 @@ namespace Lidgren.Network
 			}
 		}
 
+		public void CeaseHolePunching(IPEndPoint ep)
+		{
+			int hc = ep.GetHashCode();
+			if (m_holePunches != null)
+			{
+				bool wasRemoved = false;
+				do
+				{
+					for (int i = 0; i < m_holePunches.Count; i++)
+					{
+						if (m_holePunches[i].GetHashCode() == hc)
+						{
+							m_holePunches.RemoveAt(i);
+							wasRemoved = true;
+							break;
+						}
+					}
+				} while (m_holePunches.Count > 0 && wasRemoved);
+
+				if (m_holePunches.Count == 0)
+					m_holePunches = null;
+			}
+		}
+
 		/// <summary>
 		/// Reads all packets and create messages
 		/// </summary>
@@ -271,12 +295,20 @@ namespace Lidgren.Network
 			{
 				if (now > m_lastHolePunch + NetConstants.HolePunchingFrequency)
 				{
-					IPEndPoint dest = m_holePunches.Dequeue();
-					NotifyApplication(NetMessageType.DebugMessage, "Sending hole punch to " + dest, null);
-					NetConnection.SendPing(this, dest, now);
-					if (m_holePunches.Count < 1)
+					if (m_holePunches.Count < 0)
+					{
 						m_holePunches = null;
-					m_lastHolePunch = now;
+					}
+					else
+					{
+						IPEndPoint dest = m_holePunches[0];
+						m_holePunches.RemoveAt(0);
+						NotifyApplication(NetMessageType.DebugMessage, "Sending hole punch to " + dest, null);
+						NetConnection.SendPing(this, dest, now);
+						if (m_holePunches.Count < 1)
+							m_holePunches = null;
+						m_lastHolePunch = now;
+					}
 				}
 			}
 
@@ -398,10 +430,10 @@ namespace Lidgren.Network
 						NetConnection.SendPing(this, presented, now);
 
 						if (m_holePunches == null)
-							m_holePunches = new Queue<IPEndPoint>();
+							m_holePunches = new List<IPEndPoint>();
 
 						for (int i = 0; i < 5; i++)
-							m_holePunches.Enqueue(new IPEndPoint(presented.Address, presented.Port));
+							m_holePunches.Add(new IPEndPoint(presented.Address, presented.Port));
 
 						NetBuffer info = CreateBuffer();
 						info.Write(presented);
