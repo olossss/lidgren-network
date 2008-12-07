@@ -159,6 +159,24 @@ namespace UnitTests
 					throw new Exception("Ack thphth ranged integer");
 			}
 
+			// test writevariableuint64
+			NetBuffer largeBuffer = new NetBuffer(100 * 8);
+			UInt64[] largeNumbers = new ulong[100];
+			for (int i = 0; i < 100; i++)
+			{
+				largeNumbers[i] = NetRandom.Instance.NextUInt() << 32;
+				largeNumbers[i] |= NetRandom.Instance.NextUInt();
+				largeBuffer.WriteVariableUInt64(largeNumbers[i]);
+			}
+
+			largeBuffer.Position = 0;
+			for (int i = 0; i < 100; i++)
+			{
+				UInt64 ln = largeBuffer.ReadVariableUInt64();
+				if (ln != largeNumbers[i])
+					throw new Exception("large fail");
+			}
+
 			double timeEnd = NetTime.Now;
 			double timeSpan = timeEnd - timeStart;
 
