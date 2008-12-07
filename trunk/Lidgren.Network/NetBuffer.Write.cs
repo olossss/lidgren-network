@@ -336,6 +336,25 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Write Base128 encoded variable sized unsigned integer
+		/// </summary>
+		/// <returns>number of bytes written</returns>
+		[CLSCompliant(false)]
+		public int WriteVariableUInt64(UInt64 value)
+		{
+			int retval = 1;
+			UInt64 num1 = (UInt64)value;
+			while (num1 >= 0x80)
+			{
+				this.Write((byte)(num1 | 0x80));
+				num1 = num1 >> 7;
+				retval++;
+			}
+			this.Write((byte)num1);
+			return retval;
+		}
+
+		/// <summary>
 		/// Compress (lossy) a float in the range -1..1 using numberOfBits bits
 		/// </summary>
 		public void WriteSignedSingle(float value, int numberOfBits)
