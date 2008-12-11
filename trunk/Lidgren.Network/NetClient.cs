@@ -157,7 +157,10 @@ namespace Lidgren.Network
 				m_serverConnection.Heartbeat(now); // will send unsend messages etc.
 		}
 
-		internal override NetConnection GetConnection(IPEndPoint remoteEndpoint)
+		/// <summary>
+		/// Returns ServerConnection if passed the correct endpoint
+		/// </summary>
+		public override NetConnection GetConnection(IPEndPoint remoteEndpoint)
 		{
 			if (m_serverConnection != null && m_serverConnection.RemoteEndpoint.Equals(remoteEndpoint))
 				return m_serverConnection;
