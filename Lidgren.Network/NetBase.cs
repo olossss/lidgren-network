@@ -402,7 +402,7 @@ namespace Lidgren.Network
 
 		protected abstract void Heartbeat();
 
-		internal abstract NetConnection GetConnection(IPEndPoint remoteEndpoint);
+		public abstract NetConnection GetConnection(IPEndPoint remoteEndpoint);
 
 		internal abstract void HandleReceivedMessage(IncomingNetMessage message, IPEndPoint senderEndpoint);
 

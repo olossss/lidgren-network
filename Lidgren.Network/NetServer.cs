@@ -102,7 +102,7 @@ namespace Lidgren.Network
 			}
 		}
 
-		internal override NetConnection GetConnection(IPEndPoint remoteEndpoint)
+		public override NetConnection GetConnection(IPEndPoint remoteEndpoint)
 		{
 			NetConnection retval;
 			if (m_connectionLookup.TryGetValue(remoteEndpoint, out retval))
