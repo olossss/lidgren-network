@@ -248,7 +248,14 @@ namespace Lidgren.Network
 		{
 			while (!m_shutdownComplete)
 			{
-				Heartbeat();
+				try
+				{
+					Heartbeat();
+				}
+				catch (Exception ex)
+				{
+					LogWrite("Heartbeat() failed on network thread: " + ex.Message);
+				}
 
 				// wait here to give cpu to other threads/processes
 				Thread.Sleep(m_runSleep);
