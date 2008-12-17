@@ -180,32 +180,145 @@ namespace UnitTests
 			double timeEnd = NetTime.Now;
 			double timeSpan = timeEnd - timeStart;
 
-			Console.WriteLine("All tests passed in " + (timeSpan * 1000.0) + " milliseconds");
-						
-			/*
-			// compare tests
-			int numRuns = 10000000;
+			Console.WriteLine("Trivial tests passed in " + (timeSpan * 1000.0) + " milliseconds");
 
-			// jit
-			Compare1(2);
-			Compare2(2);
+			Console.WriteLine("Creating client and server for live testing...");
 
-			// compare
-			timeStart = NetTime.Now;
-			for (int i = 0; i < numRuns; i++)
-				Compare1(i % 42);
-			timeEnd = NetTime.Now;
-			double cmp1time = timeEnd - timeStart;
-			
-			timeStart = NetTime.Now;
-			for (int i = 0; i < numRuns; i++)
-				Compare2(i % 42);
-			timeEnd = NetTime.Now;
-			double cmp2time = timeEnd - timeStart;
+			NetConfiguration config = new NetConfiguration("unittest");
+			config.Port = 14242;
+			NetServer server = new NetServer(config);
+			NetBuffer serverBuffer = new NetBuffer();
+			server.Start();
 
-			Console.WriteLine("Method 1: " + cmp1time);
-			Console.WriteLine("Method 2: " + cmp2time);
-			*/
+			config = new NetConfiguration("unittest");
+			NetClient client = new NetClient(config);
+			client.SetMessageTypeEnabled(NetMessageType.Receipt, true);
+			NetBuffer clientBuffer = client.CreateBuffer();
+			client.Start();
+
+			client.Connect("localhost", 14242);
+
+			List<string> events = new List<string>();
+
+			double end = double.MaxValue;
+			double disconnect = double.MaxValue;
+
+			while (NetTime.Now < end)
+			{
+				double now = NetTime.Now;
+
+				NetMessageType nmt;
+				NetConnection sender;
+
+				//
+				// client
+				//
+				if (client.ReadMessage(clientBuffer, out nmt))
+				{
+					switch (nmt)
+					{
+						case NetMessageType.StatusChanged:
+							Console.WriteLine("Client: " + client.Status + " (" + clientBuffer.ReadString() + ")");
+							events.Add("CStatus " + client.Status);
+							if (client.Status == NetConnectionStatus.Connected)
+							{
+								// send reliable message
+								NetBuffer buf = client.CreateBuffer();
+								buf.Write(true);
+								buf.Write((int)52, 7);
+								buf.Write("Hallon");
+
+								client.SendMessage(buf, NetChannel.ReliableInOrder1, new NetBuffer("kokos"));
+							}
+
+							if (client.Status == NetConnectionStatus.Disconnected)
+								end = NetTime.Now + 1.0; // end in one second
+
+							break;
+						case NetMessageType.Receipt:
+							events.Add("CReceipt " + clientBuffer.ReadString());
+							break;
+						case NetMessageType.ConnectionRejected:
+						case NetMessageType.BadMessageReceived:
+							throw new Exception("Failed: " + nmt);
+						case NetMessageType.DebugMessage:
+							// silently ignore
+							break;
+						default:
+							// ignore
+							Console.WriteLine("Ignored: " + nmt);
+							break;
+					}
+				}
+
+				//
+				// server
+				//
+				if (server.ReadMessage(serverBuffer, out nmt, out sender))
+				{
+					switch (nmt)
+					{
+						case NetMessageType.StatusChanged:
+							events.Add("SStatus " + sender.Status);
+							Console.WriteLine("Server: " + sender.Status + " (" + serverBuffer.ReadString() + ")");
+							break;
+						case NetMessageType.ConnectionRejected:
+						case NetMessageType.BadMessageReceived:
+							throw new Exception("Failed: " + nmt);
+						case NetMessageType.Data:
+							events.Add("DataRec " + serverBuffer.LengthBits);
+							bool shouldBeTrue = serverBuffer.ReadBoolean();
+							int shouldBeFifthTwo = serverBuffer.ReadInt32(7);
+							string shouldBeHallon = serverBuffer.ReadString();
+
+							if (shouldBeTrue != true ||
+								shouldBeFifthTwo != 52 ||
+								shouldBeHallon != "Hallon")
+								throw new Exception("Bad data transmission");
+
+							disconnect = now + 1.0;
+							break;
+						case NetMessageType.DebugMessage:
+							// silently ignore
+							break;
+						default:
+							// ignore
+							Console.WriteLine("Ignored: " + nmt);
+							break;
+					}
+				}
+
+				if (now > disconnect)
+				{
+					server.Connections[0].Disconnect("Bye", 0.1f);
+					disconnect = double.MaxValue;
+				}
+			}
+
+			// verify events
+			string[] expected = new string[] {
+				"CStatus Connecting",
+				"SStatus Connecting",
+				"CStatus Connected",
+				"SStatus Connected",
+				"DataRec 64",
+				"CReceipt kokos",
+				"SStatus Disconnecting",
+				"CStatus Disconnecting",
+				"SStatus Disconnected",
+				"CStatus Disconnected"
+			};
+
+			if (events.Count != expected.Length)
+				throw new Exception("Mismatch in events count!");
+
+			for(int i=0;i<expected.Length;i++)
+			{
+				if (events[i] != expected[i])
+					throw new Exception("Event " + i + " mismatched!");
+			}
+
+			Console.WriteLine("All tests successful");
 
 			Console.ReadKey();
 		}
