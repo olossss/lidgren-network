@@ -28,8 +28,7 @@ namespace Lidgren.Network
 				throw new NetException("Connection is already approved!");
 
 			// send connectionrejected
-			NetBuffer buf = new NetBuffer();
-			buf.Write(reason);
+			NetBuffer buf = new NetBuffer(reason);
 			m_owner.QueueSingleUnreliableSystemMessage(
 				NetSystemType.ConnectionRejected,
 				buf,

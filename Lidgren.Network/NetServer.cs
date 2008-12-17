@@ -199,7 +199,7 @@ namespace Lidgren.Network
 
 						// Create connection
 						LogWrite("New connection: " + senderEndpoint);
-						NetConnection conn = new NetConnection(this, senderEndpoint, hailData);
+						NetConnection conn = new NetConnection(this, senderEndpoint, null, hailData);
 
 						// Connection approval?
 						if ((m_enabledMessageTypes & NetMessageType.ConnectionApproval) == NetMessageType.ConnectionApproval)
@@ -308,12 +308,13 @@ namespace Lidgren.Network
 
 		internal void AddConnection(double now, NetConnection conn)
 		{
+			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
+
 			// send response; even if connected
 			OutgoingNetMessage response = CreateSystemMessage(NetSystemType.ConnectResponse);
+			if (conn.LocalHailData != null)
+				response.m_data.Write(conn.LocalHailData);
 			conn.m_unsentMessages.Enqueue(response);
-
-			if (conn.m_status != NetConnectionStatus.Connecting)
-				conn.SetStatus(NetConnectionStatus.Connecting, "Connecting...");
 
 			conn.m_handshakeInitiated = now;
 			

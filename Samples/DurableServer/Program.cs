@@ -17,7 +17,9 @@ namespace DurableServer
 			NetServer server = new NetServer(config);
 
 			server.SetMessageTypeEnabled(NetMessageType.ConnectionApproval, true);
-			server.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
+			server.SetMessageTypeEnabled(NetMessageType.DebugMessage, true);
+			//server.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
+			server.SetMessageTypeEnabled(NetMessageType.StatusChanged, true);
 
 			server.SimulatedMinimumLatency = 0.05f;
 			server.SimulatedLatencyVariance = 0.025f;
@@ -44,7 +46,10 @@ namespace DurableServer
 					switch (type)
 					{
 						case NetMessageType.StatusChanged:
-							Output(wrt, "New status: " + sender.Status + " (" + buffer.ReadString() + ")");
+							if (sender.RemoteHailData != null)
+								Output(wrt, "New status: " + sender.Status + " (" + buffer.ReadString() + ") Remote hail is: " + Encoding.ASCII.GetString(sender.RemoteHailData));
+							else
+								Output(wrt, "New status: " + sender.Status + " (" + buffer.ReadString() + ") Remote hail hasn't arrived.");
 							break;
 						case NetMessageType.BadMessageReceived:
 						case NetMessageType.ConnectionRejected:
@@ -58,10 +63,12 @@ namespace DurableServer
 							wrt.WriteLine(buffer.ReadString()); // don't output to console
 							break;
 						case NetMessageType.ConnectionApproval:
-							byte hailByte = buffer.ReadByte();
-							if (hailByte == 42)
+							if (sender.RemoteHailData != null &&
+								Encoding.ASCII.GetString(sender.RemoteHailData) == "Hail from client")
 							{
 								Output(wrt, "Hail ok!");
+								if (sender != null)
+									sender.LocalHailData = Encoding.ASCII.GetBytes("Hail from server"); // set local hail data at every status change because it's the easiest to do
 								sender.Approve();
 							}
 							else
