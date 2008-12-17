@@ -26,11 +26,11 @@ namespace DurableClient
 			NetBuffer buffer = client.CreateBuffer();
 
 			// connect to localhost
-			client.Connect("localhost", 14242, new byte[] { 42 }); // send a single byte, 42, as hail data
+			client.Connect("localhost", 14242, Encoding.ASCII.GetBytes("Hail from client"));
 
 			// enable some library messages
 			client.SetMessageTypeEnabled(NetMessageType.BadMessageReceived, true);
-			client.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
+			//client.SetMessageTypeEnabled(NetMessageType.VerboseDebugMessage, true);
 			client.SetMessageTypeEnabled(NetMessageType.ConnectionRejected, true);
 
 			FileStream fs = new FileStream("./clientlog.txt", FileMode.Create, FileAccess.Write, FileShare.Read);
@@ -51,7 +51,10 @@ namespace DurableClient
 					switch (type)
 					{
 						case NetMessageType.StatusChanged:
-							Output(wrt, "New status: " + client.Status + " (" + buffer.ReadString() + ")");
+							if (client.ServerConnection.RemoteHailData != null)
+								Output(wrt, "New status: " + client.Status + " (" + buffer.ReadString() + ") Remote hail is: " + Encoding.ASCII.GetString(client.ServerConnection.RemoteHailData));
+							else
+								Output(wrt, "New status: " + client.Status + " (" + buffer.ReadString() + ") Remote hail hasn't arrived.");
 							break;
 						case NetMessageType.BadMessageReceived:
 						case NetMessageType.ConnectionRejected:

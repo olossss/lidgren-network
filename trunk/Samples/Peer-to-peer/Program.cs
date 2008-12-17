@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using Lidgren.Network;
 using SamplesCommon;
+using System.Text;
 
 namespace PeerToPeer
 {
@@ -34,8 +35,6 @@ namespace PeerToPeer
 			// create a buffer to read data into
 			s_readBuffer = s_peer.CreateBuffer();
 
-			WriteToConsole("Listening on port " + s_peer.ListenPort);
-
 			Application.Idle += new EventHandler(OnAppIdle);
 			Application.Run(s_mainForm);
 
@@ -59,6 +58,14 @@ namespace PeerToPeer
 		{
 			switch (type)
 			{
+				case NetMessageType.StatusChanged:
+					if (source.LocalHailData == null)
+						source.LocalHailData = Encoding.ASCII.GetBytes("Hi; I'm " + s_peer.GetHashCode());
+					if (source.RemoteHailData != null)
+						WriteToConsole("New status: " + source.Status + " - remote hail is: " + Encoding.ASCII.GetString(source.RemoteHailData));
+					else
+						WriteToConsole("New status: " + source.Status + " - remote hail is null");
+					break;
 				case NetMessageType.DebugMessage:
 				case NetMessageType.VerboseDebugMessage:
 				case NetMessageType.BadMessageReceived:
@@ -70,7 +77,7 @@ namespace PeerToPeer
 					break;
 				case NetMessageType.ServerDiscovered:
 					// discovered another peer!
-					s_peer.Connect(buffer.ReadIPEndPoint());
+					s_peer.Connect(buffer.ReadIPEndPoint(), Encoding.ASCII.GetBytes("Hi; I'm " + s_peer.GetHashCode()));
 					break;
 				default:
 					// unhandled
@@ -90,6 +97,9 @@ namespace PeerToPeer
 
 		static void OnStatusChanged(object sender, NetStatusChangedEventArgs e)
 		{
+			// also set local hail; which will be send on connection response
+			e.Connection.LocalHailData = Encoding.ASCII.GetBytes("Hi; I'm " + s_peer.GetHashCode());
+
 			WriteToConsole(e.Connection.RemoteEndpoint + ": " + e.NewStatus + " (" + e.Reason + ")");
 		}
 
@@ -107,7 +117,7 @@ namespace PeerToPeer
 				if (idx == -1)
 				{
 					// port only
-					s_peer.Connect("localhost", Int32.Parse(str.Substring(8)), null);
+					s_peer.Connect("localhost", Int32.Parse(str.Substring(8)), Encoding.ASCII.GetBytes("Hi; I'm " + s_peer.GetHashCode()));
 					return;
 				}
 				else
@@ -115,7 +125,7 @@ namespace PeerToPeer
 					// host and port
 					string host = str.Substring(8, idx - 8);
 					string portStr = str.Substring(idx + 1);
-					s_peer.Connect(host, Int32.Parse(portStr), null);
+					s_peer.Connect(host, Int32.Parse(portStr), Encoding.ASCII.GetBytes("Hi; I'm " + s_peer.GetHashCode()));
 					return;
 				}
 			}

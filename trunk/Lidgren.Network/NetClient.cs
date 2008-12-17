@@ -32,7 +32,7 @@ namespace Lidgren.Network
 		private NetConnection m_serverConnection;
 
 		private bool m_connectRequested;
-		private byte[] m_hailData;
+		private byte[] m_localHailData; // temporary container until NetConnection has been created
 		private IPEndPoint m_connectEndpoint;
 		private object m_startLock;
 
@@ -64,6 +64,14 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Connects to the specified host on the specified port; passing no hail data
+		/// </summary>
+		public void Connect(string host, int port)
+		{
+			Connect(host, port, null);
+		}
+
+		/// <summary>
 		/// Connects to the specified host on the specified port; passing hailData to the server
 		/// </summary>
 		public void Connect(string host, int port, byte[] hailData)
@@ -89,7 +97,7 @@ namespace Lidgren.Network
 		{
 			m_connectRequested = true;
 			m_connectEndpoint = remoteEndpoint;
-			m_hailData = hailData;
+			m_localHailData = hailData;
 
 			Start(); // start heartbeat thread etc
 		}
@@ -105,18 +113,18 @@ namespace Lidgren.Network
 			{
 				m_serverConnection.Disconnect("New connect", 0, m_serverConnection.Status == NetConnectionStatus.Connected, true);
 				if (m_serverConnection.RemoteEndpoint.Equals(m_connectEndpoint))
-					m_serverConnection = new NetConnection(this, m_connectEndpoint, m_hailData);
+					m_serverConnection = new NetConnection(this, m_connectEndpoint, m_localHailData, null);
 			}
 			else
 			{
-				m_serverConnection = new NetConnection(this, m_connectEndpoint, m_hailData);
+				m_serverConnection = new NetConnection(this, m_connectEndpoint, m_localHailData, null);
 			}
 
 			// connect
 			m_serverConnection.Connect();
 
 			m_connectEndpoint = null;
-			m_hailData = null;
+			m_localHailData = null;
 		}
 
 		/// <summary>

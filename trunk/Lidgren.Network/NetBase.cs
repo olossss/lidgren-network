@@ -466,7 +466,7 @@ namespace Lidgren.Network
 				return; // disabled
 			NotifyApplication(NetMessageType.StatusChanged, reason, connection);
 		}
-
+		
 		internal OutgoingNetMessage CreateSystemMessage(NetSystemType systemType)
 		{
 			OutgoingNetMessage msg = CreateOutgoingMessage();
@@ -789,15 +789,13 @@ namespace Lidgren.Network
 
 		internal void NotifyApplication(NetMessageType tp, string message, NetConnection conn)
 		{
-			NetBuffer buf = CreateBuffer();
-			buf.Write(message);
+			NetBuffer buf = CreateBuffer(message);
 			NotifyApplication(tp, buf, conn);
 		}
-
+		
 		internal void NotifyApplication(NetMessageType tp, string message, NetConnection conn, IPEndPoint ep)
 		{
-			NetBuffer buf = CreateBuffer();
-			buf.Write(message);
+			NetBuffer buf = CreateBuffer(message);
 			NotifyApplication(tp, buf, conn, ep);
 		}
 
