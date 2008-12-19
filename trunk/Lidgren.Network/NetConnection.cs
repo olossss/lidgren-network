@@ -745,6 +745,9 @@ namespace Lidgren.Network
 			ResetReliability();
 		}
 
-
+		public override string ToString()
+		{
+			return "[NetConnection " + m_remoteEndPoint.ToString() + " / " + m_status + "]";
+		}
 	}
 }
