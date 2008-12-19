@@ -357,7 +357,17 @@ namespace Lidgren.Network
 					if (m_socket == null || m_socket.Available < 1)
 						return;
 					m_receiveBuffer.Reset();
-					int bytesReceived = m_socket.ReceiveFrom(m_receiveBuffer.Data, 0, m_receiveBuffer.Data.Length, SocketFlags.None, ref m_senderRemote);
+
+					int bytesReceived = 0;
+					try
+					{
+						bytesReceived = m_socket.ReceiveFrom(m_receiveBuffer.Data, 0, m_receiveBuffer.Data.Length, SocketFlags.None, ref m_senderRemote);
+					}
+					catch (SocketException)
+					{
+						// no good response to this yet
+						return;
+					}
 					if (bytesReceived < 1)
 						return;
 					if (bytesReceived > 0)
@@ -868,6 +878,9 @@ namespace Lidgren.Network
 
 		protected virtual void Dispose(bool disposing)
 		{
+			// Unless we're already shut down, this is the equivalent of killing the process
+			m_shutdownComplete = true;
+			m_isBound = false;
 			if (disposing)
 			{
 				if (m_socket != null)
