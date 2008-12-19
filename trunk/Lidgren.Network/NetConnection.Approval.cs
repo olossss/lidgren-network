@@ -36,6 +36,9 @@ namespace Lidgren.Network
 			server.AddConnection(NetTime.Now, this);
 		}
 
+		/// <summary>
+		/// Disapprove the connection, rejecting it.
+		/// </summary>
 		public void Disapprove(string reason)
 		{
 			if (m_approved == true)
