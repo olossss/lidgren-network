@@ -82,12 +82,8 @@ namespace Lidgren.Network
 
 			m_owner.NotifyStatusChange(this, reason);
 		}
-#if DEBUG
-		// public constructor for unit tests
-		public NetConnection(NetBase owner, IPEndPoint remoteEndPoint, byte[] localHailData, byte[] remoteHailData)
-#else
-		internal NetConnection(NetBase owner, IPEndPoint remoteEndPoint, byte[] hailData)
-#endif
+
+		internal NetConnection(NetBase owner, IPEndPoint remoteEndPoint, byte[] localHailData, byte[] remoteHailData)
 		{
 			m_owner = owner;
 			m_remoteEndPoint = remoteEndPoint;
