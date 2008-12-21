@@ -67,9 +67,7 @@ namespace DurableServer
 								Encoding.ASCII.GetString(sender.RemoteHailData) == "Hail from client")
 							{
 								Output(wrt, "Hail ok!");
-								if (sender != null)
-									sender.LocalHailData = Encoding.ASCII.GetBytes("Hail from server"); // set local hail data at every status change because it's the easiest to do
-								sender.Approve();
+								sender.Approve(Encoding.ASCII.GetBytes("Hail from server"));
 							}
 							else
 							{

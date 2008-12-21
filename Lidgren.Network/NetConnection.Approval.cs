@@ -7,7 +7,7 @@ namespace Lidgren.Network
 	public sealed partial class NetConnection
 	{
 		/// <summary>
-		/// Approves the connection and sends any set local hail data
+		/// Approves the connection and sends any (already set) local hail data
 		/// </summary>
 		public void Approve()
 		{
