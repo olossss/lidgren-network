@@ -60,8 +60,16 @@ namespace Lidgren.Network
 		/// </summary>
 		public NetBuffer(byte[] copyData)
 		{
-			InternalEnsureBufferSize(m_bitLength + copyData.Length);
-			Buffer.BlockCopy(copyData, copyData.Length, Data, 0, copyData.Length);
+			if (copyData != null)
+			{
+				Data = new byte[copyData.Length];
+				Buffer.BlockCopy(copyData, 0, Data, 0, copyData.Length);
+				m_bitLength = copyData.Length * 8;
+			}
+			else
+			{
+				Data = new byte[4];
+			}
 		}
 
 		public NetBuffer(string str)
