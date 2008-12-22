@@ -262,6 +262,9 @@ namespace Lidgren.Network
 			}
 		}
 
+		/// <summary>
+		/// Stop any udp hole punching in progress towards ep
+		/// </summary>
 		public void CeaseHolePunching(IPEndPoint ep)
 		{
 			int hc = ep.GetHashCode();
@@ -874,6 +877,9 @@ namespace Lidgren.Network
 			GC.SuppressFinalize(this);
 		}
 
+		/// <summary>
+		/// Destructor
+		/// </summary>
 		~NetBase()
 		{
 			// Finalizer calls Dispose(false)

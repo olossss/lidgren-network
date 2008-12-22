@@ -27,6 +27,10 @@ namespace Lidgren.Network
 	public sealed partial class NetConnection
 	{
 		internal NetConnectionStatistics m_statistics;
+
+		/// <summary>
+		/// Gets the statistics object for this connection
+		/// </summary>
 		public NetConnectionStatistics Statistics { get { return m_statistics; } }
 	}
 
