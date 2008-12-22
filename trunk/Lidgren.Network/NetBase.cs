@@ -692,8 +692,12 @@ namespace Lidgren.Network
 		/// </summary>
 		internal void SendPacket(byte[] data, int length, IPEndPoint remoteEP)
 		{
-			if (length <= 0)
-				return;
+			if (length <= 0 || length > m_config.SendBufferSize)
+			{
+				string str = "Invalid packet size; Must be between 1 and NetConfiguration.SendBufferSize - Invalid value: " + length;
+				LogWrite(str);
+				throw new NetException(str);
+			}
 
 			if (!m_isBound)
 				Start();
