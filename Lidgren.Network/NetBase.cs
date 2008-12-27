@@ -708,12 +708,12 @@ namespace Lidgren.Network
 #if DEBUG
 			if (!m_suppressSimulatedLag)
 			{
-				// only count if we're not suppressing simulated lag (or it'll be counted twice)
-				m_statistics.CountPacketSent(length);
-
 				bool send = SimulatedSendPacket(data, length, remoteEP);
 				if (!send)
+				{
+					m_statistics.CountPacketSent(length);
 					return;
+				}
 			}
 #endif
 
@@ -722,6 +722,10 @@ namespace Lidgren.Network
 				//m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
 				int bytesSent = m_socket.SendTo(data, 0, length, SocketFlags.None, remoteEP);
 				//LogVerbose("Sent " + bytesSent + " bytes");
+#if DEBUG || USE_RELEASE_STATISTICS
+				if (!m_suppressSimulatedLag)
+					m_statistics.CountPacketSent(bytesSent);
+#endif
 				return;
 			}
 			catch (SocketException sex)
