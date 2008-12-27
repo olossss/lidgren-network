@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using Lidgren.Network;
 using SamplesCommon;
 using System.Net;
+using System.Diagnostics;
 
 namespace LargePacketClient
 {
