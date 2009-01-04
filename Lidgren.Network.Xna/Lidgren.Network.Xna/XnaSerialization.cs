@@ -9,7 +9,7 @@
 //
 //     buffer.Write(myVector);
 //
-//#define USE_EXTENSION_METHODS
+//#define DONT_USE_EXTENSION_METHODS
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ namespace Lidgren.Network.Xna
 	public static class XnaSerialization
 	{
 
-#if !USE_EXTENSION_METHODS
+#if DONT_USE_EXTENSION_METHODS
 
 		/// <summary>
 		/// Writes a Vector2

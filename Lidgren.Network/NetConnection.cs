@@ -224,7 +224,7 @@ namespace Lidgren.Network
 			m_futureClose = double.MaxValue;
 			m_futureDisconnectReason = null;
 
-			m_owner.LogVerbose("Sending Connect request", this);
+			m_owner.LogVerbose("Sending Connect request to " + m_remoteEndPoint, this);
 			OutgoingNetMessage msg = m_owner.CreateSystemMessage(NetSystemType.Connect);
 			msg.m_data.Write(m_owner.Configuration.ApplicationIdentifier);
 			msg.m_data.Write(m_owner.m_randomIdentifier);
