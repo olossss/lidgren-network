@@ -31,8 +31,8 @@ namespace StressServer
 
 			s_server.SimulatedMinimumLatency = 0.1f;
 			s_server.SimulatedLatencyVariance = 0.05f;
-			s_server.SimulatedLoss = 0.1f;
-			s_server.SimulatedDuplicates = 0.05f;
+//			s_server.SimulatedLoss = 0.1f;
+//			s_server.SimulatedDuplicates = 0.05f;
 
 			s_readBuffer = s_server.CreateBuffer();
 
