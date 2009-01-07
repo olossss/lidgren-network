@@ -28,8 +28,8 @@ A: Assuming you've read the description of the different types but still can't d
   * Does the data definately absolutely have to arrive?
   *  - Yes
   *  -  - MUST all messages arrive in the exact order they were sent?
-  *  -  -  - Yes - Use `NetChannel.ReliableUnordered`
-  *  -  -  - No - Use `NetChannel.ReliableOrdered`
+  *  -  -  - Yes - Use `NetChannel.ReliableOrdered`
+  *  -  -  - No - Use `NetChannel.ReliableUnordered`
   *  - No
   *  -  - What happens if a message is delayed, and arrives AFTER a newer message has already arrived?
   *  -  -  - The old data should be discarded - Use `UnreliableOrdered`
