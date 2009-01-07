@@ -225,7 +225,8 @@ namespace Lidgren.Network
 							NotifyApplication(NetMessageType.BadMessageReceived, "Connection established received from non-connection! " + senderEndpoint, null, senderEndpoint);
 						return;
 					case NetSystemType.Discovery:
-						m_discovery.HandleRequest(message, senderEndpoint);
+						if (m_config.AnswerDiscoveryRequests)
+							m_discovery.HandleRequest(message, senderEndpoint);
 						break;
 					case NetSystemType.DiscoveryResponse:
 						if (m_allowOutgoingConnections)
@@ -293,7 +294,8 @@ namespace Lidgren.Network
 						break;
 					case NetSystemType.Discovery:
 						// Allow discovery even if connected
-						m_discovery.HandleRequest(message, senderEndpoint);
+						if (m_config.AnswerDiscoveryRequests)
+							m_discovery.HandleRequest(message, senderEndpoint);
 						break;
 					default:
 						if ((m_enabledMessageTypes & NetMessageType.BadMessageReceived) == NetMessageType.BadMessageReceived)
