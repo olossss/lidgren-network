@@ -267,6 +267,9 @@ namespace Lidgren.Network
 		/// </summary>
 		public void CeaseHolePunching(IPEndPoint ep)
 		{
+			if (ep == null)
+				return;
+
 			int hc = ep.GetHashCode();
 			if (m_holePunches != null)
 			{
@@ -275,7 +278,7 @@ namespace Lidgren.Network
 				{
 					for (int i = 0; i < m_holePunches.Count; i++)
 					{
-						if (m_holePunches[i].GetHashCode() == hc)
+						if (m_holePunches[i] != null && m_holePunches[i].GetHashCode() == hc)
 						{
 							m_holePunches.RemoveAt(i);
 							wasRemoved = true;
