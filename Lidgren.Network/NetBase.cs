@@ -280,6 +280,7 @@ namespace Lidgren.Network
 					{
 						if (m_holePunches[i] != null && m_holePunches[i].GetHashCode() == hc)
 						{
+							LogVerbose("Ceasing hole punching to " + m_holePunches[i]);
 							m_holePunches.RemoveAt(i);
 							wasRemoved = true;
 							break;

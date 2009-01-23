@@ -92,7 +92,7 @@ namespace Lidgren.Network
 			}
 
 			// release
-			m_owner.LogVerbose("Accepted " + msg, this);
+			// m_owner.LogVerbose("Accepted " + msg, this);
 
 			// Debug.Assert(msg.m_type == NetMessageLibraryType.User);
 
