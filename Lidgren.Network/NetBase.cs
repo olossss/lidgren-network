@@ -269,27 +269,21 @@ namespace Lidgren.Network
 		{
 			if (ep == null)
 				return;
-
+			
 			int hc = ep.GetHashCode();
 			if (m_holePunches != null)
 			{
-				bool wasRemoved;
-				do
+				for (int i = 0; i < m_holePunches.Count; )
 				{
-					wasRemoved = false;
-					for (int i = 0; i < m_holePunches.Count; i++)
+					if (m_holePunches[i] != null && m_holePunches[i].GetHashCode() == hc)
 					{
-						if (m_holePunches[i] != null && m_holePunches[i].GetHashCode() == hc)
-						{
-							LogVerbose("Ceasing hole punching to " + m_holePunches[i]);
-							m_holePunches.RemoveAt(i);
-							wasRemoved = true;
-							break;
-						}
+						LogVerbose("Ceasing hole punching to " + m_holePunches[i]);
+						m_holePunches.RemoveAt(i);
 					}
-				} while (m_holePunches.Count > 0 && wasRemoved);
-
-				if (m_holePunches.Count == 0)
+					else
+						i++;
+				}
+				if (m_holePunches.Count < 1)
 					m_holePunches = null;
 			}
 		}
