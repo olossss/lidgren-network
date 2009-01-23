@@ -273,9 +273,10 @@ namespace Lidgren.Network
 			int hc = ep.GetHashCode();
 			if (m_holePunches != null)
 			{
-				bool wasRemoved = false;
+				bool wasRemoved;
 				do
 				{
+					wasRemoved = false;
 					for (int i = 0; i < m_holePunches.Count; i++)
 					{
 						if (m_holePunches[i] != null && m_holePunches[i].GetHashCode() == hc)
