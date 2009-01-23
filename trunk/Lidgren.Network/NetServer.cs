@@ -154,7 +154,7 @@ namespace Lidgren.Network
 				{
 					case NetSystemType.Connect:
 
-						LogVerbose("Connection request received");
+						LogVerbose("Connection request received from " + senderEndpoint);
 
 						// check app ident
 						if (payLen < 4)
@@ -311,6 +311,8 @@ namespace Lidgren.Network
 		internal void AddConnection(double now, NetConnection conn)
 		{
 			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
+
+			LogWrite("Adding connection " + conn);
 
 			// send response; even if connected
 			OutgoingNetMessage response = CreateSystemMessage(NetSystemType.ConnectResponse);
