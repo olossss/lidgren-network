@@ -128,7 +128,7 @@ namespace Lidgren.Network
 				if (diff < 0)
 					diff += ushort.MaxValue;
 				m_remoteTimeOffset = diff; // TODO: slowly go towards? (m_remoteTimeOffset + diff) / 2;
-				m_owner.LogVerbose("Got pong; rt is " + rtSeconds + " seconds; remote is " + remote + " local is " + local + " = offset " + m_remoteTimeOffset);
+				m_owner.LogVerbose("Got pong; roundtrip was " + (int)(rtSeconds * 1000) + " ms");
 			}
 
 			m_latencyHistory[2] = m_latencyHistory[1];
