@@ -519,6 +519,19 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
+		/// Send a NAT introduction messages to ONE about contacting TWO
+		/// </summary>
+		public void SendSingleNATIntroduction(
+			IPEndPoint one,
+			IPEndPoint two
+		)
+		{
+			NetBuffer toOne = CreateBuffer();
+			toOne.Write(two);
+			QueueSingleUnreliableSystemMessage(NetSystemType.NatIntroduction, toOne, one, false);
+		}
+
+		/// <summary>
 		/// Send a single, out-of-band unreliable message
 		/// </summary>
 		internal void DoSendOutOfBandMessage(NetBuffer data, IPEndPoint recipient)
