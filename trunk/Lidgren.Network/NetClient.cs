@@ -146,6 +146,7 @@ namespace Lidgren.Network
 		protected override void Heartbeat()
 		{
 			double now = NetTime.Now;
+			m_heartbeatCounter.Count(now);
 
 			if (m_shutdownRequested)
 			{

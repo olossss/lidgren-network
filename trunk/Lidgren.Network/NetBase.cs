@@ -41,6 +41,7 @@ namespace Lidgren.Network
 		protected bool m_shutdownRequested;
 		protected string m_shutdownReason;
 		protected bool m_shutdownComplete;
+		protected NetFrequencyCounter m_heartbeatCounter;
 
 		// ready for reading by the application
 		internal NetQueue<IncomingNetMessage> m_receivedMessages;
@@ -70,6 +71,11 @@ namespace Lidgren.Network
 		/// </summary>
 		public int RunSleep { get { return m_runSleep; } set { m_runSleep = value; } }
 
+		/// <summary>
+		/// Average number of heartbeats performed per second; over a 3 seconds window
+		/// </summary>
+		public float HeartbeatAverageFrequency { get { return m_heartbeatCounter.AverageFrequency; } }
+		
 		/// <summary>
 		/// Enables or disables a particular type of message
 		/// </summary>
@@ -129,6 +135,7 @@ namespace Lidgren.Network
 			m_scratchBuffer = new NetBuffer(32);
 			m_bindLock = new object();
 			m_discovery = new NetDiscovery(this);
+			m_heartbeatCounter = new NetFrequencyCounter(3.0f);
 
 			m_randomIdentifier = new byte[8];
 			NetRandom.Instance.NextBytes(m_randomIdentifier);
