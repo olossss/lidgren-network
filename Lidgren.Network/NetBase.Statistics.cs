@@ -43,6 +43,7 @@ namespace Lidgren.Network
 			double now = NetTime.Now;
 			string retval =
 				"--- Application wide statistics ---" + Environment.NewLine +
+				"Heartbeats: " + this.HeartbeatAverageFrequency + "/sec" + Environment.NewLine + 
 				"Packets sent: " + m_statistics.PacketsSent + " (" + m_statistics.GetPacketsSentPerSecond(now).ToString("N1") + "/sec)" + Environment.NewLine +
 				"Bytes sent: " + m_statistics.BytesSent + " (" + m_statistics.GetBytesSentPerSecond(now).ToString("N1") + "/sec)" + Environment.NewLine +
 				"Packets received: " + m_statistics.PacketsReceived + " (" + m_statistics.GetPacketsReceivedPerSecond(now).ToString("N1") + "/sec)" + Environment.NewLine +

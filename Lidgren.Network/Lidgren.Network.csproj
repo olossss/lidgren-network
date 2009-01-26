@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{BA202214-F6F8-4853-BCC9-CA4F13C5F479}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -71,6 +71,7 @@
     <Compile Include="NetEnums.cs" />
     <Compile Include="NetEventArgs.cs" />
     <Compile Include="NetException.cs" />
+    <Compile Include="NetFrequencyCounter.cs" />
     <Compile Include="NetMessage.cs" />
     <Compile Include="NetPeer.cs" />
     <Compile Include="NetQueue.cs" />

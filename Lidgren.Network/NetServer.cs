@@ -34,7 +34,7 @@ namespace Lidgren.Network
 		protected List<NetConnection> m_connections;
 		protected Dictionary<IPEndPoint, NetConnection> m_connectionLookup;
 		protected bool m_allowOutgoingConnections; // used by NetPeer
-
+		
 		/// <summary>
 		/// Gets a copy of the list of connections
 		/// </summary>
@@ -65,6 +65,7 @@ namespace Lidgren.Network
 		protected override void Heartbeat()
 		{
 			double now = NetTime.Now;
+			m_heartbeatCounter.Count(now);
 
 			if (m_shutdownRequested)
 			{
