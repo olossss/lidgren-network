@@ -245,6 +245,7 @@ namespace Lidgren.Network
 				}
 
 				m_heartbeatThread = new Thread(new ThreadStart(Run));
+				m_heartbeatThread.IsBackground = true;
 				m_heartbeatThread.Start();
 
 				return;
