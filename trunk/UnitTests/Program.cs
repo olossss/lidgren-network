@@ -321,6 +321,9 @@ namespace UnitTests
 			Console.WriteLine("All tests successful");
 
 			Console.ReadKey();
+
+			server.Shutdown("App exiting");
+			client.Shutdown("App exiting");
 		}
 	}
 }
