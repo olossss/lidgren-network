@@ -47,6 +47,13 @@ namespace Lidgren.Network
 			m_bitLength += 8;
 		}
 
+		public void Write(sbyte source)
+		{
+			InternalEnsureBufferSize(m_bitLength + 8);
+			NetBitWriter.WriteByte((byte)source, 8, Data, m_bitLength);
+			m_bitLength += 8;
+		}
+
 		public void Write(byte source, int numberOfBits)
 		{
 			Debug.Assert((numberOfBits > 0 && numberOfBits <= 8), "Write(byte, numberOfBits) can only write between 1 and 8 bits");
