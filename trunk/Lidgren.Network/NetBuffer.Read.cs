@@ -62,6 +62,14 @@ namespace Lidgren.Network
 			return retval;
 		}
 
+		public sbyte ReadSByte()
+		{
+			Debug.Assert(m_bitLength - m_readPosition >= 8, c_readOverflowError);
+			byte retval = NetBitWriter.ReadByte(Data, 8, m_readPosition);
+			m_readPosition += 8;
+			return (sbyte)retval;
+		}
+
 		public byte ReadByte(int numberOfBits)
 		{
 			byte retval = NetBitWriter.ReadByte(Data, numberOfBits, m_readPosition);
