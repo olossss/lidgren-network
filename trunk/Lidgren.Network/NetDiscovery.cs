@@ -117,6 +117,8 @@ namespace Lidgren.Network
 			if (!m_netBase.m_isBound)
 				m_netBase.Start();
 
+			m_netBase.LogWrite("Discovery request to " + endPoint);
+
 			if (request == null)
 			{
 				m_netBase.LogVerbose("Creating discovery request " + m_nextRequestNumber);
@@ -155,7 +157,7 @@ namespace Lidgren.Network
 			NetBuffer buf = m_netBase.CreateBuffer(2);
 			buf.Write(number);
 
-			m_netBase.LogVerbose("Sending discovery response to request " + number);
+			m_netBase.LogWrite("Sending discovery response to " + senderEndpoint + " request " + number);
 			
 			// send discovery response
 			m_netBase.SendSingleUnreliableSystemMessage(
