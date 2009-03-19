@@ -95,14 +95,6 @@ namespace PeerToPeer
 			catch { }
 		}
 
-		static void OnStatusChanged(object sender, NetStatusChangedEventArgs e)
-		{
-			// also set local hail; which will be send on connection response
-			e.Connection.LocalHailData = Encoding.ASCII.GetBytes("Hi; I'm " + s_peer.GetHashCode());
-
-			WriteToConsole(e.Connection.RemoteEndpoint + ": " + e.NewStatus + " (" + e.Reason + ")");
-		}
-
 		internal static void Input(string str)
 		{
 			if (str.StartsWith("discover "))
