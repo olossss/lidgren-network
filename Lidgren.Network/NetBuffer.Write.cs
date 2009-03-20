@@ -459,9 +459,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void WritePadBits()
 		{
-			int dbg = m_bitLength % 8;
-
-			m_bitLength += (m_bitLength % 8);
+			m_bitLength = ((m_bitLength + 7) / 8) * 8;
 			EnsureBufferSize(m_bitLength);
 		}
 

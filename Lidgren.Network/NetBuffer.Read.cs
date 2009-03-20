@@ -427,7 +427,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void SkipPadBits()
 		{
-			m_readPosition += (m_readPosition % 8);
+			m_readPosition = ((m_readPosition + 7) / 8) * 8;
 		}
 
 		/// <summary>
