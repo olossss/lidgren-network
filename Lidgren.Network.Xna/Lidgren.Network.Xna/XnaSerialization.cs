@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics.PackedVector;
 
 namespace Lidgren.Network.Xna
 {
@@ -247,6 +248,25 @@ namespace Lidgren.Network.Xna
 		}
 
 #else
+
+		/// <summary>
+		/// Write a Single with half precision (16 bits)
+		/// </summary>
+		public static void WriteHalfPrecision(this NetBuffer buffer, float value)
+		{
+			buffer.Write(new HalfSingle(value).PackedValue);
+		}
+
+		/// <summary>
+		/// Reads a half precision Single written using WriteHalfPrecision(float)
+		/// </summary>
+		public static float ReadHalfPrecisionSingle(this NetBuffer buffer)
+		{
+			HalfSingle h = new HalfSingle();
+			h.PackedValue = buffer.ReadUInt16();
+			return h.ToSingle();
+		}
+
 		/// <summary>
 		/// Writes a Vector2
 		/// </summary>
@@ -278,6 +298,16 @@ namespace Lidgren.Network.Xna
 		}
 
 		/// <summary>
+		/// Writes a Vector3 at half precision
+		/// </summary>
+		public static void WriteHalfPrecision(this NetBuffer buffer, Vector3 vector)
+		{
+			buffer.Write(new HalfSingle(vector.X).PackedValue);
+			buffer.Write(new HalfSingle(vector.Y).PackedValue);
+			buffer.Write(new HalfSingle(vector.Z).PackedValue);
+		}
+
+		/// <summary>
 		/// Reads a Vector3
 		/// </summary>
 		public static Vector3 ReadVector3(this NetBuffer buffer)
@@ -286,6 +316,27 @@ namespace Lidgren.Network.Xna
 			retval.X = buffer.ReadSingle();
 			retval.Y = buffer.ReadSingle();
 			retval.Z = buffer.ReadSingle();
+			return retval;
+		}
+
+		/// <summary>
+		/// Writes a Vector3 at half precision
+		/// </summary>
+		public static Vector3 ReadHalfPrecisionVector3(this NetBuffer buffer)
+		{
+			HalfSingle hx = new HalfSingle();
+			hx.PackedValue = buffer.ReadUInt16();
+
+			HalfSingle hy = new HalfSingle();
+			hy.PackedValue = buffer.ReadUInt16();
+
+			HalfSingle hz = new HalfSingle();
+			hz.PackedValue = buffer.ReadUInt16();
+
+			Vector3 retval;
+			retval.X = hx.ToSingle();
+			retval.Y = hy.ToSingle();
+			retval.Z = hz.ToSingle();
 			return retval;
 		}
 
