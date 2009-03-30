@@ -120,5 +120,10 @@ namespace LargePacketClient
 		{
 			m_client.DiscoverLocalServers(14242);
 		}
+
+		internal static void Disconnect()
+		{
+			m_client.Disconnect("Bye!");
+		}
 	}
 }
