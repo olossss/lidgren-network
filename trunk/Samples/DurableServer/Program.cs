@@ -14,7 +14,7 @@ namespace DurableServer
 			NetConfiguration config = new NetConfiguration("durable");
 			config.MaxConnections = 128;
 			config.Port = 14242;
-			NetServer server = new NetServer(config);
+			NetServer server = new MyDurableServer(config);
 
 			server.SetMessageTypeEnabled(NetMessageType.ConnectionApproval, true);
 			server.SetMessageTypeEnabled(NetMessageType.DebugMessage, true);
@@ -75,6 +75,12 @@ namespace DurableServer
 							}
 							break;
 						case NetMessageType.Data:
+							
+							// verify ProcessReceived has done its work
+							int len = (int)buffer.Tag;
+							if (len != buffer.LengthBytes)
+								Output(wrt, "OUCH! ProcessReceived hasn't done its job!");
+
 							string str = buffer.ReadString();
 
 							// parse it
@@ -108,6 +114,24 @@ namespace DurableServer
 		{
 			Console.WriteLine(str);
 			wrt.WriteLine(str);
+		}
+	}
+
+	public class MyDurableServer : NetServer
+	{
+		public MyDurableServer(NetConfiguration config)
+			: base(config)
+		{
+		}
+
+		public override void ProcessReceived(NetBuffer buffer)
+		{
+			//
+			// This is run on the networking thread; so there are lots of things we can't do without proper locking
+			// A real application can do some processing here and store the result in the NetBuffer.Tag
+			// For now; just look at the length of the buffer
+			//
+			buffer.Tag = (object)buffer.LengthBytes;
 		}
 	}
 }

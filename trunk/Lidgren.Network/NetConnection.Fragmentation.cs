@@ -96,6 +96,9 @@ namespace Lidgren.Network
 
 			// Debug.Assert(msg.m_type == NetMessageLibraryType.User);
 
+			// do custom handling on networking thread
+			m_owner.ProcessReceived(msg.m_data);
+
 			lock(m_owner.m_receivedMessages)
 				m_owner.m_receivedMessages.Enqueue(msg);
 		}

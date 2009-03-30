@@ -460,10 +460,12 @@ namespace Lidgren.Network
 			senderEndPoint = msg.m_senderEndPoint;
 			sender = msg.m_sender;
 
+			intoBuffer.Tag = msg.m_data.Tag;
+
 			//
 			// recycle NetMessage object and NetBuffer
 			//
-
+			
 			NetBuffer content = msg.m_data;
 
 			msg.m_data = null;
