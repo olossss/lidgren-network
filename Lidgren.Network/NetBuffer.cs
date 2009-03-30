@@ -38,6 +38,11 @@ namespace Lidgren.Network
 		public byte[] Data;
 
 		/// <summary>
+		/// User application data
+		/// </summary>
+		public object Tag;
+
+		/// <summary>
 		/// Creates a new NetBuffer
 		/// </summary>
 		public NetBuffer()
@@ -146,6 +151,7 @@ namespace Lidgren.Network
 			m_readPosition = 0;
 			m_bitLength = 0;
 			m_refCount = 0;
+			Tag = null;
 		}
 
 		/// <summary>
@@ -156,6 +162,7 @@ namespace Lidgren.Network
 			m_readPosition = readPos;
 			m_bitLength = writePos;
 			m_refCount = 0;
+			Tag = null;
 		}
 		
 		/// <summary>

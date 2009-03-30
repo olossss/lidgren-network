@@ -857,7 +857,14 @@ namespace Lidgren.Network
 			lock (m_receivedMessages)
 				m_receivedMessages.Enqueue(msg);
 		}
-		
+
+		/// <summary>
+		/// Override this to process a received NetBuffer on the networking thread (note! This can be problematic, only use this if you know what you are doing)
+		/// </summary>
+		public virtual void ProcessReceived(NetBuffer buffer)
+		{
+		}
+
 		/// <summary>
 		/// Initiates a shutdown
 		/// </summary>
