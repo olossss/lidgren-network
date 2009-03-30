@@ -334,6 +334,8 @@ namespace Lidgren.Network
 
 			senderEndpoint = msg.m_senderEndPoint;
 
+			intoBuffer.Tag = msg.m_data.Tag;
+
 			// recycle NetMessage object
 			NetBuffer content = msg.m_data;
 			msg.m_data = null;
