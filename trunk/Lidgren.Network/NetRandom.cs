@@ -231,8 +231,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Fills the provided byte array with random bytes.
 		/// This method is functionally equivalent to System.Random.NextBytes(). 
-		// </summary>
-		// <param name="buffer"></param>
+		/// </summary>
 		public void NextBytes(byte[] buffer)
 		{
 			// Fill up the bulk of the buffer in chunks of 4 bytes at a time.
