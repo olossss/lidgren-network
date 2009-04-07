@@ -23,3 +23,5 @@ senderConnection.Disapprove("Bye bye, you cannot connect!");
 You will HAVE to call either of these; or the connection will keep hanging and the connector will eventually time out.
 
 If you do now have the `ConnectionApproval` message type enabled, connections will automatically be approved.
+
+If a connection is disapproved - the client will receive a ConnectionRejected message with the supplied string is its NetBuffer.
