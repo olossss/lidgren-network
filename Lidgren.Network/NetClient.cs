@@ -321,6 +321,13 @@ namespace Lidgren.Network
 		/// <returns>true if a message was read</returns>
 		public bool ReadMessage(NetBuffer intoBuffer, out NetMessageType type, out IPEndPoint senderEndpoint)
 		{
+			if (m_receivedMessages.Count < 1)
+			{
+				type = NetMessageType.None;
+				senderEndpoint = null;
+				return false;
+			}
+
 			IncomingNetMessage msg;
 			lock (m_receivedMessages)
 				msg = m_receivedMessages.Dequeue();

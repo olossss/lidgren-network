@@ -364,6 +364,13 @@ namespace Lidgren.Network
 			out NetMessageType type,
 			out NetConnection sender)
 		{
+			if (m_receivedMessages.Count < 1)
+			{
+				sender = null;
+				type = NetMessageType.None;
+				return false;
+			}
+
 			IncomingNetMessage msg = null;
 			lock (m_receivedMessages)
 			{
