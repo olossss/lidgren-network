@@ -14,12 +14,13 @@
     <RootNamespace>Documentation</RootNamespace>
     <Name>Documentation</Name>
     <!-- SHFB properties -->
-    <OutputPath>.\Help\</OutputPath>
+    <OutputPath>.\</OutputPath>
     <HtmlHelpName>Documentation</HtmlHelpName>
     <HelpTitle>Lidgren Networking Library</HelpTitle>
     <DocumentationSources>
       <DocumentationSource sourceFile="..\Lidgren.Network\bin\Release\Lidgren.Network.dll" xmlns="" />
-<DocumentationSource sourceFile="..\Lidgren.Network\bin\Release\Lidgren.Network.xml" xmlns="" /></DocumentationSources>
+      <DocumentationSource sourceFile="..\Lidgren.Network\bin\Release\Lidgren.Network.xml" xmlns="" />
+    </DocumentationSources>
     <CopyrightHref>http://code.google.com/p/lidgren-network</CopyrightHref>
     <FeedbackEMailAddress>michael%40lidgren.net</FeedbackEMailAddress>
     <FeedbackEMailLinkText>Michael Lidgren</FeedbackEMailLinkText>
