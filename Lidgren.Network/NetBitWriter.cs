@@ -103,7 +103,7 @@ namespace Lidgren.Network
 			Debug.Assert(((numberOfBits >= 1) && (numberOfBits <= 8)), "Must write between 1 and 8 bits!");
 
 			// mask out unwanted bits in the source
-			uint isrc = (uint)source & ((~(uint)0) >> (8 - numberOfBits));
+			byte isrc = (byte)((uint)source & ((~(uint)0) >> (8 - numberOfBits)));
 
 			int bytePtr = destBitOffset >> 3;
 

@@ -31,6 +31,7 @@ namespace Lidgren.Network
 			}
 		}
 
+		[CLSCompliant(false)]
 		public static ushort CalculateCCITT16(byte[] data, int offset, int len)
 		{
 			ulong crc = 0x1D0F;
@@ -41,6 +42,7 @@ namespace Lidgren.Network
 
 		// Adler16; superior to adler32 and fletcher16 for small size data
 		// see http://www.zlib.net/maxino06_fletcher-adler.pdf
+		[CLSCompliant(false)]
 		public static ushort Adler16(byte[] data, int offset, int len)
 		{
 			int a = 1;
