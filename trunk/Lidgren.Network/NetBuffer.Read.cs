@@ -62,6 +62,7 @@ namespace Lidgren.Network
 			return retval;
 		}
 
+		[CLSCompliant(false)]
 		public sbyte ReadSByte()
 		{
 			Debug.Assert(m_bitLength - m_readPosition >= 8, c_readOverflowError);

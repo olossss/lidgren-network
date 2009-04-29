@@ -47,6 +47,7 @@ namespace Lidgren.Network
 			m_bitLength += 8;
 		}
 
+		[CLSCompliant(false)]
 		public void Write(sbyte source)
 		{
 			InternalEnsureBufferSize(m_bitLength + 8);

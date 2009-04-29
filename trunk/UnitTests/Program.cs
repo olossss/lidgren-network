@@ -177,6 +177,26 @@ namespace UnitTests
 					throw new Exception("large fail");
 			}
 
+
+			NetBuffer small = new NetBuffer(100);
+			byte[] rnd = new byte[24];
+			int[] bits = new int[24];
+			for (int i = 0; i < 24; i++)
+			{
+				rnd[i] = (byte)NetRandom.Instance.Next(0, 65);
+				bits[i] = NetUtility.BitsToHoldUInt((uint)rnd[i]);
+
+				small.Write(rnd[i], bits[i]);
+			}
+
+			small.Position = 0;
+			for (int i = 0; i < 24; i++)
+			{
+				byte got = small.ReadByte(bits[i]);
+				if (got != rnd[i])
+					throw new Exception("Failed small allocation test");
+			}
+
 			double timeEnd = NetTime.Now;
 			double timeSpan = timeEnd - timeStart;
 
