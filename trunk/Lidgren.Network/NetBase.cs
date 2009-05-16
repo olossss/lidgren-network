@@ -313,7 +313,7 @@ namespace Lidgren.Network
 			{
 				if (now > m_lastHolePunch + NetConstants.HolePunchingFrequency)
 				{
-					if (m_holePunches.Count < 0)
+					if (m_holePunches.Count <= 0)
 					{
 						m_holePunches = null;
 					}
