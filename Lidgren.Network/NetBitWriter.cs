@@ -117,7 +117,7 @@ namespace Lidgren.Network
 			//destination[bytePtr] &= (byte)(255 >> (8 - localBitLen)); // clear before writing
 			//destination[bytePtr] |= (byte)(isrc << localBitLen); // write first half
 			destination[bytePtr] = (byte)(
-				(destination[bytePtr] & (255 >> (8 - localBitLen))) |
+				(uint)(destination[bytePtr] & (255 >> (8 - localBitLen))) |
 				(isrc << localBitLen)
 			);
 
@@ -127,7 +127,7 @@ namespace Lidgren.Network
 				//destination[bytePtr + 1] &= (byte)(255 << localBitLen); // clear before writing
 				//destination[bytePtr + 1] |= (byte)(isrc >> (8 - localBitLen)); // write second half
 				destination[bytePtr + 1] = (byte)(
-					(destination[bytePtr + 1] & (255 << localBitLen)) |
+					(uint)(destination[bytePtr + 1] & (255 << localBitLen)) |
 					(isrc >> (8 - localBitLen))
 				);
 			}

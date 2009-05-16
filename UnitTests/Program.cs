@@ -177,6 +177,22 @@ namespace UnitTests
 					throw new Exception("large fail");
 			}
 
+			//
+			// Extended tests on padbits
+			//
+			for (int i = 1; i < 31; i++)
+			{
+				NetBuffer buf = new NetBuffer();
+				buf.Write((int)1, i);
+
+				if (buf.LengthBits != i)
+					throw new Exception("Bad length!");
+
+				buf.WritePadBits();
+				int wholeBytes = buf.LengthBits / 8;
+				if (wholeBytes * 8 != buf.LengthBits)
+					throw new Exception("WritePadBits failed! Length is " + buf.LengthBits);
+			}
 
 			NetBuffer small = new NetBuffer(100);
 			byte[] rnd = new byte[24];
