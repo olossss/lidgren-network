@@ -38,7 +38,7 @@ namespace OutOfBandClient
 		{
 			while (NativeMethods.AppStillIdle)
 			{
-				//NetConnection conn;
+				// NetConnection conn;
 				NetMessageType tp;
 				IPEndPoint ep;
 				while (s_client.ReadMessage(s_readBuffer, out tp, out ep))
