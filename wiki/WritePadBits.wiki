@@ -1,7 +1,7 @@
 #summary How WritePadBits() and ReadPadBits() works
 #labels Phase-Implementation
 
-`WritePadBits` and `ReadPadBits` is an optimization option to the `NetBuffer` which reduces cpu usage for subsequent reads. He is an example:
+`WritePadBits` and `ReadPadBits` is an optimization option to the `NetBuffer` which reduces cpu usage for subsequent reads. Here is an example:
 
 {{{
 buffer.Write(true);
