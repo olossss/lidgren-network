@@ -22,8 +22,16 @@ namespace Lidgren.Network.Xna
 {
 	public static class XnaSerialization
 	{
-
 #if DONT_USE_EXTENSION_METHODS
+
+		/// <summary>
+		/// Writes a Point
+		/// </summary>
+		public static void Write(NetBuffer buffer, Point pt)
+		{
+			buffer.Write(pt.X);
+			buffer.Write(pt.Y);
+		}
 
 		/// <summary>
 		/// Writes a Vector2
@@ -249,6 +257,23 @@ namespace Lidgren.Network.Xna
 
 #else
 
+		/// <summary>
+		/// Write a Point
+		/// </summary>
+		public static void Write(this NetBuffer buffer, Point value)
+		{
+			buffer.Write(value.X);
+			buffer.Write(value.Y);
+		}
+
+		/// <summary>
+		/// Read a Point
+		/// </summary>
+		public static Point ReadPoint(this NetBuffer buffer)
+		{
+			return new Point(buffer.ReadInt32(), buffer.ReadInt32());
+		}
+		
 		/// <summary>
 		/// Write a Single with half precision (16 bits)
 		/// </summary>
