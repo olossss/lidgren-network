@@ -108,6 +108,7 @@ namespace DurableServer
 			// clean shutdown
 			wrt.Close();
 			server.Shutdown("Application exiting");
+			System.Threading.Thread.Sleep(500); // give network thread time to exit
 		}
 
 		private static void Output(StreamWriter wrt, string str)
