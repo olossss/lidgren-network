@@ -46,6 +46,8 @@ namespace OutOfBandServer
 				IPEndPoint ep;
 				while (s_server.ReadMessage(s_readBuffer, out tp, out conn, out ep))
 				{
+					if (s_readBuffer.LengthBytes < 1)
+						continue; // no data
 					switch (tp)
 					{
 						case NetMessageType.OutOfBandData:
