@@ -19,26 +19,26 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Connects to the specified host on the specified port; passing hailData to the server
 		/// </summary>
-		public void Connect(string host, int port, byte[] hailData)
+		public NetConnection Connect(string host, int port, byte[] hailData)
 		{
 			IPAddress ip = NetUtility.Resolve(host);
 			if (ip == null)
 				throw new NetException("Unable to resolve host");
-			Connect(new IPEndPoint(ip, port), hailData);
+			return Connect(new IPEndPoint(ip, port), hailData);
 		}
 
 		/// <summary>
 		/// Connects to the specified endpoint
 		/// </summary>
-		public void Connect(IPEndPoint remoteEndpoint)
+		public NetConnection Connect(IPEndPoint remoteEndpoint)
 		{
-			Connect(remoteEndpoint, null);
+			return Connect(remoteEndpoint, null);
 		}
 
 		/// <summary>
 		/// Connects to the specified endpoint; passing (outgoing) hailData to the server
 		/// </summary>
-		public void Connect(IPEndPoint remoteEndpoint, byte[] localHailData)
+		public NetConnection Connect(IPEndPoint remoteEndpoint, byte[] localHailData)
 		{
 			// ensure we're bound to socket
 			if (!m_isBound)
@@ -64,6 +64,8 @@ namespace Lidgren.Network
 
 			// connect
 			connection.Connect();
+
+			return connection;
 		}
 
 		/// <summary>
