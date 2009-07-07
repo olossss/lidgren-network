@@ -359,7 +359,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public bool ReadMessage(
 			NetBuffer intoBuffer,
-			List<NetConnection> onlyFor,
+			IList<NetConnection> onlyFor,
 			bool includeNullConnectionMessages,
 			out NetMessageType type,
 			out NetConnection sender)
@@ -559,9 +559,15 @@ namespace Lidgren.Network
 
 		protected override void PerformShutdown(string reason)
 		{
+			double now = NetTime.Now;
 			foreach (NetConnection conn in m_connections)
+			{
 				if (conn.m_status != NetConnectionStatus.Disconnected)
+				{
 					conn.Disconnect(reason, 0, true, true);
+					conn.SendUnsentMessages(now); // give disconnect message a chance to get out
+				}
+			}
 			base.PerformShutdown(reason);
 		}
 	}
