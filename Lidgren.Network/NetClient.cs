@@ -444,7 +444,10 @@ namespace Lidgren.Network
 		protected override void PerformShutdown(string reason)
 		{
 			if (m_serverConnection != null)
+			{
 				m_serverConnection.Disconnect(reason, 0, true, true);
+				m_serverConnection.SendUnsentMessages(NetTime.Now); // give disconnect message a chance to get away
+			}
 			m_connectRequested = false;
 			base.PerformShutdown(reason);
 		}

@@ -295,7 +295,7 @@ namespace Lidgren.Network
 			SendUnsentMessages(now);
 		}
 
-		private void SendUnsentMessages(double now)
+		internal void SendUnsentMessages(double now)
 		{
 			// Add any acknowledges to unsent messages
 			if (m_acknowledgesToSend.Count > 0)

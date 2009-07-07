@@ -19,6 +19,17 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Connects to the specified host on the specified port; passing hailData to the server
 		/// </summary>
+		public NetConnection Connect(string host, int port)
+		{
+			IPAddress ip = NetUtility.Resolve(host);
+			if (ip == null)
+				throw new NetException("Unable to resolve host");
+			return Connect(new IPEndPoint(ip, port), null);
+		}
+
+		/// <summary>
+		/// Connects to the specified host on the specified port; passing hailData to the server
+		/// </summary>
 		public NetConnection Connect(string host, int port, byte[] hailData)
 		{
 			IPAddress ip = NetUtility.Resolve(host);
