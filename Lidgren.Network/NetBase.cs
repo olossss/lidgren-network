@@ -183,6 +183,14 @@ namespace Lidgren.Network
 		/// </summary>
 		public void Start()
 		{
+			Start(IPAddress.Any);
+		}
+
+		/// <summary>
+		/// Called to bind to socket and start heartbeat thread
+		/// </summary>
+		public void Start(IPAddress localAddress)
+		{
 			if (m_isBound)
 				return;
 			lock (m_bindLock)
@@ -193,7 +201,7 @@ namespace Lidgren.Network
 				// Bind to config.Port
 				try
 				{
-					IPEndPoint iep = new IPEndPoint(IPAddress.Any, m_config.Port);
+					IPEndPoint iep = new IPEndPoint(localAddress, m_config.Port);
 					EndPoint ep = (EndPoint)iep;
 
 					m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
