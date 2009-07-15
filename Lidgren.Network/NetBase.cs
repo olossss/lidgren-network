@@ -287,12 +287,11 @@ namespace Lidgren.Network
 			if (ep == null)
 				return;
 			
-			int hc = ep.GetHashCode();
 			if (m_holePunches != null)
 			{
 				for (int i = 0; i < m_holePunches.Count; )
 				{
-					if (m_holePunches[i] != null && m_holePunches[i].GetHashCode() == hc)
+					if (m_holePunches[i] != null && m_holePunches[i].Equals(ep))
 					{
 						LogVerbose("Ceasing hole punching to " + m_holePunches[i]);
 						m_holePunches.RemoveAt(i);
