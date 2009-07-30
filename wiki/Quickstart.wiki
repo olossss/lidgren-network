@@ -7,7 +7,7 @@
 {{{
 
 // create a configuration
-NetConfiguration config = new NetConfiguration("myAppName");
+NetConfiguration config = new NetConfiguration("myAppName"); // needs to be same on client and server!
 config.MaxConnections = 32;
 config.Port = 12345;
 
@@ -18,7 +18,7 @@ server.Start();
 ===How to create a client and connect to a server===
 {{{
 
-NetConfiguration config = new NetConfiguration("myAppName");
+NetConfiguration config = new NetConfiguration("myAppName"); // needs to be same on client and server!
 NetClient client = new NetClient(config);
 
 client.Connect("localhost", 12345);
