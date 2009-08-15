@@ -880,6 +880,7 @@ namespace Lidgren.Network
 			LogWrite("Shutdown initiated (" + reason + ")");
 			m_shutdownRequested = true;
 			m_shutdownReason = reason;
+			Thread.Sleep(50); // give network thread some time to send disconnect messages
 		}
 
 		protected virtual void PerformShutdown(string reason)
