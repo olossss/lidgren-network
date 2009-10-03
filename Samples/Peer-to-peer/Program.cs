@@ -109,7 +109,7 @@ namespace PeerToPeer
 				if (idx == -1)
 				{
 					// port only
-					s_peer.Connect("localhost", Int32.Parse(str.Substring(8)), Encoding.ASCII.GetBytes("Hi; I'm " + s_peer.GetHashCode()));
+					s_peer.Connect("127.0.0.1", Int32.Parse(str.Substring(8)), Encoding.ASCII.GetBytes("Hi; I'm " + s_peer.GetHashCode()));
 					return;
 				}
 				else

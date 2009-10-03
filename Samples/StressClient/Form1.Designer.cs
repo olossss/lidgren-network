@@ -86,7 +86,7 @@ namespace StressClient
 			this.textBox2.Name = "textBox2";
 			this.textBox2.Size = new System.Drawing.Size(140, 22);
 			this.textBox2.TabIndex = 4;
-			this.textBox2.Text = "localhost";
+			this.textBox2.Text = "127.0.0.1";
 			// 
 			// textBox3
 			// 

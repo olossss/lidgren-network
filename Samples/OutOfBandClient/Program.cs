@@ -60,7 +60,7 @@ namespace OutOfBandClient
 		public static void SendMessage(string str)
 		{
 			//
-			// Send Out-of-band message to LOCALHOST 14242 (hardcoded)
+			// Send Out-of-band message to 127.0.0.1 14242 (hardcoded)
 			//
 			// Notice: There is no connection in place at this point,
 			// trying to use SendMessage() will throw an exception
@@ -69,7 +69,7 @@ namespace OutOfBandClient
 			NetBuffer buf = s_client.CreateBuffer();
 			buf.Write(str);
 
-			IPEndPoint ep = new IPEndPoint(NetUtility.Resolve("localhost"), 14242);
+			IPEndPoint ep = new IPEndPoint(NetUtility.Resolve("127.0.0.1"), 14242);
 			s_client.SendOutOfBandMessage(buf, ep);
 		}
 	}
