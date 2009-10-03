@@ -26,7 +26,7 @@ namespace DurableClient
 			NetBuffer buffer = client.CreateBuffer();
 
 			// connect to localhost
-			client.Connect("localhost", 14242, Encoding.ASCII.GetBytes("Hail from client"));
+			client.Connect("127.0.0.1", 14242, Encoding.ASCII.GetBytes("Hail from client"));
 
 			// enable some library messages
 			client.SetMessageTypeEnabled(NetMessageType.BadMessageReceived, true);

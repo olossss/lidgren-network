@@ -232,7 +232,7 @@ namespace UnitTests
 			NetBuffer clientBuffer = client.CreateBuffer();
 			client.Start();
 
-			client.Connect("localhost", 14242);
+			client.Connect("127.0.0.1", 14242);
 
 			List<string> events = new List<string>();
 
