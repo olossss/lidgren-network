@@ -21,7 +21,7 @@ server.Start();
 NetConfiguration config = new NetConfiguration("myAppName"); // needs to be same on client and server!
 NetClient client = new NetClient(config);
 
-client.Connect("localhost", 12345);
+client.Connect("127.0.0.1", 12345);
 }}}
 
 ===How to read messages on the client===
