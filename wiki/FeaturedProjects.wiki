@@ -9,6 +9,8 @@
 
 [http://www.plainsightgame.com http://www.lidgren.net/img/Plainsight-small.jpg] *Plainsight* - http://www.plainsightgame.com by [http://www.beatnikgames.com Beatnik Games]
 
-= Non-commercial projects =
+= Non-commercial projects / Other =
 
 [http://gar.eecs.ucf.edu http://www.lidgren.net/img/GAR-small.jpg] *Galactic Arms Race* - http://gar.eecs.ucf.edu/ by the [http://eplex.cs.ucf.edu Evolutionary Complexity Research Group (EPlex)] at the University of Central Florida.
+
+[http://www.jump-game.de/website/ http://www.lidgren.net/img/Jump-small.jpg] *Jump* - http://www.jump-game.de/website/ by Florian Oeser, Michael Palmer and Thomas Vogel.
