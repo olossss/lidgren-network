@@ -1,4 +1,5 @@
 #summary Games/Projects using this library
+#labels Featured
 
 = Commercial games =
 
