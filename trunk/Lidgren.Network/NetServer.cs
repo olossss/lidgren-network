@@ -509,7 +509,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Sends a message to the specified connections
+		/// Sends a message to the specified connections; takes ownership of the NetBuffer, don't reuse it after this call
 		/// </summary>
 		public void SendMessage(NetBuffer data, IEnumerable<NetConnection> recipients, NetChannel channel)
 		{

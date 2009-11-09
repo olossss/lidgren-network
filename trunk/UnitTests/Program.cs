@@ -346,12 +346,12 @@ namespace UnitTests
 			};
 
 			if (events.Count != expected.Length)
-				throw new Exception("Mismatch in events count!");
+				throw new Exception("Mismatch in events count! Expected " + expected.Length + ", got " + events.Count);
 
 			for(int i=0;i<expected.Length;i++)
 			{
 				if (events[i] != expected[i])
-					throw new Exception("Event " + i + " mismatched!");
+					throw new Exception("Event " + i + " (" + expected[i] + ") mismatched!");
 			}
 
 			Console.WriteLine("All tests successful");

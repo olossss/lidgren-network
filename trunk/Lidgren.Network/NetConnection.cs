@@ -105,7 +105,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Queue message for sending
+		/// Queue message for sending; takes ownership of the NetBuffer, don't reuse it after this call
 		/// </summary>
 		public void SendMessage(NetBuffer data, NetChannel channel)
 		{
@@ -113,7 +113,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Queue a reliable message for sending. When it has arrived ReceiptReceived will be fired on owning NetBase, and the ReceiptEventArgs will contain the object passed to this method.
+		/// Queue a reliable message for sending. When it has arrived ReceiptReceived will be fired on owning NetBase, and the ReceiptEventArgs will contain the object passed to this method. Takes ownership of the NetBuffer, don't reuse it after this call
 		/// </summary>
 		public void SendMessage(NetBuffer data, NetChannel channel, NetBuffer receiptData)
 		{

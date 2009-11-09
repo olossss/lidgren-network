@@ -365,7 +365,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Sends a message using the specified channel
+		/// Sends a message using the specified channel; takes ownership of the NetBuffer, don't reuse it after this call
 		/// </summary>
 		public void SendMessage(NetBuffer data, NetChannel channel)
 		{
@@ -375,7 +375,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Sends a message using the specified channel, with the specified data as receipt
+		/// Sends a message using the specified channel, with the specified data as receipt; takes ownership of the NetBuffer, don't reuse it after this call
 		/// </summary>
 		public void SendMessage(NetBuffer data, NetChannel channel, NetBuffer receipt)
 		{
