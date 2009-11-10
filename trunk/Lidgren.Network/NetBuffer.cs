@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.IO;
 
 namespace Lidgren.Network
 {
@@ -90,6 +91,14 @@ namespace Lidgren.Network
 			Data = new byte[1 + strData.Length];
 			WriteVariableUInt32((uint)strData.Length);
 			Write(strData);
+		}
+
+		/// <summary>
+		/// Gets a stream to the data held by this netbuffer
+		/// </summary>e
+		public Stream GetStream()
+		{
+			return new MemoryStream(Data, 0, LengthBytes, false, true);
 		}
 
 		/// <summary>
