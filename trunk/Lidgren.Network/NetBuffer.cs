@@ -96,7 +96,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Gets a stream to the data held by this netbuffer
 		/// </summary>e
-		public Stream GetStream()
+		public MemoryStream GetStream()
 		{
 			return new MemoryStream(Data, 0, LengthBytes, false, true);
 		}
