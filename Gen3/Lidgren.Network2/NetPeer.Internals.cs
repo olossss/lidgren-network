@@ -14,8 +14,9 @@ namespace Lidgren.Network2
 	{
 		private int m_runSleepInMilliseconds = 1;
 		private byte[] m_receiveBuffer;
+		internal byte[] m_sendBuffer;
 		private EndPoint m_senderRemote;
-		private Socket m_socket;
+		internal Socket m_socket;
 		private Queue<NetIncomingMessage> m_releasedIncomingMessages;
 
 		// called by constructor
@@ -190,15 +191,13 @@ namespace Lidgren.Network2
 							case NetMessageType.Error:
 								LogError("Malformed message; no message type!");
 								break;
-							case NetMessageType.LibraryPing:
-								byte nr = payload[0];
-								if (sender != null)
-									sender.SendPong(nr);
-								break;
+							default:
+								throw new NotImplementedException();
 						}
 					}
 				}
 			}
+			// heartbeat done
 		}
 	}
 }

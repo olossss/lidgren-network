@@ -15,7 +15,7 @@ namespace Lidgren.Network2
 		private bool m_initiateShutdown;
 		private object m_initializeLock = new object();
 		
-		private NetPeerConfiguration m_configuration;
+		internal NetPeerConfiguration m_configuration;
 		private Thread m_networkThread;
 
 		private List<NetConnection> m_connections;
@@ -54,6 +54,7 @@ namespace Lidgren.Network2
 					m_socket.Bind(ep);
 
 					m_receiveBuffer = new byte[m_configuration.ReceiveBufferSize];
+					m_sendBuffer = new byte[m_configuration.SendBufferSize];
 
 					// start network thread
 					m_networkThread = new Thread(new ThreadStart(Run));
@@ -75,6 +76,15 @@ namespace Lidgren.Network2
 					throw new NetException("Failed to bind to " + (iep == null ? "Null" : iep.ToString()), ex);
 				}
 			}
+		}
+
+		internal void SendPacket(int numBytes, IPEndPoint target)
+		{
+			int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
+			if (numBytes != bytesSent)
+				LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
+
+			// TODO: add to statistics
 		}
 
 		public NetIncomingMessage ReadMessage()

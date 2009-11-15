@@ -19,6 +19,7 @@ namespace Lidgren.Network2
 		private int m_port;
 		private int m_receiveBufferSize, m_sendBufferSize;
 		private int m_defaultOutgoingMessageCapacity;
+		private int m_maximumTransmissionUnit;
 
 		public NetPeerConfiguration(string appIdentifier)
 		{
@@ -30,6 +31,7 @@ namespace Lidgren.Network2
 			m_port = 0;
 			m_receiveBufferSize = 131071;
 			m_sendBufferSize = 131071;
+			m_maximumTransmissionUnit = 1459;
 		}
 
 		public void Lock()
@@ -46,17 +48,21 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
+		/// Gets or sets the maximum amount of bytes to send in a packet
+		/// </summary>
+		public int MaximumTransmissionUnit
+		{
+			get { return m_maximumTransmissionUnit; }
+			set { m_maximumTransmissionUnit = value; }
+		}
+
+		/// <summary>
 		/// Gets or sets the default capacity in bytes when NetPeer.CreateMessage() is called without argument
 		/// </summary>
 		public int DefaultOutgoingMessageCapacity
 		{
 			get { return m_defaultOutgoingMessageCapacity; }
-			set
-			{
-				if (m_isLocked)
-					throw new NetException(c_isLockedMessage);
-				m_defaultOutgoingMessageCapacity = value;
-			}
+			set { m_defaultOutgoingMessageCapacity = value; }
 		}
 
 		/// <summary>

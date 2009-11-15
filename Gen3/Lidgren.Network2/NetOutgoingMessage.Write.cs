@@ -14,6 +14,32 @@ namespace Lidgren.Network2
 		private int m_bitLength;
 
 		/// <summary>
+		/// Gets or sets the length of the buffer in bytes
+		/// </summary>
+		public int LengthBytes
+		{
+			get { return (m_bitLength >> 3) + ((m_bitLength & 7) > 0 ? 1 : 0); }
+			set
+			{
+				m_bitLength = value * 8;
+				InternalEnsureBufferSize(m_bitLength);
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the length of the buffer in bits
+		/// </summary>
+		public int LengthBits
+		{
+			get { return m_bitLength; }
+			set
+			{
+				m_bitLength = value;
+				InternalEnsureBufferSize(m_bitLength);
+			}
+		}
+
+		/// <summary>
 		/// Ensures the buffer can hold this number of bits
 		/// </summary>
 		public void EnsureBufferSize(int numberOfBits)
@@ -26,6 +52,22 @@ namespace Lidgren.Network2
 			}
 			if (m_data.Length < byteLen)
 				Array.Resize<byte>(ref m_data, byteLen + c_overAllocateAmount);
+			return;
+		}
+
+		/// <summary>
+		/// Ensures the buffer can hold this number of bits
+		/// </summary>
+		public void InternalEnsureBufferSize(int numberOfBits)
+		{
+			int byteLen = (numberOfBits >> 3) + ((numberOfBits & 7) > 0 ? 1 : 0);
+			if (m_data == null)
+			{
+				m_data = new byte[byteLen];
+				return;
+			}
+			if (m_data.Length < byteLen)
+				Array.Resize<byte>(ref m_data, byteLen);
 			return;
 		}
 

@@ -6,6 +6,7 @@ namespace Lidgren.Network2
 	public sealed partial class NetOutgoingMessage
 	{
 		private bool m_isSent;
+		internal NetMessageType m_type;
 		private NetMessagePriority m_priority;
 
 		/// <summary>
@@ -25,6 +26,7 @@ namespace Lidgren.Network2
 
 		internal void Reset()
 		{
+			m_type = NetMessageType.Error;
 			m_isSent = false;
 			m_priority = NetMessagePriority.Normal;
 		}
