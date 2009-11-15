@@ -7,14 +7,14 @@ namespace Lidgren.Network2
 	/// </summary>
 	public enum NetIncomingMessageType
 	{
-		StatusChanged,			// Status (Int32), Message (string)
-		UnconnectedData,		// Data
+		StatusChanged,			// Data (string)
+		UnconnectedData,		// Data					Based on data received
 		ConnectionApproval,		// Data
-		Data,					// Data
+		Data,					// Data					Based on data received
 		Receipt,				// Data
-		VerboseDebugMessage,	// Message (string)
-		DebugMessage,			// Message (string)
-		BadMessageReceived,		// Message (string)
-		ConnectionRejected,		// Message (string)
+		VerboseDebugMessage,	// Data (string)
+		DebugMessage,			// Data (string)
+		WarningMessage,			// Data (string)
+		ErrorMessage,			// Data (string)
 	}
 }

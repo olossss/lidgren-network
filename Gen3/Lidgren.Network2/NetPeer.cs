@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
 using System.Threading;
 using System.Net;
+using System.Net.Sockets;
 
 namespace Lidgren.Network2
 {
-	public class NetPeer
+	//
+	// This partial file holds public netpeer methods accessible to the application
+	//
+	public partial class NetPeer
 	{
 		private bool m_isInitialized;
 		private bool m_initiateShutdown;
-		private int m_runSleepInMilliseconds = 1;
 		private object m_initializeLock = new object();
-		private byte[] m_receiveBuffer;
-		private EndPoint m_senderRemote;
-
+		
 		private NetPeerConfiguration m_configuration;
-		private Socket m_socket;
 		private Thread m_networkThread;
 
 		private List<NetConnection> m_connections;
@@ -27,8 +26,9 @@ namespace Lidgren.Network2
 			m_configuration = configuration;
 			m_connections = new List<NetConnection>();
 			m_connectionLookup = new Dictionary<IPEndPoint, NetConnection>();
-
 			m_senderRemote = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+
+			SetupInternal();
 		}
 
 		/// <summary>
@@ -40,7 +40,6 @@ namespace Lidgren.Network2
 			{
 				if (m_isInitialized)
 					return;
-
 				m_configuration.Lock();
 
 				// bind to socket
@@ -61,6 +60,8 @@ namespace Lidgren.Network2
 					m_networkThread.Name = "Lidgren network thread";
 					m_networkThread.IsBackground = true;
 					m_networkThread.Start();
+
+					// only set initialized if everything succeeds
 					m_isInitialized = true;
 				}
 				catch (SocketException sex)
@@ -76,87 +77,27 @@ namespace Lidgren.Network2
 			}
 		}
 
-		//
-		// Network loop
-		//
-		private void Run()
+		public NetIncomingMessage ReadMessage()
 		{
-			while (!m_initiateShutdown)
+			if (m_releasedIncomingMessages.Count < 1)
+				return null;
+
+			lock (m_releasedIncomingMessages)
 			{
-				try
-				{
-					Heartbeat();
-				}
-				catch (Exception ex)
-				{
-					// LogWrite("Heartbeat() failed on network thread: " + ex.Message);
-				}
-
-				// wait here to give cpu to other threads/processes
-				Thread.Sleep(m_runSleepInMilliseconds);
-			}
-
-			//
-			// perform shutdown
-			//
-			lock (m_initializeLock)
-			{
-				try
-				{
-					if (m_socket != null)
-					{
-						m_socket.Shutdown(SocketShutdown.Receive);
-						m_socket.Close(2);
-					}
-				}
-				finally
-				{
-					m_socket = null;
-					m_isInitialized = false;
-					m_initiateShutdown = false;
-				}
-			}
-
-			return;
-		}
-
-		private void Heartbeat()
-		{
-			// do connection heartbeats
-			foreach (NetConnection conn in m_connections)
-				conn.Heartbeat();
-
-			// read from socket
-			while (true)
-			{
-				if (m_socket == null || m_socket.Available < 1)
-					return;
-
-				int bytesReceived = 0;
-				try
-				{
-					bytesReceived = m_socket.ReceiveFrom(m_receiveBuffer, 0, m_receiveBuffer.Length, SocketFlags.None, ref m_senderRemote);
-				}
-				catch (SocketException)
-				{
-					// no good response to this yet
-					return;
-				}
-
-				if (bytesReceived < 1)
-					return;
-
-				IPEndPoint ipsender = (IPEndPoint)m_senderRemote;
-
-				NetConnection sender = null;
-				m_connectionLookup.TryGetValue(ipsender, out sender);
-				
-				// TODO: create incoming message from packet
+				if (m_releasedIncomingMessages.Count < 1)
+					return null;
+				return m_releasedIncomingMessages.Dequeue();
 			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
 		public void Shutdown()
 		{
+			if (m_socket == null)
+				return; // already shut down
+			LogDebug("Shutdown requested");
 			m_initiateShutdown = true;
 		}
 	}

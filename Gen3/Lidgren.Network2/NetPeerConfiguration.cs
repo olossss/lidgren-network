@@ -14,12 +14,16 @@ namespace Lidgren.Network2
 		private const string c_isLockedMessage = "You may not alter the NetPeerConfiguration after the NetPeer has been initialized!";
 
 		private bool m_isLocked;
+		private string m_appIdentifier;
 		private IPAddress m_localAddress;
 		private int m_port;
 		private int m_receiveBufferSize, m_sendBufferSize;
+		private int m_defaultOutgoingMessageCapacity;
 
-		public NetPeerConfiguration()
+		public NetPeerConfiguration(string appIdentifier)
 		{
+			m_appIdentifier = appIdentifier;
+
 			// defaults
 			m_isLocked = false;
 			m_localAddress = IPAddress.Any;
@@ -34,7 +38,29 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// The local ip address to bind to. Defaults to IPAddress.Any
+		/// Gets or sets the identifier of this application; the library can only connect to matching app identifier peers
+		/// </summary>
+		public string AppIdentifier
+		{
+			get { return m_appIdentifier; }
+		}
+
+		/// <summary>
+		/// Gets or sets the default capacity in bytes when NetPeer.CreateMessage() is called without argument
+		/// </summary>
+		public int DefaultOutgoingMessageCapacity
+		{
+			get { return m_defaultOutgoingMessageCapacity; }
+			set
+			{
+				if (m_isLocked)
+					throw new NetException(c_isLockedMessage);
+				m_defaultOutgoingMessageCapacity = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the local ip address to bind to. Defaults to IPAddress.Any
 		/// </summary>
 		public IPAddress LocalAddress
 		{
@@ -48,7 +74,7 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// The local port to bind to. Defaults to 0
+		/// Gets or sets the local port to bind to. Defaults to 0
 		/// </summary>
 		public int Port
 		{
@@ -62,7 +88,7 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Size in bytes of the receiving buffer. Defaults to 131071 bytes.
+		/// Gets or sets the size in bytes of the receiving buffer. Defaults to 131071 bytes.
 		/// </summary>
 		public int ReceiveBufferSize
 		{
@@ -76,7 +102,7 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Size in bytes of the sending buffer. Defaults to 131071 bytes.
+		/// Gets or sets the size in bytes of the sending buffer. Defaults to 131071 bytes.
 		/// </summary>
 		public int SendBufferSize
 		{
