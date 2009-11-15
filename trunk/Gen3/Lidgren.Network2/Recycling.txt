@@ -1,7 +1,7 @@
 ﻿
 
 
-NetPeer.GetOutgoingMessage() - Gets a recycled message and returns it
+NetPeer.CreateOutgoingMessage() - Gets a recycled message and returns it
 
 NetPeer.SendMessage(OutgoingMessage msg) - Queues the outgoing message in reliable arrays etc, and eventually recycles it when ack is received
 
