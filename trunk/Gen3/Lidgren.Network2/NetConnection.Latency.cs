@@ -30,9 +30,11 @@ namespace Lidgren.Network2
 
 		internal void HandlePing(byte nr)
 		{
+			// send matching pong
 			NetOutgoingMessage reply = m_owner.CreateMessage(2);
+			reply.m_type = NetMessageType.LibraryPong;
 			reply.Write(nr);
-			QueueOutgoing(reply, NetMessagePriority.High);
+			SendMessage(reply, NetMessagePriority.High);
 		}
 
 		internal void HandlePong(double now, byte nr)
@@ -51,6 +53,7 @@ namespace Lidgren.Network2
 				return;
 			}
 
+			// calculate new average roundtrip time
 			m_latencyHistory[2] = m_latencyHistory[1];
 			m_latencyHistory[1] = m_latencyHistory[0];
 			m_latencyHistory[0] = roundtripTime;
