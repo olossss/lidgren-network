@@ -18,11 +18,13 @@ namespace Lidgren.Network2
 		private EndPoint m_senderRemote;
 		internal Socket m_socket;
 		private Queue<NetIncomingMessage> m_releasedIncomingMessages;
+		private ushort m_nextSequenceNumber;
 
 		// called by constructor
 		private void SetupInternal()
 		{
 			m_releasedIncomingMessages = new Queue<NetIncomingMessage>();
+			m_nextSequenceNumber = 1;
 		}
 
 		//
@@ -74,6 +76,13 @@ namespace Lidgren.Network2
 			}
 
 			return;
+		}
+
+		internal ushort GetSequenceNumber()
+		{
+			ushort retval = m_nextSequenceNumber;
+			m_nextSequenceNumber++;
+			return retval;
 		}
 
 		private void ReleaseMessage(NetIncomingMessage msg)

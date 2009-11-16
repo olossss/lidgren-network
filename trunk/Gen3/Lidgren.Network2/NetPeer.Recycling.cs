@@ -5,9 +5,29 @@ namespace Lidgren.Network2
 {
 	public partial class NetPeer
 	{
+		private List<byte[]> m_storagePool;
+
 		internal byte[] GetStorage(int requiredBytes)
 		{
-			// TODO: get from recycling pool
+			if (m_storagePool.Count < 1)
+				return new byte[requiredBytes];
+
+			lock (m_storagePool)
+			{
+				int cnt = m_storagePool.Count;
+
+				// search from end to start
+				for (int i = m_storagePool.Count - 1; i >= 0; i--)
+				{
+					byte[] retval = m_storagePool[i];
+					if (retval.Length >= requiredBytes)
+					{
+						m_storagePool.RemoveAt(i);
+						return retval;
+					}
+				}
+			}
+
 			return new byte[requiredBytes];
 		}
 
@@ -38,7 +58,10 @@ namespace Lidgren.Network2
 		/// </summary>
 		public void Recycle(NetIncomingMessage msg)
 		{
-			// TODO: add message to recycling pool
+			lock (m_storagePool)
+				m_storagePool.Add(msg.m_data);
+
+			// TODO: add message object to recycling pool
 		}
 
 		/// <summary>
