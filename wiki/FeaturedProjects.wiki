@@ -15,4 +15,4 @@
 
 [http://www.jump-game.de/website/ http://www.lidgren.net/img/Jump-small.jpg] *Jump* - http://www.jump-game.de/website/ by Florian Oeser, Michael Palmer and Thomas Vogel.
 
-[http://borgserver.sourceforge.net/ http://www.lidgren.net/img/borg-small.jpg] *Borg Server* - http://borgserver.sourceforge.net/ by Riki.
+[http://borgserver.sourceforge.net/ http://www.lidgren.net/img/borg-small.jpg] *Borg Server* - http://borgserver.sourceforge.net/ by Enriko Riba.
