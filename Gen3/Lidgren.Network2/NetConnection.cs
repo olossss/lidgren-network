@@ -58,11 +58,19 @@ namespace Lidgren.Network2
 					ushort packetSequenceNumber = m_owner.GetSequenceNumber();
 					buffer[ptr++] = (byte)((packetSequenceNumber & 127) << 1);
 					buffer[ptr++] = (byte)((packetSequenceNumber << 7) & 255);
+					isPacketReliable = false;
 				}
 
 				//
 				// encode message
 				//
+
+				// set packet reliability flag
+				if (!isPacketReliable && msg.m_type >= NetMessageType.UserReliableUnordered )
+				{
+					buffer[0] |= 1;
+					isPacketReliable = true;
+				}
 
 				// flags
 				if (msgPayloadLength < 256)
