@@ -34,9 +34,9 @@ namespace ChatServer
 
 							string astr = msg.ReadString();
 
-							NetOutgoingMessage m = server.CreateMessage();
-							m.Write("You wrote: " + astr);
-							server.SendMessage(m);
+							NetOutgoingMessage reply = server.CreateMessage();
+							reply.Write(msg.SenderEndpoint.ToString() + " wrote: " + astr);
+							server.SendToAll(reply, NetMessagePriority.Normal);
 							break;
 
 						default:

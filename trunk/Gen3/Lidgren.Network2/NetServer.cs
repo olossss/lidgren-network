@@ -13,10 +13,12 @@ namespace Lidgren.Network2
 		/// <summary>
 		/// Sends message to all connected clients
 		/// </summary>
-		public void SendMessage(NetOutgoingMessage msg)
+		public void SendToAll(NetOutgoingMessage msg, NetMessagePriority priority)
 		{
-			// TODO: implement
-			throw new NotImplementedException();
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+			foreach (NetConnection conn in m_connections)
+				conn.EnqueueOutgoingMessage(msg, priority);
 		}
 	}
 }
