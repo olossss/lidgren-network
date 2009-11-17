@@ -201,8 +201,7 @@ namespace Lidgren.Network
 					if (resMsg != null)
 					{
 						resMsg.m_senderEndPoint = senderEndpoint;
-						lock (m_receivedMessages)
-							m_receivedMessages.Enqueue(resMsg);
+						EnqueueReceivedMessage(resMsg);
 					}
 					return;
 				}
@@ -217,8 +216,7 @@ namespace Lidgren.Network
 				// just deliever
 				message.m_msgType = NetMessageType.OutOfBandData;
 				message.m_senderEndPoint = senderEndpoint;
-				lock (m_receivedMessages)
-					m_receivedMessages.Enqueue(message);
+				EnqueueReceivedMessage(message);
 				return;
 			}
 
@@ -286,23 +284,6 @@ namespace Lidgren.Network
 			m_serverConnection.HandleUserMessage(message);
 		}
 
-		/*
-		/// <summary>
-		/// Reads any received message in queue
-		/// </summary>
-		public NetBuffer ReadMessage()
-		{
-			if (m_receivedMessages.Count < 1)
-				return null;
-			NetMessage msg = m_receivedMessages.Dequeue();
-
-			NetBuffer retval = msg.m_data;
-			msg.m_data = null;
-			m_messagePool.Push(msg);
-			return retval;
-		}
-		*/
-
 		/// <summary>
 		/// Reads the content of an available message into 'intoBuffer' and returns true. If no message is available it returns false.
 		/// </summary>
@@ -325,6 +306,7 @@ namespace Lidgren.Network
 			{
 				type = NetMessageType.None;
 				senderEndpoint = null;
+				m_dataReceivedEvent.Reset();
 				return false;
 			}
 

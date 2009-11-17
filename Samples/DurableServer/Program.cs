@@ -102,7 +102,9 @@ namespace DurableServer
 							break;
 					}
 				}
-				Thread.Sleep(1);
+
+				// we're not doing anything but reading; to suspend this thread until there's something to read
+				server.DataReceivedEvent.WaitOne(1000);
 			}
 
 			// clean shutdown
