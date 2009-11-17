@@ -18,7 +18,7 @@ namespace Lidgren.Network2
 		internal NetPeerConfiguration m_configuration;
 		private Thread m_networkThread;
 
-		private List<NetConnection> m_connections;
+		protected List<NetConnection> m_connections;
 		private Dictionary<IPEndPoint, NetConnection> m_connectionLookup;
 
 		public NetPeer(NetPeerConfiguration configuration)

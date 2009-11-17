@@ -91,9 +91,17 @@ namespace Lidgren.Network2
 
 		public void SendMessage(NetOutgoingMessage msg, NetMessagePriority priority)
 		{
+			if (msg.IsSent)
+				throw new NetException("Message was already sent!");
+			EnqueueOutgoingMessage(msg, priority);
+		}
+
+		internal void EnqueueOutgoingMessage(NetOutgoingMessage msg, NetMessagePriority priority)
+		{
 			Queue<NetOutgoingMessage> queue = m_unsentMessages[(int)priority];
 			lock (queue)
 				queue.Enqueue(msg);
+			msg.m_inQueueCount++;
 		}
 		
 	}

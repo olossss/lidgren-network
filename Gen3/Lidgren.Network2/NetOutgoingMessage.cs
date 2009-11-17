@@ -5,7 +5,9 @@ namespace Lidgren.Network2
 {
 	public sealed partial class NetOutgoingMessage
 	{
-		private bool m_isSent;
+		// reference count before message can be recycled
+		internal int m_inQueueCount;
+
 		internal NetMessageType m_type;
 		private NetMessagePriority m_priority;
 
@@ -17,7 +19,7 @@ namespace Lidgren.Network2
 		/// <summary>
 		/// Returns true if this message has been passed to SendMessage() already
 		/// </summary>
-		public bool IsSent { get { return m_isSent; } }
+		public bool IsSent { get { return m_inQueueCount > 0; } }
 
 		internal NetOutgoingMessage()
 		{
@@ -27,6 +29,7 @@ namespace Lidgren.Network2
 		internal void Reset()
 		{
 			m_type = NetMessageType.Error;
+			m_inQueueCount = 0;
 			m_isSent = false;
 			m_priority = NetMessagePriority.Normal;
 		}
