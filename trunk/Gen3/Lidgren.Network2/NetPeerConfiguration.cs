@@ -31,7 +31,7 @@ namespace Lidgren.Network2
 			m_port = 0;
 			m_receiveBufferSize = 131071;
 			m_sendBufferSize = 131071;
-			m_maximumTransmissionUnit = 1459;
+			m_maximumTransmissionUnit = 1400;
 		}
 
 		public void Lock()

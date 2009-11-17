@@ -21,6 +21,20 @@ namespace Lidgren.Network2
 		protected List<NetConnection> m_connections;
 		private Dictionary<IPEndPoint, NetConnection> m_connectionLookup;
 
+		/// <summary>
+		/// Gets a copy of the list of connections
+		/// </summary>
+		public List<NetConnection> Connections
+		{
+			get
+			{
+				lock (m_connections)
+				{
+					return new List<NetConnection>(m_connections);
+				}
+			}
+		}
+
 		public NetPeer(NetPeerConfiguration configuration)
 		{
 			m_configuration = configuration;
