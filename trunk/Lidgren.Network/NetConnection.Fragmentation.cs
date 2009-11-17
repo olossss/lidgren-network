@@ -98,9 +98,7 @@ namespace Lidgren.Network
 
 			// do custom handling on networking thread
 			m_owner.ProcessReceived(msg.m_data);
-
-			lock(m_owner.m_receivedMessages)
-				m_owner.m_receivedMessages.Enqueue(msg);
+			m_owner.EnqueueReceivedMessage(msg);
 		}
 	}
 }

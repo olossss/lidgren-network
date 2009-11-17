@@ -130,8 +130,8 @@ namespace Lidgren.Network
 				// just deliever
 				message.m_msgType = NetMessageType.OutOfBandData;
 				message.m_senderEndPoint = senderEndpoint;
-				lock (m_receivedMessages)
-					m_receivedMessages.Enqueue(message);
+
+				EnqueueReceivedMessage(message);
 				return;
 			}
 
@@ -212,8 +212,7 @@ namespace Lidgren.Network
 								app.m_data.Write(hailData);
 							app.m_sender = conn;
 							conn.m_approved = false;
-							lock (m_receivedMessages)
-								m_receivedMessages.Enqueue(app);
+							EnqueueReceivedMessage(app);
 							// Don't add connection; it's done as part of the approval procedure
 							return;
 						}
@@ -234,11 +233,10 @@ namespace Lidgren.Network
 						{
 							// NetPeer
 							IncomingNetMessage resMsg = m_discovery.HandleResponse(message, senderEndpoint);
-							resMsg.m_senderEndPoint = senderEndpoint;
 							if (resMsg != null)
 							{
-								lock (m_receivedMessages)
-									m_receivedMessages.Enqueue(resMsg);
+								resMsg.m_senderEndPoint = senderEndpoint;
+								EnqueueReceivedMessage(resMsg);
 							}
 						}
 						break;
@@ -368,6 +366,7 @@ namespace Lidgren.Network
 			{
 				sender = null;
 				type = NetMessageType.None;
+				m_dataReceivedEvent.Reset();
 				return false;
 			}
 
@@ -444,6 +443,15 @@ namespace Lidgren.Network
 		{
 			if (intoBuffer == null)
 				throw new ArgumentNullException("intoBuffer");
+
+			if (m_receivedMessages.Count < 1)
+			{
+				sender = null;
+				senderEndPoint = null;
+				type = NetMessageType.None;
+				m_dataReceivedEvent.Reset();
+				return false;
+			}
 
 			IncomingNetMessage msg;
 			lock(m_receivedMessages)

@@ -50,6 +50,7 @@ namespace Lidgren.Network
 		private Queue<SUSystemMessage> m_susmQueue;
 		internal List<IPEndPoint> m_holePunches;
 		private double m_lastHolePunch;
+		protected AutoResetEvent m_dataReceivedEvent;
 
 		internal NetConfiguration m_config;
 		internal NetBuffer m_receiveBuffer;
@@ -60,6 +61,11 @@ namespace Lidgren.Network
 		private int m_runSleep = 1;
 
 		internal NetMessageType m_enabledMessageTypes;
+
+		/// <summary>
+		/// Signalling event which can be waited on to determine when a message is queued for reading
+		/// </summary>
+		public AutoResetEvent DataReceivedEvent { get { return m_dataReceivedEvent; } }
 
 		/// <summary>
 		/// Gets or sets what types of messages are delievered to the client
@@ -143,6 +149,7 @@ namespace Lidgren.Network
 			m_unsentOutOfBandMessages = new NetQueue<NetBuffer>();
 			m_unsentOutOfBandRecipients = new NetQueue<IPEndPoint>();
 			m_susmQueue = new Queue<SUSystemMessage>();
+			m_dataReceivedEvent = new AutoResetEvent(false);
 
 			// default enabled message types
 			m_enabledMessageTypes =
@@ -150,6 +157,14 @@ namespace Lidgren.Network
 				NetMessageType.DebugMessage | NetMessageType.Receipt;
 		}
 
+		internal void EnqueueReceivedMessage(IncomingNetMessage msg)
+		{
+			lock (m_receivedMessages)
+			{
+				m_receivedMessages.Enqueue(msg);
+				m_dataReceivedEvent.Set();
+			}
+		}
 
 		/// <summary>
 		/// Creates an outgoing net message
@@ -796,8 +811,7 @@ namespace Lidgren.Network
 			msg.m_msgType = NetMessageType.Receipt;
 			msg.m_data = receiptData;
 
-			lock (m_receivedMessages)
-				m_receivedMessages.Enqueue(msg);
+			EnqueueReceivedMessage(msg);
 		}
 
 		[Conditional("DEBUG")]
@@ -861,8 +875,7 @@ namespace Lidgren.Network
 			msg.m_sender = conn;
 			msg.m_senderEndPoint = ep;
 
-			lock (m_receivedMessages)
-				m_receivedMessages.Enqueue(msg);
+			EnqueueReceivedMessage(msg);
 		}
 
 		/// <summary>
