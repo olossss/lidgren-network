@@ -145,7 +145,7 @@ namespace Lidgren.Network
 			m_sendBufferSize = 131071;
 			m_receiveBufferSize = 131071;
 			m_maxConnections = 32;
-			m_maximumTransmissionUnit = 1459;
+			m_maximumTransmissionUnit = 1400;
 			m_pingFrequency = 3.0f;
 			m_timeoutDelay = 30.0f;
 			m_handshakeAttemptsMaxCount = 5;
