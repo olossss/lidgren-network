@@ -27,6 +27,7 @@ namespace Lidgren.Network
 	public sealed class NetConfiguration
 	{
 		internal int m_port;
+        internal System.Net.IPAddress m_address;
 		internal string m_appIdentifier;
 		internal int m_receiveBufferSize, m_sendBufferSize;
 		internal int m_maxConnections;
@@ -60,6 +61,11 @@ namespace Lidgren.Network
 				//	m_owner.LogWrite("Warning: Ports 1-1023 are reserved");
 			}
 		}
+        public System.Net.IPAddress Address
+        {
+            get { return m_address; }
+            set { m_address = value; }
+        }
 
 		public int ReceiveBufferSize { get { return m_receiveBufferSize; } set { m_receiveBufferSize = value; } }
 		public int SendBufferSize { get { return m_sendBufferSize; } set { m_sendBufferSize = value; } }
