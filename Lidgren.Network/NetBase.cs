@@ -63,7 +63,10 @@ namespace Lidgren.Network
 		internal NetMessageType m_enabledMessageTypes;
 
 		/// <summary>
-		/// Signalling event which can be waited on to determine when a message is queued for reading
+		/// Signalling event which can be waited on to determine when a message is queued for reading.
+        /// Note that there is no guarantee that after the event is signaled the blocked thread will 
+        /// find the message in the queue. Other user created threads could be preempted and dequeue 
+        /// the message before the waiting thread wakes up.
 		/// </summary>
 		public AutoResetEvent DataReceivedEvent { get { return m_dataReceivedEvent; } }
 
@@ -161,9 +164,9 @@ namespace Lidgren.Network
 		{
 			lock (m_receivedMessages)
 			{
-				m_receivedMessages.Enqueue(msg);
-				m_dataReceivedEvent.Set();
+				m_receivedMessages.Enqueue(msg);				
 			}
+            m_dataReceivedEvent.Set();
 		}
 
 		/// <summary>
@@ -194,11 +197,15 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Called to bind to socket and start heartbeat thread
+		/// Called to bind to socket and start heartbeat thread.
+        /// The socket will be bound to listen on any network interface unless the <see cref="NetConfiguration.Address"/> explicitly specifies an interface. 
 		/// </summary>
 		public void Start()
 		{
-			Start(IPAddress.Any);
+            if(m_config.Address!=null)
+                Start(m_config.Address);
+            else
+			    Start(IPAddress.Any);
 		}
 
 		/// <summary>
