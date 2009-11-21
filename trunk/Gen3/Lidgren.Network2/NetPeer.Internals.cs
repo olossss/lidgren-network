@@ -19,12 +19,17 @@ namespace Lidgren.Network2
 		internal Socket m_socket;
 		private Queue<NetIncomingMessage> m_releasedIncomingMessages;
 		private ushort m_nextSequenceNumber;
+		internal byte[] m_macAddressBytes;
 
 		// called by constructor
-		private void SetupInternal()
+		private void InitializeInternal()
 		{
 			m_releasedIncomingMessages = new Queue<NetIncomingMessage>();
 			m_nextSequenceNumber = 1;
+
+			System.Net.NetworkInformation.PhysicalAddress pa = NetUtility.GetMacAddress();
+			if (pa != null)
+				m_macAddressBytes = pa.GetAddressBytes();
 		}
 
 		//
@@ -126,6 +131,9 @@ namespace Lidgren.Network2
 				m_connectionLookup.TryGetValue(ipsender, out sender);
 
 				if (sender != null)
+					Debug.Assert(ipsender.Equals(sender.m_remoteEndPoint));
+
+				if (sender != null)
 					sender.m_lastHeardFrom = now;
 
 				//
@@ -188,25 +196,48 @@ namespace Lidgren.Network2
 
 						// get payload
 						byte[] payload = GetStorage(payloadLength);
-						Debug.Assert(payload.Length >= payloadLength, "Too small storage retrieved!");
 						Buffer.BlockCopy(m_receiveBuffer, ptr, payload, 0, payloadLength);
 						ptr += payloadLength;
 
 						//
 						// handle incoming message
 						//
-						switch (mtp)
+
+						if (mtp == NetMessageType.Error)
 						{
-							case NetMessageType.Error:
-								LogError("Malformed message; no message type!");
-								break;
-							default:
-								throw new NotImplementedException();
+							LogError("Malformed message; no message type!");
+							continue;
+						}
+
+						// reject messages requiring a connection
+						if (sender == null)
+						{
+							if (mtp != NetMessageType.LibraryConnect &&
+								mtp != NetMessageType.LibraryDiscovery &&
+								mtp != NetMessageType.LibraryDiscoveryResponse &&
+								mtp != NetMessageType.LibraryNatIntroduction)
+							{
+								LogWarning("Message of typ " + mtp + " received; but no connection in place!");
+								continue;
+							}
+
+							// handle unconnected message
+							HandleUnconnectedMessage(mtp, payload, payloadLength);
+						}
+						else
+						{
+							// handle connected message
+							sender.HandleIncomingData(mtp, payload, payloadLength);
 						}
 					}
 				}
 			}
 			// heartbeat done
+		}
+
+		private void HandleUnconnectedMessage(NetMessageType mtp, byte[] payload, int payloadLength)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

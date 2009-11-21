@@ -7,6 +7,11 @@ namespace Lidgren.Network2
 	{
 		private List<byte[]> m_storagePool;
 
+		private void InitializeRecycling()
+		{
+			m_storagePool = new List<byte[]>();
+		}
+
 		internal byte[] GetStorage(int requiredBytes)
 		{
 			if (m_storagePool.Count < 1)

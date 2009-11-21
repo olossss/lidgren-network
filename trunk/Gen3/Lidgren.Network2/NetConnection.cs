@@ -7,7 +7,7 @@ namespace Lidgren.Network2
 	public partial class NetConnection
 	{
 		private NetPeer m_owner;
-		private IPEndPoint m_remoteEndPoint;
+		internal IPEndPoint m_remoteEndPoint;
 		internal double m_lastHeardFrom;
 		private Queue<NetOutgoingMessage>[] m_unsentMessages; // low, normal, high
 
@@ -19,11 +19,16 @@ namespace Lidgren.Network2
 			m_unsentMessages[0] = new Queue<NetOutgoingMessage>(4);
 			m_unsentMessages[1] = new Queue<NetOutgoingMessage>(8);
 			m_unsentMessages[2] = new Queue<NetOutgoingMessage>(4);
+			m_status = NetConnectionStatus.Disconnected;
+			m_isPingInitialized = false;
 		}
 
 		// run on network thread
 		internal void Heartbeat()
 		{
+			if (m_connectRequested)
+				SendConnect();
+
 			// TODO: send ack messages
 
 			// TODO: resend reliable messages
@@ -103,6 +108,11 @@ namespace Lidgren.Network2
 				queue.Enqueue(msg);
 			msg.m_inQueueCount++;
 		}
-		
+
+		internal void HandleIncomingData(NetMessageType mtp, byte[] payload, int payloadLength)
+		{
+			// handle data, potentially creating incoming message
+			throw new NotImplementedException();
+		}
 	}
 }

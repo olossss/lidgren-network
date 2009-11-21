@@ -119,6 +119,14 @@ namespace Lidgren.Network2
 			return null;
 		}
 
+		public static PhysicalAddress GetMacAddress()
+		{
+			NetworkInterface ni = GetNetworkInterface();
+			if (ni == null)
+				return null;
+			return ni.GetPhysicalAddress();
+		}
+
 		/// <summary>
 		/// Gets my local IP address (not necessarily external) and subnet mask
 		/// </summary>
