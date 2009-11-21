@@ -30,7 +30,6 @@ namespace Lidgren.Network2
 		{
 			m_type = NetMessageType.Error;
 			m_inQueueCount = 0;
-			m_isSent = false;
 			m_priority = NetMessagePriority.Normal;
 		}
 	}

@@ -42,7 +42,8 @@ namespace Lidgren.Network2
 			m_connectionLookup = new Dictionary<IPEndPoint, NetConnection>();
 			m_senderRemote = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
 
-			SetupInternal();
+			InitializeRecycling();
+			InitializeInternal();
 		}
 
 		/// <summary>
@@ -114,9 +115,25 @@ namespace Lidgren.Network2
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
+		public NetConnection Connect(IPEndPoint remoteEndPoint)
+		{
+			if (!m_isInitialized)
+				Initialize();
+
+			if (m_connectionLookup.ContainsKey(remoteEndPoint))
+				throw new NetException("Already connected to that endpoint!");
+
+			NetConnection conn = new NetConnection(this, remoteEndPoint);
+			m_connections.Add(conn);
+			m_connectionLookup[remoteEndPoint] = conn;
+
+			// handle on network thread
+			conn.m_connectRequested = true;
+			conn.m_connectionInitiator = true;
+
+			return conn;
+		}
+
 		public void Shutdown()
 		{
 			if (m_socket == null)
