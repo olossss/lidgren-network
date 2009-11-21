@@ -7,7 +7,7 @@ namespace Lidgren.Network2
 	public sealed partial class NetIncomingMessage
 	{
 		internal byte[] m_data;
-		private int m_bitLength;
+		internal int m_bitLength;
 
 		private NetIncomingMessageType m_messageType;
 		private IPEndPoint m_senderEndPoint;
