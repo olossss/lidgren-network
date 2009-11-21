@@ -36,7 +36,7 @@ namespace ChatServer
 
 							NetOutgoingMessage reply = server.CreateMessage();
 							reply.Write(msg.SenderEndpoint.ToString() + " wrote: " + astr);
-							server.SendToAll(reply, NetMessagePriority.Normal);
+							server.SendMessage(reply, server.Connections, NetMessagePriority.Normal);
 							break;
 
 						default:

@@ -102,6 +102,19 @@ namespace Lidgren.Network2
 			// TODO: add to statistics
 		}
 
+		public void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetMessagePriority priority)
+		{
+			recipient.SendMessage(msg, priority);
+		}
+
+		public void SendMessage(NetOutgoingMessage msg, IEnumerable<NetConnection> recipients, NetMessagePriority priority)
+		{
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+			foreach (NetConnection conn in recipients)
+				conn.EnqueueOutgoingMessage(msg, priority);
+		}
+
 		public NetIncomingMessage ReadMessage()
 		{
 			if (m_releasedIncomingMessages.Count < 1)

@@ -80,7 +80,7 @@ namespace Lidgren.Network2
 		/// <summary>
 		/// Creates an incoming message with the required capacity for releasing to the application
 		/// </summary>
-		private NetIncomingMessage CreateIncomingMessage(NetIncomingMessageType tp, int requiredCapacity)
+		internal NetIncomingMessage CreateIncomingMessage(NetIncomingMessageType tp, int requiredCapacity)
 		{
 			byte[] storage = GetStorage(requiredCapacity);
 
@@ -93,5 +93,19 @@ namespace Lidgren.Network2
 
 			return retval;
 		}
+
+		internal NetIncomingMessage CreateIncomingMessage(NetIncomingMessageType tp, byte[] payload, int payloadByteLength)
+		{
+			// TODO: get NetIncomingMessage object from recycling pool
+			NetIncomingMessage retval = new NetIncomingMessage();
+			retval.m_data = payload;
+			retval.m_bitLength = payloadByteLength * 8;
+			retval.MessageType = tp;
+			retval.SenderConnection = null;
+			retval.SenderEndpoint = null;
+
+			return retval;
+		}
+
 	}
 }

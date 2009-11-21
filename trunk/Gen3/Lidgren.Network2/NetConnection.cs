@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 
 namespace Lidgren.Network2
 {
@@ -96,8 +97,9 @@ namespace Lidgren.Network2
 
 		public void SendMessage(NetOutgoingMessage msg, NetMessagePriority priority)
 		{
+
 			if (msg.IsSent)
-				throw new NetException("Message was already sent!");
+				throw new NetException("Message has already been sent!");
 			EnqueueOutgoingMessage(msg, priority);
 		}
 
@@ -106,12 +108,32 @@ namespace Lidgren.Network2
 			Queue<NetOutgoingMessage> queue = m_unsentMessages[(int)priority];
 			lock (queue)
 				queue.Enqueue(msg);
-			msg.m_inQueueCount++;
+			Interlocked.Increment(ref msg.m_inQueueCount);
 		}
 
 		internal void HandleIncomingData(NetMessageType mtp, byte[] payload, int payloadLength)
 		{
+			if (mtp < NetMessageType.LibraryNatIntroduction)
+			{
+				HandleIncomingLibraryData(mtp, payload, payloadLength);
+				return;
+			}
+
+			// it's an application data message
+			NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadLength);
+			im.SenderConnection = this;
+			im.SenderEndpoint = m_remoteEndPoint;
+
+			//
+			// TODO: set up and queue im
+			//
+
 			// handle data, potentially creating incoming message
+			throw new NotImplementedException();
+		}
+
+		private void HandleIncomingLibraryData(NetMessageType mtp, byte[] payload, int payloadLength)
+		{
 			throw new NotImplementedException();
 		}
 	}
