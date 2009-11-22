@@ -65,8 +65,13 @@ namespace Lidgren.Network2
 					EndPoint ep = (EndPoint)iep;
 
 					m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+					m_socket.ReceiveBufferSize = m_configuration.ReceiveBufferSize;
+					m_socket.SendBufferSize = m_configuration.SendBufferSize;
 					m_socket.Blocking = false;
 					m_socket.Bind(ep);
+
+					IPEndPoint boundEp = m_socket.LocalEndPoint as IPEndPoint;
+					LogDebug("Socket bound to " + boundEp + ": " + m_socket.IsBound);
 
 					m_receiveBuffer = new byte[m_configuration.ReceiveBufferSize];
 					m_sendBuffer = new byte[m_configuration.SendBufferSize];
@@ -101,7 +106,7 @@ namespace Lidgren.Network2
 			if (numBytes != bytesSent)
 				LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
 
-			LogVerbose("Sent " + numBytes);
+			LogVerbose("Sent " + numBytes + " bytes");
 
 			// TODO: add to statistics
 		}
@@ -130,6 +135,11 @@ namespace Lidgren.Network2
 					return null;
 				return m_releasedIncomingMessages.Dequeue();
 			}
+		}
+
+		public NetConnection Connect(string host, int port)
+		{
+			return Connect(new IPEndPoint(NetUtility.Resolve(host), port));
 		}
 
 		public NetConnection Connect(IPEndPoint remoteEndPoint)

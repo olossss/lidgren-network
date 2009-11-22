@@ -14,12 +14,15 @@ namespace Lidgren.Network2
 		private const string c_isLockedMessage = "You may not alter the NetPeerConfiguration after the NetPeer has been initialized!";
 
 		private bool m_isLocked;
+		private bool m_acceptIncomingConnections;
 		private string m_appIdentifier;
 		private IPAddress m_localAddress;
 		private int m_port;
 		private int m_receiveBufferSize, m_sendBufferSize;
 		private int m_defaultOutgoingMessageCapacity;
 		private int m_maximumTransmissionUnit;
+		private float m_pingFrequency;
+		private float m_connectionTimeOut;
 
 		public NetPeerConfiguration(string appIdentifier)
 		{
@@ -27,11 +30,14 @@ namespace Lidgren.Network2
 
 			// defaults
 			m_isLocked = false;
+			m_acceptIncomingConnections = true;
 			m_localAddress = IPAddress.Any;
 			m_port = 0;
 			m_receiveBufferSize = 131071;
 			m_sendBufferSize = 131071;
 			m_maximumTransmissionUnit = 1400;
+			m_pingFrequency = 5;
+			m_connectionTimeOut = 25;
 		}
 
 		public void Lock()
@@ -48,12 +54,21 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the maximum amount of bytes to send in a packet
+		/// Gets or sets the maximum amount of bytes to send in a single packet
 		/// </summary>
 		public int MaximumTransmissionUnit
 		{
 			get { return m_maximumTransmissionUnit; }
 			set { m_maximumTransmissionUnit = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets if the NetPeer should accept incoming connections
+		/// </summary>
+		public bool AcceptIncomingConnections
+		{
+			get { return m_acceptIncomingConnections; }
+			set { m_acceptIncomingConnections = value; }
 		}
 
 		/// <summary>
@@ -118,6 +133,34 @@ namespace Lidgren.Network2
 				if (m_isLocked)
 					throw new NetException(c_isLockedMessage);
 				m_sendBufferSize = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the number of seconds between each keepalive ping
+		/// </summary>
+		public float PingFrequency
+		{
+			get { return m_pingFrequency; }
+			set
+			{
+				if (m_isLocked)
+					throw new NetException(c_isLockedMessage);
+				m_pingFrequency = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the number of seconds of non-response before disconnecting because of time out
+		/// </summary>
+		public float ConnectionTimeOut
+		{
+			get { return m_connectionTimeOut; }
+			set
+			{
+				if (m_isLocked)
+					throw new NetException(c_isLockedMessage);
+				m_connectionTimeOut = value;
 			}
 		}
 

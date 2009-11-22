@@ -11,6 +11,7 @@ namespace ChatServer
 		static void Main(string[] args)
 		{
 			NetPeerConfiguration config = new NetPeerConfiguration("chatapp");
+			config.Port = 14242;
 
 			NetServer server = new NetServer(config);
 			server.Initialize();

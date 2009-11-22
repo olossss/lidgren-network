@@ -8,6 +8,9 @@ namespace Lidgren.Network2
 		public NetServer(NetPeerConfiguration config)
 			: base(config)
 		{
+			// force this to true
+			config.AcceptIncomingConnections = true;
+
 		}
 	}
 }

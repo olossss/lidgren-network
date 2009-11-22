@@ -27,11 +27,16 @@ namespace Lidgren.Network2
 		// run on network thread
 		internal void Heartbeat()
 		{
+			double now = NetTime.Now;
+
 			if (m_connectRequested)
 				SendConnect();
 
 			if (m_disconnectRequested)
 				SendDisconnect();
+
+			// ping
+			KeepAliveHeartbeat(now);
 
 			// TODO: send ack messages
 
@@ -96,6 +101,9 @@ namespace Lidgren.Network2
 				
 				Buffer.BlockCopy(msg.m_data, 0, buffer, ptr, msgPayloadLength);
 			}
+
+			if (ptr > 0)
+				m_owner.SendPacket(ptr, m_remoteEndPoint);
 		}
 
 		public void SendMessage(NetOutgoingMessage msg, NetMessagePriority priority)
