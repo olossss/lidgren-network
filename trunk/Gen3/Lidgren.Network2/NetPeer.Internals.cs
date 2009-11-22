@@ -132,6 +132,10 @@ namespace Lidgren.Network2
 
 				double now = NetTime.Now;
 
+				LogVerbose("Received " + bytesReceived + " bytes");
+
+				// TODO: add received bytes statistics
+
 				IPEndPoint ipsender = (IPEndPoint)m_senderRemote;
 
 				NetConnection sender = null;
@@ -149,6 +153,8 @@ namespace Lidgren.Network2
 				{
 					bool isReliable = ((m_receiveBuffer[0] & 1) == 1);
 					ushort sequenceNumber = (ushort)((m_receiveBuffer[0] >> 1) & (m_receiveBuffer[1] << 7));
+
+					// TODO: if reliable (and sender != null); queue ack message
 
 					int ptr = 2;
 					while (ptr < bytesReceived)

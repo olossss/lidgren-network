@@ -7,6 +7,8 @@ namespace Lidgren.Network2
 		public NetClient(NetPeerConfiguration config)
 			: base(config)
 		{
+			// force this to false
+			config.AcceptIncomingConnections = false;
 		}
 	}
 }

@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Threading;
 
 namespace Lidgren.Network2
 {
 	public partial class NetConnection
 	{
-		private byte m_lastPingNumber;
+		internal const int c_maxPingNumber = ushort.MaxValue;
+
+		//
+		// Connection keepalive and latency calculation
+		//
+
+		private ushort m_lastPingNumber;
 		private double m_lastPingSent;
 		private bool m_isPingInitialized;
 		private double[] m_latencyHistory = new double[3];
 		private double m_currentAvgRoundtrip = 0.75f; // large to avoid initial resends
+		private double m_lastSendRespondedTo; // timestamp when data was sent, for which a response has been received
 
 		/// <summary>
 		/// Gets the current average roundtrip time
@@ -28,7 +36,32 @@ namespace Lidgren.Network2
 			m_owner.LogDebug("Initializing avg rt to " + (int)(roundtripTime * 1000) + " ms");
 		}
 
-		internal void HandlePing(byte nr)
+		private void KeepAliveHeartbeat(double now)
+		{
+			// time to send a ping?
+			if (m_status != NetConnectionStatus.Disconnected)
+			{
+				if (now > m_lastPingSent + m_owner.m_configuration.PingFrequency)
+					SendPing(now);
+
+				if (now > m_lastSendRespondedTo + m_owner.m_configuration.ConnectionTimeOut)
+					Disconnect("Timed out");
+			}
+		}
+
+		private void SendPing(double now)
+		{
+			NetOutgoingMessage ping = m_owner.CreateMessage(2);
+			ping.m_type = NetMessageType.LibraryPing;
+			ping.Write(m_lastPingNumber);
+
+			m_lastPingNumber++;
+			m_lastPingSent = now;
+
+			SendMessage(ping, NetMessagePriority.High);
+		}
+
+		internal void HandlePing(ushort nr)
 		{
 			// send matching pong
 			NetOutgoingMessage reply = m_owner.CreateMessage(2);
@@ -37,13 +70,15 @@ namespace Lidgren.Network2
 			SendMessage(reply, NetMessagePriority.High);
 		}
 
-		internal void HandlePong(double now, byte nr)
+		internal void HandlePong(double now, ushort nr)
 		{
 			if (nr != m_lastPingNumber)
 			{
 				m_owner.LogDebug("Received wrong order pong number (" + nr + ", expecting " + m_lastPingNumber);
 				return;
 			}
+
+			m_lastSendRespondedTo = m_lastPingSent;
 
 			double roundtripTime = now - m_lastPingSent;
 
