@@ -127,6 +127,16 @@ namespace Lidgren.Network2
 			return ni.GetPhysicalAddress();
 		}
 
+		public static string ToHexString(byte[] data)
+		{
+			StringBuilder sb = new StringBuilder(data.Length * 2);
+			foreach (byte b in data)
+			{
+				sb.AppendFormat("{0:X2}", b);
+			}
+			return sb.ToString();
+		}
+
 		/// <summary>
 		/// Gets my local IP address (not necessarily external) and subnet mask
 		/// </summary>

@@ -77,6 +77,8 @@ namespace Lidgren.Network2
 					m_networkThread.IsBackground = true;
 					m_networkThread.Start();
 
+					LogVerbose("Lidgren initialized");
+
 					// only set initialized if everything succeeds
 					m_isInitialized = true;
 				}
@@ -98,6 +100,8 @@ namespace Lidgren.Network2
 			int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
 			if (numBytes != bytesSent)
 				LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
+
+			LogVerbose("Sent " + numBytes);
 
 			// TODO: add to statistics
 		}
