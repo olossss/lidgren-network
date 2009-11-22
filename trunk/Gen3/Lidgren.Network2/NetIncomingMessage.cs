@@ -26,5 +26,10 @@ namespace Lidgren.Network2
 			m_bitLength = 0;
 			m_readPosition = 0;
 		}
+
+		public override string ToString()
+		{
+			return "[NetIncomingMessage " + m_messageType + ", " + m_bitLength + " bits]";
+		}
 	}
 }

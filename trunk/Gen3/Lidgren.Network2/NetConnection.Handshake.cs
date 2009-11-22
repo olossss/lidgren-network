@@ -6,6 +6,8 @@ namespace Lidgren.Network2
 	public partial class NetConnection
 	{
 		internal bool m_connectRequested;
+		internal bool m_disconnectRequested;
+		internal string m_disconnectByeMessage;
 		internal bool m_connectionInitiator;
 		internal string m_hail;
 		private NetConnectionStatus m_status;
@@ -17,7 +19,8 @@ namespace Lidgren.Network2
 			{
 				case NetConnectionStatus.Connected:
 					// reconnect
-					SendDisconnect("Reconnecting");
+					m_disconnectByeMessage = "Reconnecting";
+					SendDisconnect();
 					break;
 				case NetConnectionStatus.Connecting:
 				case NetConnectionStatus.Disconnected:
@@ -41,24 +44,31 @@ namespace Lidgren.Network2
 				m_hail = string.Empty;
 			om.Write(m_hail);
 
+			m_owner.LogVerbose("Sending Connect");
+			
 			// don´t use high prio, in case a disconnect message is in the queue too
 			EnqueueOutgoingMessage(om, NetMessagePriority.Normal);
 			return;
 		}
 
-		private void SendDisconnect(string bye)
+		private void SendDisconnect()
 		{
 			NetOutgoingMessage om = m_owner.CreateMessage(0);
 			om.m_type = NetMessageType.LibraryDisconnect;
-			if (bye == null)
-				bye = string.Empty;
-			om.Write(bye);
+			if (m_disconnectByeMessage == null)
+				m_disconnectByeMessage = string.Empty;
+			om.Write(m_disconnectByeMessage);
+
+			m_owner.LogVerbose("Sending disconnect(" + m_disconnectByeMessage + ")");
 
 			// let high prio stuff slip past before disconnecting
 			EnqueueOutgoingMessage(om, NetMessagePriority.Normal);
 			return;
 		}
 
-
+		private void HandleIncomingHandshake(NetMessageType mtp, byte[] payload, int payloadBytesLength)
+		{
+			throw new NotImplementedException();
+		}
 	}
 }

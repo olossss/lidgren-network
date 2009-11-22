@@ -29,7 +29,14 @@ namespace Lidgren.Network2
 
 			System.Net.NetworkInformation.PhysicalAddress pa = NetUtility.GetMacAddress();
 			if (pa != null)
+			{
 				m_macAddressBytes = pa.GetAddressBytes();
+				LogVerbose("Mac address is " + NetUtility.ToHexString(m_macAddressBytes));
+			}
+			else
+			{
+				LogWarning("Failed to get Mac address");
+			}
 		}
 
 		//
@@ -90,7 +97,7 @@ namespace Lidgren.Network2
 			return retval;
 		}
 
-		private void ReleaseMessage(NetIncomingMessage msg)
+		internal void ReleaseMessage(NetIncomingMessage msg)
 		{
 			lock (m_releasedIncomingMessages)
 				m_releasedIncomingMessages.Enqueue(msg);

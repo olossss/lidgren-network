@@ -30,6 +30,9 @@ namespace Lidgren.Network2
 			if (m_connectRequested)
 				SendConnect();
 
+			if (m_disconnectRequested)
+				SendDisconnect();
+
 			// TODO: send ack messages
 
 			// TODO: resend reliable messages
@@ -111,6 +114,14 @@ namespace Lidgren.Network2
 			Interlocked.Increment(ref msg.m_inQueueCount);
 		}
 
+		public void Disconnect(string byeMessage)
+		{
+			if (m_status == NetConnectionStatus.Disconnected)
+				return;
+			m_disconnectByeMessage = byeMessage;
+			m_disconnectRequested = true;
+		}
+
 		internal void HandleIncomingData(NetMessageType mtp, byte[] payload, int payloadLength)
 		{
 			if (mtp < NetMessageType.LibraryNatIntroduction)
@@ -125,16 +136,29 @@ namespace Lidgren.Network2
 			im.SenderEndpoint = m_remoteEndPoint;
 
 			//
-			// TODO: set up and queue im
+			// TODO: do reliabilility, acks, sequence rejecting etc here
 			//
 
-			// handle data, potentially creating incoming message
-			throw new NotImplementedException();
+			m_owner.LogVerbose("Releasing " + im);
+			m_owner.ReleaseMessage(im);
 		}
 
 		private void HandleIncomingLibraryData(NetMessageType mtp, byte[] payload, int payloadLength)
 		{
-			throw new NotImplementedException();
+			switch (mtp)
+			{
+				case NetMessageType.Error:
+					m_owner.LogWarning("Received NetMessageType.Error message!");
+					break;
+				case NetMessageType.LibraryConnect:
+				case NetMessageType.LibraryConnectResponse:
+				case NetMessageType.LibraryConnectionEstablished:
+				case NetMessageType.LibraryDisconnect:
+					HandleIncomingHandshake(mtp, payload, payloadLength);
+					break;
+				default:
+					throw new NotImplementedException();
+			}
 		}
 	}
 }
