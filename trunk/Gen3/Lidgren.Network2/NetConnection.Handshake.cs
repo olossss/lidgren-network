@@ -68,6 +68,7 @@ namespace Lidgren.Network2
 
 		private void HandleIncomingHandshake(NetMessageType mtp, byte[] payload, int payloadBytesLength)
 		{
+
 			throw new NotImplementedException();
 		}
 	}
