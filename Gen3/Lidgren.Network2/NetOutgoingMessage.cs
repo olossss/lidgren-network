@@ -7,8 +7,8 @@ namespace Lidgren.Network2
 	{
 		// reference count before message can be recycled
 		internal int m_inQueueCount;
-
 		internal NetMessageType m_type;
+		internal double m_sentTime;
 		private NetMessagePriority m_priority;
 
 		/// <summary>

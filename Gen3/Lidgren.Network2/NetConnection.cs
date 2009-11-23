@@ -57,6 +57,8 @@ namespace Lidgren.Network2
 				lock (queue)
 					msg = queue.Dequeue();
 
+				msg.m_sentTime = now;
+
 				int msgPayloadLength = msg.LengthBytes;
 
 				if (ptr + 3 + msgPayloadLength > mtu)

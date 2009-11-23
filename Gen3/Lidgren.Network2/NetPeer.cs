@@ -124,6 +124,9 @@ namespace Lidgren.Network2
 				conn.EnqueueOutgoingMessage(msg, priority);
 		}
 
+		/// <summary>
+		/// Read a pending message from any connection, if any
+		/// </summary>
 		public NetIncomingMessage ReadMessage()
 		{
 			if (m_releasedIncomingMessages.Count < 1)
@@ -137,11 +140,17 @@ namespace Lidgren.Network2
 			}
 		}
 
+		/// <summary>
+		/// Create a connection to a remote endpoint
+		/// </summary>
 		public NetConnection Connect(string host, int port)
 		{
 			return Connect(new IPEndPoint(NetUtility.Resolve(host), port));
 		}
 
+		/// <summary>
+		/// Create a connection to a remote endpoint
+		/// </summary>
 		public NetConnection Connect(IPEndPoint remoteEndPoint)
 		{
 			if (!m_isInitialized)

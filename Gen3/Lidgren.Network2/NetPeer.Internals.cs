@@ -154,7 +154,7 @@ namespace Lidgren.Network2
 					bool isReliable = ((m_receiveBuffer[0] & 1) == 1);
 					ushort sequenceNumber = (ushort)((m_receiveBuffer[0] >> 1) & (m_receiveBuffer[1] << 7));
 
-					// TODO: if reliable (and sender != null); queue ack message
+					// TODO: if reliable (and sender != null); queue ack message, also update connection.m_lastSendRespondedTo
 
 					int ptr = 2;
 					while (ptr < bytesReceived)
@@ -235,7 +235,7 @@ namespace Lidgren.Network2
 							}
 
 							// handle unconnected message
-							HandleUnconnectedMessage(mtp, payload, payloadLength);
+							HandleUnconnectedMessage(mtp, payload, payloadLength, ipsender);
 						}
 						else
 						{
@@ -248,9 +248,51 @@ namespace Lidgren.Network2
 			// heartbeat done
 		}
 
-		private void HandleUnconnectedMessage(NetMessageType mtp, byte[] payload, int payloadLength)
+		private void HandleUnconnectedMessage(NetMessageType mtp, byte[] payload, int payloadLength, IPEndPoint senderEndPoint)
 		{
+			Debug.Assert(Thread.CurrentThread == m_networkThread);
+
+			if (mtp == NetMessageType.LibraryConnect)
+			{
+				if (!m_configuration.m_acceptIncomingConnections)
+				{
+					LogWarning("Connect received; but we're not accepting incoming connections!");
+					return;
+				}
+
+				// ok, someone wants to connect to us, and we're accepting connections!
+				if (m_connections.Count >= m_configuration.MaximumConnections)
+				{
+					HandleServerFull(senderEndPoint);
+					return;
+				}
+
+				// TODO: connection approval, including hail data
+
+				NetConnection conn = new NetConnection(this, senderEndPoint);
+				m_connections.Add(conn);
+				m_connectionLookup[senderEndPoint] = conn;
+				conn.m_connectionInitiator = false;
+
+				// send connection response
+				NetOutgoingMessage reply = CreateMessage(2);
+				reply.m_type = NetMessageType.LibraryConnectResponse;
+				conn.EnqueueOutgoingMessage(reply, NetMessagePriority.High);
+
+				return;
+			}	
+
 			throw new NotImplementedException();
+		}
+
+		private void HandleServerFull(IPEndPoint connecter)
+		{
+			const string rejectMessage = "Server is full!";
+
+			NetOutgoingMessage reply = CreateMessage(rejectMessage.Length + 1);
+			reply.m_type = NetMessageType.LibraryConnectionRejected;
+			reply.Write(rejectMessage);
+			EnqueueUnconnectedMessage(reply, connecter);
 		}
 	}
 }

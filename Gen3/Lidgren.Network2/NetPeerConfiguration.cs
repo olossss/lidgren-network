@@ -14,15 +14,16 @@ namespace Lidgren.Network2
 		private const string c_isLockedMessage = "You may not alter the NetPeerConfiguration after the NetPeer has been initialized!";
 
 		private bool m_isLocked;
-		private bool m_acceptIncomingConnections;
-		private string m_appIdentifier;
-		private IPAddress m_localAddress;
-		private int m_port;
-		private int m_receiveBufferSize, m_sendBufferSize;
-		private int m_defaultOutgoingMessageCapacity;
-		private int m_maximumTransmissionUnit;
-		private float m_pingFrequency;
-		private float m_connectionTimeOut;
+		internal bool m_acceptIncomingConnections;
+		internal string m_appIdentifier;
+		internal IPAddress m_localAddress;
+		internal int m_port;
+		internal int m_receiveBufferSize, m_sendBufferSize;
+		internal int m_defaultOutgoingMessageCapacity;
+		internal int m_maximumTransmissionUnit;
+		internal float m_pingFrequency;
+		internal float m_connectionTimeOut;
+		internal int m_maximumConnections;
 
 		public NetPeerConfiguration(string appIdentifier)
 		{
@@ -38,6 +39,7 @@ namespace Lidgren.Network2
 			m_maximumTransmissionUnit = 1400;
 			m_pingFrequency = 5;
 			m_connectionTimeOut = 25;
+			m_maximumConnections = 8;
 		}
 
 		public void Lock()
@@ -57,6 +59,15 @@ namespace Lidgren.Network2
 		/// Gets or sets the maximum amount of bytes to send in a single packet
 		/// </summary>
 		public int MaximumTransmissionUnit
+		{
+			get { return m_maximumTransmissionUnit; }
+			set { m_maximumTransmissionUnit = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets the maximum amount of connections this peer can hold, if accepting 
+		/// </summary>
+		public int MaximumConnections
 		{
 			get { return m_maximumTransmissionUnit; }
 			set { m_maximumTransmissionUnit = value; }
