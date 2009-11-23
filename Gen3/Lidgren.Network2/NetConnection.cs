@@ -33,7 +33,7 @@ namespace Lidgren.Network2
 				SendConnect();
 
 			if (m_disconnectRequested)
-				SendDisconnect();
+				ExecuteDisconnect();
 
 			// ping
 			KeepAliveHeartbeat(now);
@@ -89,19 +89,30 @@ namespace Lidgren.Network2
 				}
 
 				// flags
-				if (msgPayloadLength < 256)
+				if (msg.m_type == NetMessageType.LibraryPing || msg.m_type == NetMessageType.LibraryPong)
 				{
+					// unreliable, no length byte(s)
 					buffer[ptr++] = (byte)((int)msg.m_type << 2);
-					buffer[ptr++] = (byte)msgPayloadLength;
+					buffer[ptr++] = msg.m_data[0];
+					buffer[ptr++] = msg.m_data[1];
 				}
 				else
 				{
-					buffer[ptr++] = (byte)(((int)msg.m_type << 2) | 1);
-					buffer[ptr++] = (byte)(msgPayloadLength & 255);
-					buffer[ptr++] = (byte)((msgPayloadLength << 8) & 255);
+					if (msgPayloadLength < 256)
+					{
+						buffer[ptr++] = (byte)((int)msg.m_type << 2);
+						buffer[ptr++] = (byte)msgPayloadLength;
+					}
+					else
+					{
+						buffer[ptr++] = (byte)(((int)msg.m_type << 2) | 1);
+						buffer[ptr++] = (byte)(msgPayloadLength & 255);
+						buffer[ptr++] = (byte)((msgPayloadLength << 8) & 255);
+					}
+
+					if (msgPayloadLength > 0)
+						Buffer.BlockCopy(msg.m_data, 0, buffer, ptr, msgPayloadLength);
 				}
-				
-				Buffer.BlockCopy(msg.m_data, 0, buffer, ptr, msgPayloadLength);
 			}
 
 			if (ptr > 0)
@@ -128,6 +139,7 @@ namespace Lidgren.Network2
 		{
 			if (m_status == NetConnectionStatus.Disconnected)
 				return;
+			m_owner.LogVerbose("Disconnect requested for " + this);
 			m_disconnectByeMessage = byeMessage;
 			m_disconnectRequested = true;
 		}
@@ -169,6 +181,11 @@ namespace Lidgren.Network2
 				default:
 					throw new NotImplementedException();
 			}
+		}
+
+		public override string ToString()
+		{
+			return "[NetConnection to " + m_remoteEndPoint + "]";
 		}
 	}
 }

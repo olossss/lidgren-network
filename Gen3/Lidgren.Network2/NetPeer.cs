@@ -82,7 +82,7 @@ namespace Lidgren.Network2
 					m_networkThread.IsBackground = true;
 					m_networkThread.Start();
 
-					LogVerbose("Lidgren initialized");
+					LogVerbose("Initialization done");
 
 					// only set initialized if everything succeeds
 					m_isInitialized = true;
@@ -151,7 +151,7 @@ namespace Lidgren.Network2
 		/// <summary>
 		/// Create a connection to a remote endpoint
 		/// </summary>
-		public NetConnection Connect(IPEndPoint remoteEndPoint)
+		public virtual NetConnection Connect(IPEndPoint remoteEndPoint)
 		{
 			if (!m_isInitialized)
 				Initialize();

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Lidgren.Network2
 {
@@ -12,6 +13,15 @@ namespace Lidgren.Network2
 		public NetClient(NetPeerConfiguration config)
 			: base(config)
 		{
+		}
+
+		/// <summary>
+		/// Connect to a server
+		/// </summary>
+		public override NetConnection Connect(IPEndPoint remoteEndPoint)
+		{
+			m_serverConnection = base.Connect(remoteEndPoint);
+			return m_serverConnection;
 		}
 
 		/// <summary>
