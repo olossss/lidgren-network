@@ -34,6 +34,8 @@ namespace Lidgren.Network2
 			m_latencyHistory[1] = roundtripTime * 1.1 + 0.005; // overestimate
 			m_latencyHistory[0] = roundtripTime; // overestimate
 			m_owner.LogDebug("Initializing avg rt to " + (int)(roundtripTime * 1000) + " ms");
+
+			m_isPingInitialized = true;
 		}
 
 		private void KeepAliveHeartbeat(double now)
@@ -44,18 +46,20 @@ namespace Lidgren.Network2
 				if (now > m_lastPingSent + m_owner.m_configuration.PingFrequency)
 					SendPing(now);
 
-				if (now > m_lastSendRespondedTo + m_owner.m_configuration.ConnectionTimeOut)
+				if (!m_disconnectRequested && now > m_lastSendRespondedTo + m_owner.m_configuration.ConnectionTimeOut)
 					Disconnect("Timed out");
 			}
 		}
 
 		private void SendPing(double now)
 		{
+			m_lastPingNumber++;
+
 			NetOutgoingMessage ping = m_owner.CreateMessage(2);
 			ping.m_type = NetMessageType.LibraryPing;
 			ping.Write(m_lastPingNumber);
 
-			m_lastPingNumber++;
+			m_owner.LogVerbose("Sending ping nr " + m_lastPingNumber);
 			m_lastPingSent = now;
 
 			SendMessage(ping, NetMessagePriority.High);
@@ -64,6 +68,8 @@ namespace Lidgren.Network2
 		internal void HandlePing(ushort nr)
 		{
 			// send matching pong
+			m_owner.LogVerbose("Received ping " + nr + " sending pong...");
+			
 			NetOutgoingMessage reply = m_owner.CreateMessage(2);
 			reply.m_type = NetMessageType.LibraryPong;
 			reply.Write(nr);
@@ -74,7 +80,7 @@ namespace Lidgren.Network2
 		{
 			if (nr != m_lastPingNumber)
 			{
-				m_owner.LogDebug("Received wrong order pong number (" + nr + ", expecting " + m_lastPingNumber);
+				m_owner.LogDebug("Received wrong order pong number (" + nr + ", expecting " + m_lastPingNumber + ")");
 				return;
 			}
 
@@ -94,7 +100,7 @@ namespace Lidgren.Network2
 			m_latencyHistory[0] = roundtripTime;
 			m_currentAvgRoundtrip = ((roundtripTime * 3) + (m_latencyHistory[1] * 2) + m_latencyHistory[2]) / 6.0;
 
-			m_owner.LogDebug("Received pong; roundtrip time is " + (int)(roundtripTime * 1000) + " ms");
+			m_owner.LogDebug("Received pong; roundtrip time is " + (int)(roundtripTime * 1000) + " ms; new average: " + (int)(m_currentAvgRoundtrip * 1000) + " ms");
 		}
 	}
 }

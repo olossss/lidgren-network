@@ -173,24 +173,26 @@ namespace Lidgren.Network2
 						// ping/pong has known length
 						if (mtp == NetMessageType.LibraryPing)
 						{
-							byte nr = m_receiveBuffer[ptr++];
 							if (sender == null)
 							{
 								LogWarning("Received ping from non-connected peer");
 								continue;
 							}
+							ushort nr = (ushort)(m_receiveBuffer[ptr] | (m_receiveBuffer[ptr + 1] << 8));
+							ptr += 2;
 							sender.HandlePing(nr);
 							continue;
 						}
 
 						if (mtp == NetMessageType.LibraryPong)
 						{
-							byte nr = m_receiveBuffer[ptr++];
 							if (sender == null)
 							{
 								LogWarning("Received pong from non-connected peer");
 								continue;
 							}
+							ushort nr = (ushort)(m_receiveBuffer[ptr] | (m_receiveBuffer[ptr + 1] << 8));
+							ptr += 2;
 							sender.HandlePong(now, nr);
 							continue;
 						}
@@ -273,8 +275,10 @@ namespace Lidgren.Network2
 				m_connections.Add(conn);
 				m_connectionLookup[senderEndPoint] = conn;
 				conn.m_connectionInitiator = false;
+				conn.m_status = NetConnectionStatus.Connecting;
 
 				// send connection response
+				LogVerbose("Sending LibraryConnectResponse");
 				NetOutgoingMessage reply = CreateMessage(2);
 				reply.m_type = NetMessageType.LibraryConnectResponse;
 				conn.EnqueueOutgoingMessage(reply, NetMessagePriority.High);
@@ -293,6 +297,11 @@ namespace Lidgren.Network2
 			reply.m_type = NetMessageType.LibraryConnectionRejected;
 			reply.Write(rejectMessage);
 			EnqueueUnconnectedMessage(reply, connecter);
+		}
+
+		private void EnqueueUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
