@@ -46,7 +46,7 @@ namespace Lidgren.Network2
 		{
 			LogDebug("Network thread started");
 
-			while (!m_initiateShutdown)
+			do
 			{
 				try
 				{
@@ -59,12 +59,19 @@ namespace Lidgren.Network2
 
 				// wait here to give cpu to other threads/processes
 				Thread.Sleep(m_runSleepInMilliseconds);
-			}
+			} while (!m_initiateShutdown);
 
 			//
 			// perform shutdown
 			//
 			LogDebug("Shutting down...");
+
+			// disconnect and make one final heartbeat
+			foreach (NetConnection conn in m_connections)
+				conn.ExecuteDisconnect(NetMessagePriority.High);
+			
+			// one final heartbeat, to get the disconnects out the door
+			Heartbeat();
 
 			lock (m_initializeLock)
 			{
@@ -123,6 +130,14 @@ namespace Lidgren.Network2
 				catch (SocketException sx)
 				{
 					// no good response to this yet
+					if (sx.ErrorCode == 10054)
+					{
+						// connection reset by peer, aka forcibly closed
+						// we should shut down the connection; but m_senderRemote seemingly cannot be trusted, so which connection should we shut down?!
+						LogWarning("Connection reset by peer, seemingly from " + m_senderRemote);
+						return;
+					}
+
 					LogWarning(sx.ToString());
 					return;
 				}
@@ -132,7 +147,7 @@ namespace Lidgren.Network2
 
 				double now = NetTime.Now;
 
-				LogVerbose("Received " + bytesReceived + " bytes");
+				//LogVerbose("Received " + bytesReceived + " bytes");
 
 				// TODO: add received bytes statistics
 
@@ -151,10 +166,12 @@ namespace Lidgren.Network2
 				// parse packet into messages
 				//
 				{
-					bool isReliable = ((m_receiveBuffer[0] & 1) == 1);
-					ushort sequenceNumber = (ushort)((m_receiveBuffer[0] >> 1) & (m_receiveBuffer[1] << 7));
+					ushort sequenceNumber = (ushort)(m_receiveBuffer[0] | (m_receiveBuffer[1] << 8));
+
+					LogVerbose("Received packet " + sequenceNumber + " (" + bytesReceived + " bytes)");
 
 					// TODO: if reliable (and sender != null); queue ack message, also update connection.m_lastSendRespondedTo
+					HandleAcknowledge(sequenceNumber);
 
 					int ptr = 2;
 					while (ptr < bytesReceived)
@@ -250,6 +267,11 @@ namespace Lidgren.Network2
 			// heartbeat done
 		}
 
+		private void HandleAcknowledge(ushort sequenceNumber)
+		{
+			// TODO: update received bitmask and send ack
+		}
+
 		private void HandleUnconnectedMessage(NetMessageType mtp, byte[] payload, int payloadLength, IPEndPoint senderEndPoint)
 		{
 			Debug.Assert(Thread.CurrentThread == m_networkThread);
@@ -275,7 +297,7 @@ namespace Lidgren.Network2
 				m_connections.Add(conn);
 				m_connectionLookup[senderEndPoint] = conn;
 				conn.m_connectionInitiator = false;
-				conn.m_status = NetConnectionStatus.Connecting;
+				conn.SetStatus(NetConnectionStatus.Connecting);
 
 				// send connection response
 				LogVerbose("Sending LibraryConnectResponse");

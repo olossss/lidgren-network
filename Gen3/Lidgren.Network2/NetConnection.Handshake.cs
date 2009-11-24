@@ -16,8 +16,12 @@ namespace Lidgren.Network2
 		{
 			if (status == m_status)
 				return;
-			NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 0);
-
+			m_status = status;
+			NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 4);
+			info.SenderConnection = this;
+			info.SenderEndpoint = m_remoteEndPoint;
+			info.Write((int)m_status);
+			m_owner.ReleaseMessage(info);
 		}
 
 		// runs on network thread
@@ -28,7 +32,7 @@ namespace Lidgren.Network2
 				case NetConnectionStatus.Connected:
 					// reconnect
 					m_disconnectByeMessage = "Reconnecting";
-					ExecuteDisconnect();
+					ExecuteDisconnect(NetMessagePriority.High);
 					break;
 				case NetConnectionStatus.Connecting:
 				case NetConnectionStatus.Disconnected:
@@ -61,8 +65,11 @@ namespace Lidgren.Network2
 		}
 
 		// run on network thread
-		private void ExecuteDisconnect()
+		internal void ExecuteDisconnect(NetMessagePriority prio)
 		{
+			if (m_status == NetConnectionStatus.Disconnected)
+				return;
+
 			m_disconnectRequested = false;
 
 			NetOutgoingMessage om = m_owner.CreateMessage(0);
@@ -73,8 +80,7 @@ namespace Lidgren.Network2
 
 			m_owner.LogVerbose("Executing Disconnect(" + m_disconnectByeMessage + ")");
 
-			// let high prio stuff slip past before disconnecting
-			EnqueueOutgoingMessage(om, NetMessagePriority.Normal);
+			EnqueueOutgoingMessage(om, prio);
 
 			SetStatus(NetConnectionStatus.Disconnected);
 			return;
@@ -98,7 +104,7 @@ namespace Lidgren.Network2
 					if (m_status == NetConnectionStatus.Connecting)
 					{
 						// excellent, handshake making progress; send connectionestablished
-						m_status = NetConnectionStatus.Connected;
+						SetStatus(NetConnectionStatus.Connected);
 
 						m_owner.LogVerbose("Sending LibraryConnectionEstablished");
 						NetOutgoingMessage ce = m_owner.CreateMessage(0);
@@ -110,13 +116,22 @@ namespace Lidgren.Network2
 					m_owner.LogWarning("NetConnection.HandleIncomingHandshake() passed " + mtp + ", but status is " + m_status);
 					break;
 				case NetMessageType.LibraryConnectionEstablished:
-					throw new NotImplementedException();
+					if (!m_connectionInitiator && m_status == NetConnectionStatus.Connecting)
+					{
+						// handshake done
+						SetStatus(NetConnectionStatus.Connected);
+						return;
+					}
+					m_owner.LogWarning("NetConnection.HandleIncomingHandshake() passed " + mtp + ", but initiator is " + m_connectionInitiator + " and status is " + m_status);
 					break;
 				case NetMessageType.LibraryDisconnect:
-					throw new NotImplementedException();
+					// TODO: extract bye message?
+					SetStatus(NetConnectionStatus.Disconnected);
 					break;
+				default:
+					// huh?
+					throw new NotImplementedException();
 			}
-			throw new NotImplementedException();
 		}
 	}
 }
