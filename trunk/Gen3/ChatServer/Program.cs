@@ -31,6 +31,11 @@ namespace ChatServer
 							Console.WriteLine(str);
 							break;
 
+						case NetIncomingMessageType.StatusChanged:
+							NetConnectionStatus status = (NetConnectionStatus)msg.ReadInt32();
+							Console.WriteLine(msg.SenderConnection.ToString() + " new status: " + status);
+							break;
+
 						case NetIncomingMessageType.Data:
 
 							string astr = msg.ReadString();
@@ -48,7 +53,9 @@ namespace ChatServer
 				Thread.Sleep(1);
 			}
 
-			server.Shutdown();
+			server.Shutdown("Application exiting");
+
+			Thread.Sleep(100); // let disconnect make it out the door
 		}
 	}
 }

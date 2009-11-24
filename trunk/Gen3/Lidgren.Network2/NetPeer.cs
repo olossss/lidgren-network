@@ -102,13 +102,23 @@ namespace Lidgren.Network2
 
 		internal void SendPacket(int numBytes, IPEndPoint target)
 		{
-			int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
-			if (numBytes != bytesSent)
-				LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
+			try
+			{
+				int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
+				if (numBytes != bytesSent)
+					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
 
-			LogVerbose("Sent " + numBytes + " bytes");
+#if DEBUG
+				ushort sequenceNumber = (ushort)(m_sendBuffer[0] | (m_sendBuffer[1] << 8));
+				LogVerbose("Sent packet " + sequenceNumber + " (" + numBytes + " bytes)");
+#endif
 
-			// TODO: add to statistics
+				// TODO: add to statistics
+			}
+			catch (Exception ex)
+			{
+				LogError("Failed to send packet: " + ex);
+			}
 		}
 
 		public void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetMessagePriority priority)
@@ -166,15 +176,22 @@ namespace Lidgren.Network2
 			// handle on network thread
 			conn.m_connectRequested = true;
 			conn.m_connectionInitiator = true;
+			conn.SetStatus(NetConnectionStatus.Connecting);
 
 			return conn;
 		}
 
-		public void Shutdown()
+		public void Shutdown(string bye)
 		{
 			if (m_socket == null)
 				return; // already shut down
+
 			LogDebug("Shutdown requested");
+
+			// disconnect all connections
+			foreach (NetConnection conn in m_connections)
+				conn.Disconnect(bye);
+
 			m_initiateShutdown = true;
 		}
 	}

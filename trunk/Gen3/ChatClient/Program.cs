@@ -31,9 +31,13 @@ namespace ChatClient
 						case NetIncomingMessageType.DebugMessage:
 						case NetIncomingMessageType.WarningMessage:
 						case NetIncomingMessageType.ErrorMessage:
-							string str = msg.ReadString();
-							Console.WriteLine(str);
+							Console.WriteLine(msg.ReadString());
 							break;
+
+						case NetIncomingMessageType.StatusChanged:
+							Console.WriteLine(msg.SenderConnection.ToString() + " new status: " + (NetConnectionStatus)msg.ReadInt32());
+							break;
+
 						default:
 							Console.WriteLine("Not supported: " + msg.MessageType);
 							break;
@@ -42,7 +46,9 @@ namespace ChatClient
 				Thread.Sleep(1);
 			}
 
-			client.Shutdown();
+			client.Shutdown("Application exiting");
+
+			Thread.Sleep(100); // let disconnect make it out the door
 		}
 	}
 }

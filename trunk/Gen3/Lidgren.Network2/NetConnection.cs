@@ -33,19 +33,19 @@ namespace Lidgren.Network2
 				SendConnect();
 
 			if (m_disconnectRequested)
-				ExecuteDisconnect();
+			{
+				// let high prio stuff slip past before disconnecting
+				ExecuteDisconnect(NetMessagePriority.Normal);
+			}
 
 			// ping
 			KeepAliveHeartbeat(now);
 
-			// TODO: send ack messages
-
-			// TODO: resend reliable messages
+			// TODO: resend nack:ed reliable messages
 
 			// send unsent messages; high priority first
 			byte[] buffer = m_owner.m_sendBuffer;
 			int ptr = 0;
-			bool isPacketReliable = false;
 			int mtu = m_owner.m_configuration.MaximumTransmissionUnit;
 			for (int i = 2; i >= 0; i--)
 			{
@@ -72,21 +72,13 @@ namespace Lidgren.Network2
 				{
 					// encode packet start
 					ushort packetSequenceNumber = m_owner.GetSequenceNumber();
-					buffer[ptr++] = (byte)((packetSequenceNumber & 127) << 1);
-					buffer[ptr++] = (byte)((packetSequenceNumber << 7) & 255);
-					isPacketReliable = false;
+					buffer[ptr++] = (byte)(packetSequenceNumber & 255);
+					buffer[ptr++] = (byte)((packetSequenceNumber >> 8) & 255);
 				}
 
 				//
 				// encode message
 				//
-
-				// set packet reliability flag
-				if (!isPacketReliable && msg.m_type >= NetMessageType.UserReliableUnordered )
-				{
-					buffer[0] |= 1;
-					isPacketReliable = true;
-				}
 
 				// flags
 				if (msg.m_type == NetMessageType.LibraryPing || msg.m_type == NetMessageType.LibraryPong)
