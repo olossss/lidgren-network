@@ -144,6 +144,8 @@ namespace Lidgren.Network2
 				return;
 			}
 
+			// TODO: propagate NetMessageType here to incoming message, exposing it to app?
+
 			// it's an application data message
 			NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadLength);
 			im.SenderConnection = this;
