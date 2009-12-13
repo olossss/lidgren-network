@@ -35,5 +35,12 @@ namespace Lidgren.Network2
 		/// Get number of seconds since the application started
 		/// </summary>
 		public static double Now { get { return (double)(Stopwatch.GetTimestamp() - s_timeInitialized) * s_dInvFreq; } }
+
+		public static string ToReadable(double seconds)
+		{
+			if (seconds > 60)
+				return TimeSpan.FromSeconds(seconds).ToString();
+			return (seconds * 1000.0).ToString("N2") + " ms";
+		}
 	}
 }

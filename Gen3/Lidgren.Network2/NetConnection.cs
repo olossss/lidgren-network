@@ -59,6 +59,9 @@ namespace Lidgren.Network2
 
 				msg.m_sentTime = now;
 
+				if (msg.m_type == NetMessageType.LibraryPing)
+					m_lastPingSent = NetTime.Now;
+
 				int msgPayloadLength = msg.LengthBytes;
 
 				if (ptr + 3 + msgPayloadLength > mtu)
@@ -113,7 +116,6 @@ namespace Lidgren.Network2
 
 		public void SendMessage(NetOutgoingMessage msg, NetMessagePriority priority)
 		{
-
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
 			EnqueueOutgoingMessage(msg, priority);
