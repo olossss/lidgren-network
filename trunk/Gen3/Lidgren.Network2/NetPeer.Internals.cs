@@ -21,6 +21,15 @@ namespace Lidgren.Network2
 		private ushort m_nextSequenceNumber;
 		internal byte[] m_macAddressBytes;
 
+		/// <summary>
+		/// Gets or sets the amount of time in milliseconds the network thread should sleep; recommended values 1 or 0
+		/// </summary>
+		public int NetworkThreadSleepTime
+		{
+			get { return m_runSleepInMilliseconds; }
+			set { m_runSleepInMilliseconds = value; }
+		}
+
 		// called by constructor
 		private void InitializeInternal()
 		{
@@ -82,7 +91,7 @@ namespace Lidgren.Network2
 					if (m_socket != null)
 					{
 						m_socket.Shutdown(SocketShutdown.Receive);
-						m_socket.Close(2);
+						m_socket.Close(2); // 2 seconds timeout
 					}
 				}
 				finally
@@ -157,10 +166,17 @@ namespace Lidgren.Network2
 				m_connectionLookup.TryGetValue(ipsender, out sender);
 
 				if (sender != null)
+				{
 					Debug.Assert(ipsender.Equals(sender.m_remoteEndPoint));
-
-				if (sender != null)
 					sender.m_lastHeardFrom = now;
+				}
+
+				if (bytesReceived < 2)
+				{
+					// malformed packet
+					LogWarning("Malformed packet from " + sender + " (" + ipsender + "); only " + bytesReceived + " bytes long");
+					continue;
+				}
 
 				//
 				// parse packet into messages
@@ -304,6 +320,8 @@ namespace Lidgren.Network2
 				NetOutgoingMessage reply = CreateMessage(2);
 				reply.m_type = NetMessageType.LibraryConnectResponse;
 				conn.EnqueueOutgoingMessage(reply, NetMessagePriority.High);
+
+				conn.m_connectInitationTime = NetTime.Now;
 
 				return;
 			}	

@@ -27,13 +27,14 @@ namespace Lidgren.Network2
 		{
 			if (roundtripTime < 0.0f)
 				roundtripTime = 0.0;
-			if (roundtripTime > 3.0)
-				roundtripTime = 3.0; // unlikely high
+			if (roundtripTime > 4.0)
+				roundtripTime = 4.0; // unlikely high
 
 			m_latencyHistory[2] = roundtripTime * 1.2 + 0.01; // overestimate
 			m_latencyHistory[1] = roundtripTime * 1.1 + 0.005; // overestimate
 			m_latencyHistory[0] = roundtripTime; // overestimate
-			m_owner.LogDebug("Initializing avg rt to " + (int)(roundtripTime * 1000) + " ms");
+			m_currentAvgRoundtrip = ((roundtripTime * 3) + (m_latencyHistory[1] * 2) + m_latencyHistory[2]) / 6.0;
+			m_owner.LogDebug("Initializing avg rtt to " + NetTime.ToReadable(m_currentAvgRoundtrip));
 
 			m_isPingInitialized = true;
 		}
@@ -60,7 +61,7 @@ namespace Lidgren.Network2
 			ping.Write(m_lastPingNumber);
 
 			m_owner.LogVerbose("Sending ping nr " + m_lastPingNumber);
-			m_lastPingSent = now;
+			m_lastPingSent = now; // this is done more accurately in NetCOnnection.Heartbeat when sending packet
 
 			SendMessage(ping, NetMessagePriority.High);
 		}
@@ -100,7 +101,7 @@ namespace Lidgren.Network2
 			m_latencyHistory[0] = roundtripTime;
 			m_currentAvgRoundtrip = ((roundtripTime * 3) + (m_latencyHistory[1] * 2) + m_latencyHistory[2]) / 6.0;
 
-			m_owner.LogDebug("Received pong; roundtrip time is " + (int)(roundtripTime * 1000) + " ms; new average: " + (int)(m_currentAvgRoundtrip * 1000) + " ms");
+			m_owner.LogDebug("Received pong; roundtrip time is " + NetTime.ToReadable(roundtripTime) + "; new average: " + NetTime.ToReadable(m_currentAvgRoundtrip));
 		}
 	}
 }

@@ -9,6 +9,7 @@ namespace Lidgren.Network2
 		internal bool m_disconnectRequested;
 		internal string m_disconnectByeMessage;
 		internal bool m_connectionInitiator;
+		internal double m_connectInitationTime; // regardless of initiator
 		internal string m_hail;
 		internal NetConnectionStatus m_status;
 
@@ -61,6 +62,8 @@ namespace Lidgren.Network2
 			
 			// don´t use high prio, in case a disconnect message is in the queue too
 			EnqueueOutgoingMessage(om, NetMessagePriority.Normal);
+
+			m_connectInitationTime = NetTime.Now;
 			return;
 		}
 
@@ -110,6 +113,9 @@ namespace Lidgren.Network2
 						NetOutgoingMessage ce = m_owner.CreateMessage(0);
 						ce.m_type = NetMessageType.LibraryConnectionEstablished;
 						EnqueueOutgoingMessage(ce, NetMessagePriority.High);
+
+						// setup initial ping estimation
+						SetInitialAveragePing(NetTime.Now - m_connectInitationTime);
 						return;
 					}
 
@@ -119,9 +125,13 @@ namespace Lidgren.Network2
 					if (!m_connectionInitiator && m_status == NetConnectionStatus.Connecting)
 					{
 						// handshake done
+						if (!m_isPingInitialized)
+							SetInitialAveragePing(NetTime.Now - m_connectInitationTime);
+
 						SetStatus(NetConnectionStatus.Connected);
 						return;
 					}
+
 					m_owner.LogWarning("NetConnection.HandleIncomingHandshake() passed " + mtp + ", but initiator is " + m_connectionInitiator + " and status is " + m_status);
 					break;
 				case NetMessageType.LibraryDisconnect:
