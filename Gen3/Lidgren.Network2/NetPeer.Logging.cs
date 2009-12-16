@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Lidgren.Network2
 {
 	public partial class NetPeer
 	{
+		[Conditional("DEBUG")]
 		internal void LogVerbose(string message)
 		{
 			NetIncomingMessage msg = CreateIncomingMessage(NetIncomingMessageType.VerboseDebugMessage, message.Length + (message.Length > 126 ? 2 : 1));
@@ -12,6 +14,7 @@ namespace Lidgren.Network2
 			ReleaseMessage(msg);
 		}
 
+		[Conditional("DEBUG")]
 		internal void LogDebug(string message)
 		{
 			NetIncomingMessage msg = CreateIncomingMessage(NetIncomingMessageType.DebugMessage, message.Length + (message.Length > 126 ? 2 : 1));

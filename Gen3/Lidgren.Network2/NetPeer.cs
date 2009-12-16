@@ -104,6 +104,7 @@ namespace Lidgren.Network2
 		{
 			try
 			{
+				// TODO: Use SendToAsync()?
 				int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
 				if (numBytes != bytesSent)
 					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
@@ -123,7 +124,9 @@ namespace Lidgren.Network2
 
 		public void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetMessagePriority priority)
 		{
-			recipient.SendMessage(msg, priority);
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+			recipient.EnqueueOutgoingMessage(msg, priority);
 		}
 
 		public void SendMessage(NetOutgoingMessage msg, IEnumerable<NetConnection> recipients, NetMessagePriority priority)

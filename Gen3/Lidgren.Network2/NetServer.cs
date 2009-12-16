@@ -10,7 +10,6 @@ namespace Lidgren.Network2
 		{
 			// force this to true
 			config.AcceptIncomingConnections = true;
-
 		}
 	}
 }

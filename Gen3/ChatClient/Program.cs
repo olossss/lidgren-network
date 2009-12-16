@@ -13,7 +13,7 @@ namespace ChatClient
 		{
 			NetPeerConfiguration config = new NetPeerConfiguration("chatapp");
 
-			NetServer client = new NetServer(config);
+			NetClient client = new NetClient(config);
 			client.Initialize();
 
 			Thread.Sleep(1000); // let server start up
