@@ -60,7 +60,7 @@ namespace Lidgren.Network2
 			ping.m_type = NetMessageType.LibraryPing;
 			ping.Write(m_lastPingNumber);
 
-			m_owner.LogVerbose("Sending ping nr " + m_lastPingNumber);
+			m_owner.LogVerbose("Sending ping #" + m_lastPingNumber);
 			m_lastPingSent = now; // this is done more accurately in NetCOnnection.Heartbeat when sending packet
 
 			SendMessage(ping, NetMessagePriority.High);
@@ -69,7 +69,7 @@ namespace Lidgren.Network2
 		internal void HandlePing(ushort nr)
 		{
 			// send matching pong
-			m_owner.LogVerbose("Received ping " + nr + " sending pong...");
+			m_owner.LogVerbose("Received ping #" + nr + " sending pong...");
 			
 			NetOutgoingMessage reply = m_owner.CreateMessage(2);
 			reply.m_type = NetMessageType.LibraryPong;
@@ -81,7 +81,7 @@ namespace Lidgren.Network2
 		{
 			if (nr != m_lastPingNumber)
 			{
-				m_owner.LogDebug("Received wrong order pong number (" + nr + ", expecting " + m_lastPingNumber + ")");
+				m_owner.LogDebug("Received wrong order pong number (#" + nr + ", expecting #" + m_lastPingNumber + ")");
 				return;
 			}
 

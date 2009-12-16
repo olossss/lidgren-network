@@ -6,13 +6,21 @@ namespace Lidgren.Network2
 {
 	public class NetClient : NetPeer
 	{
-		private NetConnection m_serverConnection;
-
-		public NetConnection ServerConnection { get { return m_serverConnection; } }
+		/// <summary>
+		/// Gets the connection to the server, if any
+		/// </summary>
+		public NetConnection ServerConnection
+		{
+			get
+			{
+				return (m_connections.Count > 0 ? m_connections[0] : null);
+			}
+		}
 
 		public NetClient(NetPeerConfiguration config)
 			: base(config)
 		{
+			config.AcceptIncomingConnections = false;
 		}
 
 		/// <summary>
@@ -20,8 +28,7 @@ namespace Lidgren.Network2
 		/// </summary>
 		public override NetConnection Connect(IPEndPoint remoteEndPoint)
 		{
-			m_serverConnection = base.Connect(remoteEndPoint);
-			return m_serverConnection;
+			return base.Connect(remoteEndPoint);
 		}
 
 		/// <summary>
@@ -29,7 +36,13 @@ namespace Lidgren.Network2
 		/// </summary>
 		public void SendMessage(NetOutgoingMessage msg, NetMessagePriority priority)
 		{
-			m_serverConnection.SendMessage(msg, priority);
+			NetConnection serverConnection = ServerConnection;
+			if (serverConnection == null)
+			{
+				LogError("Cannot send message, no server connection!");
+				return;
+			}
+			serverConnection.SendMessage(msg, priority);
 		}
 	}
 }
