@@ -86,7 +86,7 @@ namespace Lidgren.Network2
 				// flags
 				if (msg.m_type == NetMessageType.LibraryPing || msg.m_type == NetMessageType.LibraryPong)
 				{
-					// unreliable, no length byte(s)
+					// unreliable with no length byte(s)
 					buffer[ptr++] = (byte)((int)msg.m_type << 2);
 					buffer[ptr++] = msg.m_data[0];
 					buffer[ptr++] = msg.m_data[1];
@@ -146,19 +146,22 @@ namespace Lidgren.Network2
 				return;
 			}
 
-			// TODO: propagate NetMessageType here to incoming message, exposing it to app?
+			if (m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.Data))
+			{
+				// TODO: propagate NetMessageType here to incoming message, exposing it to app?
 
-			// it's an application data message
-			NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadLength);
-			im.SenderConnection = this;
-			im.SenderEndpoint = m_remoteEndPoint;
+				// it's an application data message
+				NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadLength);
+				im.m_senderConnection = this;
+				im.m_senderEndPoint = m_remoteEndPoint;
 
-			//
-			// TODO: do reliabilility, acks, sequence rejecting etc here
-			//
+				//
+				// TODO: do reliabilility, acks, sequence rejecting etc here
+				//
 
-			m_owner.LogVerbose("Releasing " + im);
-			m_owner.ReleaseMessage(im);
+				m_owner.LogVerbose("Releasing " + im);
+				m_owner.ReleaseMessage(im);
+			}
 		}
 
 		private void HandleIncomingLibraryData(NetMessageType mtp, byte[] payload, int payloadLength)

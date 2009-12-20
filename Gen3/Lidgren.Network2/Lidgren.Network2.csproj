@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="MajorChanges.txt" />
     <Content Include="PacketLayout.txt" />
     <Compile Include="NetBitWriter.cs" />
     <Compile Include="NetClient.cs" />

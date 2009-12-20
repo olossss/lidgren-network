@@ -18,11 +18,14 @@ namespace Lidgren.Network2
 			if (status == m_status)
 				return;
 			m_status = status;
-			NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 4);
-			info.SenderConnection = this;
-			info.SenderEndpoint = m_remoteEndPoint;
-			info.Write((int)m_status);
-			m_owner.ReleaseMessage(info);
+			if (m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.StatusChanged))
+			{
+				NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 4);
+				info.m_senderConnection = this;
+				info.m_senderEndPoint = m_remoteEndPoint;
+				info.Write((int)m_status);
+				m_owner.ReleaseMessage(info);
+			}
 		}
 
 		// runs on network thread
