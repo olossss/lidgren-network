@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Lidgren.Network2;
 using System.Threading;
+using System.Net;
 
 namespace ChatClient
 {
@@ -18,6 +19,10 @@ namespace ChatClient
 
 			Thread.Sleep(1000); // let server start up
 
+			NetOutgoingMessage um = client.CreateMessage();
+			um.Write("Kokosboll");
+			client.SendUnconnectedMessage(um, new IPEndPoint(NetUtility.Resolve("localhost"), 14242));
+
 			client.Connect("localhost", 14242);
 
 			while (!Console.KeyAvailable)
@@ -31,6 +36,8 @@ namespace ChatClient
 						case NetIncomingMessageType.DebugMessage:
 						case NetIncomingMessageType.WarningMessage:
 						case NetIncomingMessageType.ErrorMessage:
+						case NetIncomingMessageType.Data:
+						case NetIncomingMessageType.UnconnectedData:
 							Console.WriteLine(msg.ReadString());
 							break;
 

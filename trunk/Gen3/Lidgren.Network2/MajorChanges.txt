@@ -1,0 +1,16 @@
+﻿
+Major changes since the last version of the library
+---------------------------------------------------
+
+* More robust flow control
+* Improved API interface
+	Configuration locked once used, cannot change by mistake
+	Message cannot be sent twice by accident
+	No inconsistencies between status messages and status flags
+	Impossible to confuse sending and receiving buffers
+* Message prioritation
+* Much less allocations due to object pooling
+* More exact timeout
+
+
+

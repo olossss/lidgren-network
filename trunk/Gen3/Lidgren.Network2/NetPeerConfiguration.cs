@@ -24,6 +24,7 @@ namespace Lidgren.Network2
 		internal float m_pingFrequency;
 		internal float m_connectionTimeOut;
 		internal int m_maximumConnections;
+		private bool[] m_disabledTypes;
 
 		public NetPeerConfiguration(string appIdentifier)
 		{
@@ -40,6 +41,12 @@ namespace Lidgren.Network2
 			m_pingFrequency = 5;
 			m_connectionTimeOut = 25;
 			m_maximumConnections = 8;
+
+			// default disabled types
+			m_disabledTypes = new bool[Enum.GetNames(typeof(NetIncomingMessageType)).Length];
+			m_disabledTypes[(int)NetIncomingMessageType.ConnectionApproval] = true;
+			m_disabledTypes[(int)NetIncomingMessageType.UnconnectedData] = true;
+			m_disabledTypes[(int)NetIncomingMessageType.VerboseDebugMessage] = true;
 		}
 
 		public void Lock()
@@ -56,6 +63,38 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
+		/// Enables receiving of the specified type of message
+		/// </summary>
+		public void EnableMessageType(NetIncomingMessageType tp)
+		{
+			m_disabledTypes[(int)tp] = false;
+		}
+
+		/// <summary>
+		/// Disables receiving of the specified type of message
+		/// </summary>
+		public void DisableMessageType(NetIncomingMessageType tp)
+		{
+			m_disabledTypes[(int)tp] = true;
+		}
+		
+		/// <summary>
+		/// Enables or disables receiving of the specified type of message
+		/// </summary>
+		public void SetMessageTypeEnabled(NetIncomingMessageType tp, bool enabled)
+		{
+			m_disabledTypes[(int)tp] = !enabled;
+		}
+
+		/// <summary>
+		/// Gets if receiving of the specified type of message is enabled
+		/// </summary>
+		public bool IsMessageTypeEnabled(NetIncomingMessageType tp)
+		{
+			return m_disabledTypes[(int)tp];
+		}
+
+		/// <summary>
 		/// Gets or sets the maximum amount of bytes to send in a single packet
 		/// </summary>
 		public int MaximumTransmissionUnit
@@ -65,12 +104,17 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the maximum amount of connections this peer can hold, if accepting 
+		/// Gets or sets the maximum amount of connections this peer can hold, if accepting. Cannot be changed once NetPeer is initialized.
 		/// </summary>
 		public int MaximumConnections
 		{
 			get { return m_maximumTransmissionUnit; }
-			set { m_maximumTransmissionUnit = value; }
+			set
+			{
+				if (m_isLocked)
+					throw new NetException(c_isLockedMessage);
+				m_maximumTransmissionUnit = value;
+			}
 		}
 
 		/// <summary>
@@ -92,7 +136,7 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the local ip address to bind to. Defaults to IPAddress.Any
+		/// Gets or sets the local ip address to bind to. Defaults to IPAddress.Any. Cannot be changed once NetPeer is initialized.
 		/// </summary>
 		public IPAddress LocalAddress
 		{
@@ -106,7 +150,7 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the local port to bind to. Defaults to 0
+		/// Gets or sets the local port to bind to. Defaults to 0. Cannot be changed once NetPeer is initialized.
 		/// </summary>
 		public int Port
 		{
@@ -120,7 +164,7 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the size in bytes of the receiving buffer. Defaults to 131071 bytes.
+		/// Gets or sets the size in bytes of the receiving buffer. Defaults to 131071 bytes. Cannot be changed once NetPeer is initialized.
 		/// </summary>
 		public int ReceiveBufferSize
 		{
@@ -134,7 +178,7 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the size in bytes of the sending buffer. Defaults to 131071 bytes.
+		/// Gets or sets the size in bytes of the sending buffer. Defaults to 131071 bytes. Cannot be changed once NetPeer is initialized.
 		/// </summary>
 		public int SendBufferSize
 		{
@@ -148,21 +192,19 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the number of seconds between each keepalive ping
+		/// Gets or sets the number of seconds between each keepalive ping.
 		/// </summary>
 		public float PingFrequency
 		{
 			get { return m_pingFrequency; }
 			set
 			{
-				if (m_isLocked)
-					throw new NetException(c_isLockedMessage);
 				m_pingFrequency = value;
 			}
 		}
 
 		/// <summary>
-		/// Gets or sets the number of seconds of non-response before disconnecting because of time out
+		/// Gets or sets the number of seconds of non-response before disconnecting because of time out. Cannot be changed once NetPeer is initialized.
 		/// </summary>
 		public float ConnectionTimeOut
 		{

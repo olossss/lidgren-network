@@ -6,10 +6,12 @@ namespace Lidgren.Network2
 	public partial class NetPeer
 	{
 		private List<byte[]> m_storagePool;
+		private Queue<NetIncomingMessage> m_incomingMessagesPool;
 
 		private void InitializeRecycling()
 		{
 			m_storagePool = new List<byte[]>();
+			m_incomingMessagesPool = new Queue<NetIncomingMessage>();
 		}
 
 		internal byte[] GetStorage(int requiredBytes)
@@ -64,9 +66,16 @@ namespace Lidgren.Network2
 		public void Recycle(NetIncomingMessage msg)
 		{
 			lock (m_storagePool)
-				m_storagePool.Add(msg.m_data);
+			{
+				if (!m_storagePool.Contains(msg.m_data))
+					m_storagePool.Add(msg.m_data);
+			}
 
-			// TODO: add message object to recycling pool
+			lock (m_incomingMessagesPool)
+			{
+				if (!m_incomingMessagesPool.Contains(msg))
+					m_incomingMessagesPool.Enqueue(msg);
+			}
 		}
 
 		/// <summary>
@@ -74,7 +83,7 @@ namespace Lidgren.Network2
 		/// </summary>
 		private void Recycle(NetOutgoingMessage msg)
 		{
-			// TODO: add message to recycling pool
+			// TODO: add message to recycling pool, or?
 		}
 
 		/// <summary>
@@ -83,10 +92,30 @@ namespace Lidgren.Network2
 		internal NetIncomingMessage CreateIncomingMessage(NetIncomingMessageType tp, int requiredCapacity)
 		{
 			// TODO: get NetIncomingMessage object from recycling pool
-			NetIncomingMessage retval = new NetIncomingMessage();
-			retval.MessageType = tp;
-			retval.SenderConnection = null;
-			retval.SenderEndpoint = null;
+			NetIncomingMessage retval;
+			if (m_incomingMessagesPool.Count > 0)
+			{
+				lock (m_incomingMessagesPool)
+				{
+					if (m_incomingMessagesPool.Count > 0)
+					{
+						retval = m_incomingMessagesPool.Dequeue();
+						retval.Reset();
+					}
+					else
+					{
+						retval = new NetIncomingMessage();
+					}
+				}
+			}
+			else
+			{
+				retval = new NetIncomingMessage();
+			}
+
+			retval.m_messageType = tp;
+			retval.m_senderConnection = null;
+			retval.m_senderEndPoint = null;
 
 			if (requiredCapacity > 0)
 			{
@@ -107,9 +136,9 @@ namespace Lidgren.Network2
 			NetIncomingMessage retval = new NetIncomingMessage();
 			retval.m_data = payload;
 			retval.m_bitLength = payloadByteLength * 8;
-			retval.MessageType = tp;
-			retval.SenderConnection = null;
-			retval.SenderEndpoint = null;
+			retval.m_messageType = tp;
+			retval.m_senderConnection = null;
+			retval.m_senderEndPoint = null;
 
 			return retval;
 		}

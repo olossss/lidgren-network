@@ -9,7 +9,7 @@ namespace Lidgren.Network2
 		internal int m_inQueueCount;
 		internal NetMessageType m_type;
 		internal double m_sentTime;
-		private NetMessagePriority m_priority;
+		internal NetMessagePriority m_priority;
 
 		/// <summary>
 		/// Gets or sets the priority of this message. Higher priority messages are sent before lower ones.

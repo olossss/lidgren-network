@@ -9,13 +9,13 @@ namespace Lidgren.Network2
 		internal byte[] m_data;
 		internal int m_bitLength;
 
-		private NetIncomingMessageType m_messageType;
-		private IPEndPoint m_senderEndPoint;
-		private NetConnection m_senderConnection;
+		internal NetIncomingMessageType m_messageType;
+		internal IPEndPoint m_senderEndPoint;
+		internal NetConnection m_senderConnection;
 
-		public NetIncomingMessageType MessageType { get { return m_messageType; } internal set { m_messageType = value; } }
-		public IPEndPoint SenderEndpoint { get { return m_senderEndPoint; } internal set { m_senderEndPoint = value; } }
-		public NetConnection SenderConnection { get { return m_senderConnection; } internal set { m_senderConnection = value; } }
+		public NetIncomingMessageType MessageType { get { return m_messageType; } }
+		public IPEndPoint SenderEndPoint { get { return m_senderEndPoint; } }
+		public NetConnection SenderConnection { get { return m_senderConnection; } }
 
 		internal NetIncomingMessage()
 		{

@@ -36,13 +36,18 @@ namespace ChatServer
 							Console.WriteLine(msg.SenderConnection.ToString() + " new status: " + status);
 							break;
 
+						case NetIncomingMessageType.UnconnectedData:
+							string ustr = msg.ReadString();
+							Console.WriteLine(msg.SenderEndPoint + " wrote unconnected: " + ustr);
+							break;
+
 						case NetIncomingMessageType.Data:
 
 							string astr = msg.ReadString();
 
 							NetOutgoingMessage reply = server.CreateMessage();
-							reply.Write(msg.SenderEndpoint.ToString() + " wrote: " + astr);
-							server.SendMessage(reply, server.Connections, NetMessagePriority.Normal);
+							reply.Write(msg.SenderEndPoint.ToString() + " wrote: " + astr);
+							server.SendMessage(reply, server.Connections, NetMessageChannel.ReliableOrdered1, NetMessagePriority.Normal);
 							break;
 
 						default:

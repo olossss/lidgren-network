@@ -20,7 +20,7 @@ namespace Lidgren.Network2
 
 		protected List<NetConnection> m_connections;
 		private Dictionary<IPEndPoint, NetConnection> m_connectionLookup;
-
+		
 		/// <summary>
 		/// Gets a copy of the list of connections
 		/// </summary>
@@ -122,19 +122,36 @@ namespace Lidgren.Network2
 			}
 		}
 
-		public void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetMessagePriority priority)
+		public void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetMessageChannel channel, NetMessagePriority priority)
 		{
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
+			msg.m_type = (NetMessageType)channel;
 			recipient.EnqueueOutgoingMessage(msg, priority);
 		}
 
-		public void SendMessage(NetOutgoingMessage msg, IEnumerable<NetConnection> recipients, NetMessagePriority priority)
+		public void SendMessage(NetOutgoingMessage msg, IEnumerable<NetConnection> recipients, NetMessageChannel channel, NetMessagePriority priority)
 		{
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
+			msg.m_type = (NetMessageType)channel;
 			foreach (NetConnection conn in recipients)
 				conn.EnqueueOutgoingMessage(msg, priority);
+		}
+
+		public void SendUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)
+		{
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+			EnqueueUnconnectedMessage(msg, recipient);
+		}
+
+		public void SendUnconnectedMessage(NetOutgoingMessage msg, IEnumerable<IPEndPoint> recipients)
+		{
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+			foreach (IPEndPoint ipe in recipients)
+				EnqueueUnconnectedMessage(msg, ipe);
 		}
 
 		/// <summary>

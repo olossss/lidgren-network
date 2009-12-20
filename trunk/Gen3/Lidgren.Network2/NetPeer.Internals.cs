@@ -21,6 +21,9 @@ namespace Lidgren.Network2
 		private ushort m_nextSequenceNumber;
 		internal byte[] m_macAddressBytes;
 
+		private Queue<NetOutgoingMessage> m_unsentUnconnectedMessage;
+		private Queue<IPEndPoint> m_unsentUnconnectedRecipients;
+
 		/// <summary>
 		/// Gets or sets the amount of time in milliseconds the network thread should sleep; recommended values 1 or 0
 		/// </summary>
@@ -35,6 +38,8 @@ namespace Lidgren.Network2
 		{
 			m_releasedIncomingMessages = new Queue<NetIncomingMessage>();
 			m_nextSequenceNumber = 1;
+			m_unsentUnconnectedMessage = new Queue<NetOutgoingMessage>();
+			m_unsentUnconnectedRecipients = new Queue<IPEndPoint>();
 
 			System.Net.NetworkInformation.PhysicalAddress pa = NetUtility.GetMacAddress();
 			if (pa != null)
@@ -66,7 +71,7 @@ namespace Lidgren.Network2
 					LogWarning(ex.ToString());
 				}
 
-				// wait here to give cpu to other threads/processes
+				// wait here to give cpu to other threads/processes; also to collect messages for aggregate packet
 				Thread.Sleep(m_runSleepInMilliseconds);
 			} while (!m_initiateShutdown);
 
@@ -125,7 +130,64 @@ namespace Lidgren.Network2
 			foreach (NetConnection conn in m_connections)
 				conn.Heartbeat();
 
+			// send unconnected sends
+			if (m_unsentUnconnectedMessage.Count > 0)
+			{
+				lock (m_unsentUnconnectedMessage)
+				{
+					while (m_unsentUnconnectedMessage.Count > 0)
+					{
+						NetOutgoingMessage msg = m_unsentUnconnectedMessage.Dequeue();
+						IPEndPoint recipient = m_unsentUnconnectedRecipients.Dequeue();
+
+						int msgPayloadLength = msg.LengthBytes;
+
+						// no sequence number
+						m_sendBuffer[0] = 0;
+						m_sendBuffer[1] = 0;
+
+						int ptr = 2;
+						if (msgPayloadLength < 256)
+						{
+							m_sendBuffer[ptr++] = (byte)((int)msg.m_type << 2);
+							m_sendBuffer[ptr++] = (byte)msgPayloadLength;
+						}
+						else
+						{
+							m_sendBuffer[ptr++] = (byte)(((int)msg.m_type << 2) | 1);
+							m_sendBuffer[ptr++] = (byte)(msgPayloadLength & 255);
+							m_sendBuffer[ptr++] = (byte)((msgPayloadLength << 8) & 255);
+						}
+
+						if (msgPayloadLength > 0)
+							Buffer.BlockCopy(msg.m_data, 0, m_sendBuffer, ptr, msgPayloadLength);
+						ptr += msgPayloadLength;
+
+						if (recipient.Address.Equals(IPAddress.Broadcast))
+						{
+							// send using broadcast
+							try
+							{
+								m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
+								SendPacket(ptr, recipient);
+							}
+							finally
+							{
+								m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, false);
+							}
+						}
+						else
+						{
+							// send normally
+							SendPacket(ptr, recipient);
+						}
+					}
+				}
+			}
+
+			//
 			// read from socket
+			//
 			while (true)
 			{
 				if (m_socket == null || m_socket.Available < 1)
@@ -186,8 +248,11 @@ namespace Lidgren.Network2
 
 					LogVerbose("Received packet " + sequenceNumber + " (" + bytesReceived + " bytes)");
 
-					// TODO: if reliable (and sender != null); queue ack message, also update connection.m_lastSendRespondedTo
-					HandleAcknowledge(sequenceNumber);
+					if (sender != null)
+					{
+						// TODO: if reliable; queue ack message, also update connection.m_lastSendRespondedTo
+						HandleAcknowledge(sequenceNumber);
+					}
 
 					int ptr = 2;
 					while (ptr < bytesReceived)
@@ -260,15 +325,6 @@ namespace Lidgren.Network2
 						// reject messages requiring a connection
 						if (sender == null)
 						{
-							if (mtp != NetMessageType.LibraryConnect &&
-								mtp != NetMessageType.LibraryDiscovery &&
-								mtp != NetMessageType.LibraryDiscoveryResponse &&
-								mtp != NetMessageType.LibraryNatIntroduction)
-							{
-								LogWarning("Message of typ " + mtp + " received; but no connection in place!");
-								continue;
-							}
-
 							// handle unconnected message
 							HandleUnconnectedMessage(mtp, payload, payloadLength, ipsender);
 						}
@@ -292,41 +348,61 @@ namespace Lidgren.Network2
 		{
 			Debug.Assert(Thread.CurrentThread == m_networkThread);
 
-			if (mtp == NetMessageType.LibraryConnect)
+			switch (mtp)
 			{
-				if (!m_configuration.m_acceptIncomingConnections)
-				{
-					LogWarning("Connect received; but we're not accepting incoming connections!");
-					return;
-				}
+				case NetMessageType.LibraryConnect:
+					if (!m_configuration.m_acceptIncomingConnections)
+					{
+						LogWarning("Connect received; but we're not accepting incoming connections!");
+						return;
+					}
 
-				// ok, someone wants to connect to us, and we're accepting connections!
-				if (m_connections.Count >= m_configuration.MaximumConnections)
-				{
-					HandleServerFull(senderEndPoint);
-					return;
-				}
+					// ok, someone wants to connect to us, and we're accepting connections!
+					if (m_connections.Count >= m_configuration.MaximumConnections)
+					{
+						HandleServerFull(senderEndPoint);
+						return;
+					}
 
-				// TODO: connection approval, including hail data
+					// TODO: connection approval, including hail data
 
-				NetConnection conn = new NetConnection(this, senderEndPoint);
-				m_connections.Add(conn);
-				m_connectionLookup[senderEndPoint] = conn;
-				conn.m_connectionInitiator = false;
-				conn.SetStatus(NetConnectionStatus.Connecting);
+					NetConnection conn = new NetConnection(this, senderEndPoint);
+					m_connections.Add(conn);
+					m_connectionLookup[senderEndPoint] = conn;
+					conn.m_connectionInitiator = false;
+					conn.SetStatus(NetConnectionStatus.Connecting);
 
-				// send connection response
-				LogVerbose("Sending LibraryConnectResponse");
-				NetOutgoingMessage reply = CreateMessage(2);
-				reply.m_type = NetMessageType.LibraryConnectResponse;
-				conn.EnqueueOutgoingMessage(reply, NetMessagePriority.High);
+					// send connection response
+					LogVerbose("Sending LibraryConnectResponse");
+					NetOutgoingMessage reply = CreateMessage(2);
+					reply.m_type = NetMessageType.LibraryConnectResponse;
+					conn.EnqueueOutgoingMessage(reply, NetMessagePriority.High);
 
-				conn.m_connectInitationTime = NetTime.Now;
+					conn.m_connectInitationTime = NetTime.Now;
 
-				return;
-			}	
-
-			throw new NotImplementedException();
+					break;
+				case NetMessageType.LibraryAckNack:
+				case NetMessageType.LibraryAcknowledge:
+				case NetMessageType.LibraryConnectionEstablished:
+				case NetMessageType.LibraryConnectionRejected:
+				case NetMessageType.LibraryConnectResponse:
+				case NetMessageType.LibraryDisconnect:
+				case NetMessageType.LibraryDiscovery:
+				case NetMessageType.LibraryDiscoveryResponse:
+				case NetMessageType.LibraryNatIntroduction:
+				case NetMessageType.LibraryPing:
+				case NetMessageType.LibraryPong:
+					throw new NotImplementedException();
+				default:
+					// user data
+					if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData))
+					{
+						NetIncomingMessage ium = CreateIncomingMessage(NetIncomingMessageType.UnconnectedData, payload, payloadLength);
+						ium.m_senderEndPoint = senderEndPoint;
+						ReleaseMessage(ium);
+					}
+					break;
+			}
 		}
 
 		private void HandleServerFull(IPEndPoint connecter)
@@ -341,7 +417,13 @@ namespace Lidgren.Network2
 
 		private void EnqueueUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)
 		{
-			throw new NotImplementedException();
+			msg.m_type = NetMessageType.UserUnreliable; // sortof not applicable
+			Interlocked.Increment(ref msg.m_inQueueCount);
+			lock (m_unsentUnconnectedMessage)
+			{
+				m_unsentUnconnectedMessage.Enqueue(msg);
+				m_unsentUnconnectedRecipients.Enqueue(recipient);
+			}
 		}
 	}
 }
