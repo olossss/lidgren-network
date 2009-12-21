@@ -5,103 +5,88 @@ namespace Lidgren.Network2
 {
 	public partial class NetConnection
 	{
-		internal const int c_maxPingNumber = ushort.MaxValue;
-
 		//
 		// Connection keepalive and latency calculation
 		//
-
-		private ushort m_lastPingNumber;
-		private double m_lastPingSent;
 		private bool m_isPingInitialized;
-		private double[] m_latencyHistory = new double[3];
-		private double m_currentAvgRoundtrip = 0.75f; // large to avoid initial resends
-		private double m_lastSendRespondedTo; // timestamp when data was sent, for which a response has been received
+
+		private double m_latencyWindowStart;
+		private float m_latencyWindowSize;
+		private float m_latencySum;
+		private int m_latencyCount;
+		private float m_currentAvgRoundtrip = 0.75f; // large to avoid initial resends
+
+		private double m_nextKeepAlive;
+		internal double m_lastSendRespondedTo; // timestamp when data was sent, for which a response has been received
 
 		/// <summary>
 		/// Gets the current average roundtrip time
 		/// </summary>
 		public float AverageRoundtripTime { get { return (float)m_currentAvgRoundtrip; } }
 
-		private void SetInitialAveragePing(double roundtripTime)
+		private void UpdateLastSendRespondedTo(double timestamp)
 		{
+			m_lastSendRespondedTo = timestamp;
+			m_nextKeepAlive = timestamp + m_owner.m_configuration.KeepAliveDelay;
+		}
+
+		private void InitializeLatency(float roundtripTime)
+		{
+			double now = NetTime.Now;
 			if (roundtripTime < 0.0f)
-				roundtripTime = 0.0;
-			if (roundtripTime > 4.0)
-				roundtripTime = 4.0; // unlikely high
-
-			m_latencyHistory[2] = roundtripTime * 1.2 + 0.01; // overestimate
-			m_latencyHistory[1] = roundtripTime * 1.1 + 0.005; // overestimate
-			m_latencyHistory[0] = roundtripTime; // overestimate
-			m_currentAvgRoundtrip = ((roundtripTime * 3) + (m_latencyHistory[1] * 2) + m_latencyHistory[2]) / 6.0;
+				roundtripTime = 0.0f;
+			if (roundtripTime > 4.0f)
+				roundtripTime = 4.0f; // unlikely high
+			m_latencyWindowStart = now;
+			m_latencySum = roundtripTime;
+			m_latencyCount = 1;
+			m_currentAvgRoundtrip = roundtripTime;
 			m_owner.LogDebug("Initializing avg rtt to " + NetTime.ToReadable(m_currentAvgRoundtrip));
-
 			m_isPingInitialized = true;
+			m_nextKeepAlive = NetTime.Now + (m_owner.m_configuration.KeepAliveDelay * 3);
 		}
 
 		private void KeepAliveHeartbeat(double now)
 		{
-			// time to send a ping?
 			if (m_status != NetConnectionStatus.Disconnected)
 			{
-				if (now > m_lastPingSent + m_owner.m_configuration.PingFrequency)
-					SendPing(now);
+				if (now > m_nextKeepAlive)
+				{
+					// send dummy keepalive message; remote host will response with an ack 
+					m_owner.LogVerbose("Sending keepalive ping");
+
+					NetOutgoingMessage ping = m_owner.CreateMessage();
+					ping.m_type = NetMessageType.LibraryKeepAlive;
+					SendMessage(ping, NetMessagePriority.High);
+
+					m_nextKeepAlive = now + m_owner.m_configuration.KeepAliveDelay;
+				}
 
 				if (!m_disconnectRequested && now > m_lastSendRespondedTo + m_owner.m_configuration.ConnectionTimeOut)
 					Disconnect("Timed out");
 			}
 		}
 
-		private void SendPing(double now)
+		internal void UpdateLatency(double now, float rt)
 		{
-			m_lastPingNumber++;
-
-			NetOutgoingMessage ping = m_owner.CreateMessage(2);
-			ping.m_type = NetMessageType.LibraryPing;
-			ping.Write(m_lastPingNumber);
-
-			m_owner.LogVerbose("Sending ping #" + m_lastPingNumber);
-			m_lastPingSent = now; // this is done more accurately in NetCOnnection.Heartbeat when sending packet
-
-			SendMessage(ping, NetMessagePriority.High);
-		}
-
-		internal void HandlePing(ushort nr)
-		{
-			// send matching pong
-			m_owner.LogVerbose("Received ping #" + nr + " sending pong...");
-			
-			NetOutgoingMessage reply = m_owner.CreateMessage(2);
-			reply.m_type = NetMessageType.LibraryPong;
-			reply.Write(nr);
-			SendMessage(reply, NetMessagePriority.High);
-		}
-
-		internal void HandlePong(double now, ushort nr)
-		{
-			if (nr != m_lastPingNumber)
+			if (now > m_latencyWindowStart + m_latencyWindowSize)
 			{
-				m_owner.LogDebug("Received wrong order pong number (#" + nr + ", expecting #" + m_lastPingNumber + ")");
-				return;
+				// calculate avg rt 
+				if (m_latencyCount > 0)
+				{
+					m_currentAvgRoundtrip = (m_latencySum / m_latencyCount);
+					m_owner.LogDebug("Updating avg rtt to " + NetTime.ToReadable(m_currentAvgRoundtrip) + " using " + m_latencyCount + " samples");
+				}
+
+				m_latencyWindowStart = now;
+				m_latencySum = rt;
+				m_latencyCount = 1;
 			}
-
-			m_lastSendRespondedTo = m_lastPingSent;
-
-			double roundtripTime = now - m_lastPingSent;
-
-			if (m_isPingInitialized == false)
+			else
 			{
-				SetInitialAveragePing(roundtripTime);
-				return;
+				m_latencyCount++;
+				m_latencySum += rt;
 			}
-
-			// calculate new average roundtrip time
-			m_latencyHistory[2] = m_latencyHistory[1];
-			m_latencyHistory[1] = m_latencyHistory[0];
-			m_latencyHistory[0] = roundtripTime;
-			m_currentAvgRoundtrip = ((roundtripTime * 3) + (m_latencyHistory[1] * 2) + m_latencyHistory[2]) / 6.0;
-
-			m_owner.LogDebug("Received pong; roundtrip time is " + NetTime.ToReadable(roundtripTime) + "; new average: " + NetTime.ToReadable(m_currentAvgRoundtrip));
 		}
 	}
 }

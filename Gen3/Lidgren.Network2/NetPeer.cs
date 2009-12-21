@@ -104,15 +104,15 @@ namespace Lidgren.Network2
 		{
 			try
 			{
+#if DEBUG
+				ushort packetNumber = (ushort)(m_sendBuffer[0] | (m_sendBuffer[1] << 8));
+				LogVerbose("Sending packet P#" + packetNumber + " (" + numBytes + " bytes)");
+#endif
+
 				// TODO: Use SendToAsync()?
 				int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
 				if (numBytes != bytesSent)
 					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
-
-#if DEBUG
-				ushort sequenceNumber = (ushort)(m_sendBuffer[0] | (m_sendBuffer[1] << 8));
-				LogVerbose("Sent packet " + sequenceNumber + " (" + numBytes + " bytes)");
-#endif
 
 				// TODO: add to statistics
 			}
@@ -196,7 +196,7 @@ namespace Lidgren.Network2
 			// handle on network thread
 			conn.m_connectRequested = true;
 			conn.m_connectionInitiator = true;
-			conn.SetStatus(NetConnectionStatus.Connecting);
+			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
 
 			return conn;
 		}

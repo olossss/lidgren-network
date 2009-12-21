@@ -1,8 +1,7 @@
 ﻿
 
 PER PACKET:
-1 - Packet is reliable?
-15 - sequence number
+16 - sequence number
 
 
 PER MESSAGE:

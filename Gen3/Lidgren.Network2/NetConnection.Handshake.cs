@@ -13,7 +13,7 @@ namespace Lidgren.Network2
 		internal string m_hail;
 		internal NetConnectionStatus m_status;
 
-		internal void SetStatus(NetConnectionStatus status)
+		internal void SetStatus(NetConnectionStatus status, string reason)
 		{
 			if (status == m_status)
 				return;
@@ -24,6 +24,7 @@ namespace Lidgren.Network2
 				info.m_senderConnection = this;
 				info.m_senderEndPoint = m_remoteEndPoint;
 				info.Write((int)m_status);
+				info.Write(reason);
 				m_owner.ReleaseMessage(info);
 			}
 		}
@@ -88,7 +89,7 @@ namespace Lidgren.Network2
 
 			EnqueueOutgoingMessage(om, prio);
 
-			SetStatus(NetConnectionStatus.Disconnected);
+			SetStatus(NetConnectionStatus.Disconnected, m_disconnectByeMessage);
 			return;
 		}
 
@@ -110,7 +111,7 @@ namespace Lidgren.Network2
 					if (m_status == NetConnectionStatus.Connecting)
 					{
 						// excellent, handshake making progress; send connectionestablished
-						SetStatus(NetConnectionStatus.Connected);
+						SetStatus(NetConnectionStatus.Connected, "Connected");
 
 						m_owner.LogVerbose("Sending LibraryConnectionEstablished");
 						NetOutgoingMessage ce = m_owner.CreateMessage(0);
@@ -118,7 +119,7 @@ namespace Lidgren.Network2
 						EnqueueOutgoingMessage(ce, NetMessagePriority.High);
 
 						// setup initial ping estimation
-						SetInitialAveragePing(NetTime.Now - m_connectInitationTime);
+						InitializeLatency((float)(NetTime.Now - m_connectInitationTime));
 						return;
 					}
 
@@ -129,17 +130,18 @@ namespace Lidgren.Network2
 					{
 						// handshake done
 						if (!m_isPingInitialized)
-							SetInitialAveragePing(NetTime.Now - m_connectInitationTime);
+							InitializeLatency((float)(NetTime.Now - m_connectInitationTime));
 
-						SetStatus(NetConnectionStatus.Connected);
+						SetStatus(NetConnectionStatus.Connected, "Connected");
 						return;
 					}
 
 					m_owner.LogWarning("NetConnection.HandleIncomingHandshake() passed " + mtp + ", but initiator is " + m_connectionInitiator + " and status is " + m_status);
 					break;
 				case NetMessageType.LibraryDisconnect:
-					// TODO: extract bye message?
-					SetStatus(NetConnectionStatus.Disconnected);
+					// extract bye message
+					NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadBytesLength);
+					SetStatus(NetConnectionStatus.Disconnected, im.ReadString());
 					break;
 				default:
 					// huh?

@@ -5,6 +5,8 @@ using System.Text;
 using Lidgren.Network2;
 using System.Threading;
 using System.Net;
+using System.IO;
+using System.Diagnostics;
 
 namespace ChatClient
 {
@@ -13,15 +15,16 @@ namespace ChatClient
 		static void Main(string[] args)
 		{
 			NetPeerConfiguration config = new NetPeerConfiguration("chatapp");
+			//config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
 
 			NetClient client = new NetClient(config);
 			client.Initialize();
 
 			Thread.Sleep(1000); // let server start up
 
-			NetOutgoingMessage um = client.CreateMessage();
-			um.Write("Kokosboll");
-			client.SendUnconnectedMessage(um, new IPEndPoint(NetUtility.Resolve("localhost"), 14242));
+			//NetOutgoingMessage um = client.CreateMessage();
+			//um.Write("Kokosboll");
+			//client.SendUnconnectedMessage(um, new IPEndPoint(NetUtility.Resolve("localhost"), 14242));
 
 			client.Connect("localhost", 14242);
 
@@ -38,15 +41,17 @@ namespace ChatClient
 						case NetIncomingMessageType.ErrorMessage:
 						case NetIncomingMessageType.Data:
 						case NetIncomingMessageType.UnconnectedData:
-							Console.WriteLine(msg.ReadString());
+							Output(msg.ReadString());
 							break;
 
 						case NetIncomingMessageType.StatusChanged:
-							Console.WriteLine(msg.SenderConnection.ToString() + " new status: " + (NetConnectionStatus)msg.ReadInt32());
+							NetConnectionStatus status = (NetConnectionStatus)msg.ReadInt32();
+							string reason = msg.ReadString();
+							Output("Status: " + reason + " (" + status + ")");
 							break;
 
 						default:
-							Console.WriteLine("Not supported: " + msg.MessageType);
+							Output("Not supported: " + msg.MessageType);
 							break;
 					}
 				}
@@ -56,6 +61,12 @@ namespace ChatClient
 			client.Shutdown("Application exiting");
 
 			Thread.Sleep(100); // let disconnect make it out the door
+		}
+
+		private static void Output(string str)
+		{
+			Console.WriteLine(str);
+			File.AppendAllText("log.txt", Stopwatch.GetTimestamp() + " - CLIENT - " + str + "\n");
 		}
 	}
 }
