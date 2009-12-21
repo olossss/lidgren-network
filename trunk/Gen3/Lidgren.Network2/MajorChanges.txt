@@ -11,6 +11,7 @@ Major changes since the last version of the library
 * Message prioritation
 * Much less allocations due to object pooling
 * More exact timeout
+* Higher frequency in ping/latency calculation
 
 
 

@@ -18,7 +18,6 @@ namespace Lidgren.Network2
 		private EndPoint m_senderRemote;
 		internal Socket m_socket;
 		private Queue<NetIncomingMessage> m_releasedIncomingMessages;
-		private ushort m_nextSequenceNumber;
 		internal byte[] m_macAddressBytes;
 
 		private Queue<NetOutgoingMessage> m_unsentUnconnectedMessage;
@@ -37,7 +36,6 @@ namespace Lidgren.Network2
 		private void InitializeInternal()
 		{
 			m_releasedIncomingMessages = new Queue<NetIncomingMessage>();
-			m_nextSequenceNumber = 1;
 			m_unsentUnconnectedMessage = new Queue<NetOutgoingMessage>();
 			m_unsentUnconnectedRecipients = new Queue<IPEndPoint>();
 
@@ -109,13 +107,6 @@ namespace Lidgren.Network2
 			}
 
 			return;
-		}
-
-		internal ushort GetSequenceNumber()
-		{
-			ushort retval = m_nextSequenceNumber;
-			m_nextSequenceNumber++;
-			return retval;
 		}
 
 		internal void ReleaseMessage(NetIncomingMessage msg)
@@ -244,15 +235,12 @@ namespace Lidgren.Network2
 				// parse packet into messages
 				//
 				{
-					ushort sequenceNumber = (ushort)(m_receiveBuffer[0] | (m_receiveBuffer[1] << 8));
+					ushort packetNumber = (ushort)(m_receiveBuffer[0] | (m_receiveBuffer[1] << 8));
 
-					LogVerbose("Received packet " + sequenceNumber + " (" + bytesReceived + " bytes)");
+					LogVerbose("Received packet R#" + packetNumber + " (" + bytesReceived + " bytes)");
 
-					if (sender != null)
-					{
-						// TODO: if reliable; queue ack message, also update connection.m_lastSendRespondedTo
-						HandleAcknowledge(sequenceNumber);
-					}
+					if (packetNumber != 0 && sender != null)
+						sender.SendAcknowledge(packetNumber);
 
 					int ptr = 2;
 					while (ptr < bytesReceived)
@@ -266,33 +254,6 @@ namespace Lidgren.Network2
 						{
 							LogWarning("Malformed message; not enough bytes");
 							break;
-						}
-
-						// ping/pong has known length
-						if (mtp == NetMessageType.LibraryPing)
-						{
-							if (sender == null)
-							{
-								LogWarning("Received ping from non-connected peer");
-								continue;
-							}
-							ushort nr = (ushort)(m_receiveBuffer[ptr] | (m_receiveBuffer[ptr + 1] << 8));
-							ptr += 2;
-							sender.HandlePing(nr);
-							continue;
-						}
-
-						if (mtp == NetMessageType.LibraryPong)
-						{
-							if (sender == null)
-							{
-								LogWarning("Received pong from non-connected peer");
-								continue;
-							}
-							ushort nr = (ushort)(m_receiveBuffer[ptr] | (m_receiveBuffer[ptr + 1] << 8));
-							ptr += 2;
-							sender.HandlePong(now, nr);
-							continue;
 						}
 
 						// get payload length
@@ -331,17 +292,12 @@ namespace Lidgren.Network2
 						else
 						{
 							// handle connected message
-							sender.HandleIncomingData(mtp, payload, payloadLength);
+							sender.HandleReceivedConnectedMessage(now, mtp, payload, payloadLength);
 						}
 					}
 				}
 			}
 			// heartbeat done
-		}
-
-		private void HandleAcknowledge(ushort sequenceNumber)
-		{
-			// TODO: update received bitmask and send ack
 		}
 
 		private void HandleUnconnectedMessage(NetMessageType mtp, byte[] payload, int payloadLength, IPEndPoint senderEndPoint)
@@ -370,7 +326,7 @@ namespace Lidgren.Network2
 					m_connections.Add(conn);
 					m_connectionLookup[senderEndPoint] = conn;
 					conn.m_connectionInitiator = false;
-					conn.SetStatus(NetConnectionStatus.Connecting);
+					conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
 
 					// send connection response
 					LogVerbose("Sending LibraryConnectResponse");
@@ -390,9 +346,11 @@ namespace Lidgren.Network2
 				case NetMessageType.LibraryDiscovery:
 				case NetMessageType.LibraryDiscoveryResponse:
 				case NetMessageType.LibraryNatIntroduction:
-				case NetMessageType.LibraryPing:
-				case NetMessageType.LibraryPong:
 					throw new NotImplementedException();
+
+				case NetMessageType.LibraryKeepAlive:
+					// no operation - we just want the the packet ack
+					break;
 				default:
 					// user data
 					if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData))

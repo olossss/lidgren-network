@@ -83,7 +83,21 @@ namespace Lidgren.Network2
 		/// </summary>
 		private void Recycle(NetOutgoingMessage msg)
 		{
-			// TODO: add message to recycling pool, or?
+			// msg may still exist in NetConnection.m_packetList if they're reliable
+			if (msg.m_type < NetMessageType.UserReliableUnordered)
+			{
+				// unreliable; safe to recycle now
+				lock (m_storagePool)
+				{
+					if (!m_storagePool.Contains(msg.m_data))
+						m_storagePool.Add(msg.m_data);
+				}
+
+				// TODO: recycle NetOutgoingMessage object?
+				return;
+			}
+
+			// TODO: check m_inQueueCount and possibly recycle?
 		}
 
 		/// <summary>

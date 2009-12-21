@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatServer", "ChatServer\Ch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatClient", "ChatClient\ChatClient.csproj", "{B975323C-5EB1-4233-99B6-CA20F0B2C1A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSLogViewer", "CSLogViewer\CSLogViewer.csproj", "{12035BC4-646E-4D3C-86B3-3024F7817EEA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +27,10 @@ Global
 		{B975323C-5EB1-4233-99B6-CA20F0B2C1A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B975323C-5EB1-4233-99B6-CA20F0B2C1A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B975323C-5EB1-4233-99B6-CA20F0B2C1A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12035BC4-646E-4D3C-86B3-3024F7817EEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12035BC4-646E-4D3C-86B3-3024F7817EEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12035BC4-646E-4D3C-86B3-3024F7817EEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12035BC4-646E-4D3C-86B3-3024F7817EEA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

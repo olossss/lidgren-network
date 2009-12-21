@@ -21,9 +21,10 @@ namespace Lidgren.Network2
 		internal int m_receiveBufferSize, m_sendBufferSize;
 		internal int m_defaultOutgoingMessageCapacity;
 		internal int m_maximumTransmissionUnit;
-		internal float m_pingFrequency;
+		internal float m_keepAliveDelay;
 		internal float m_connectionTimeOut;
 		internal int m_maximumConnections;
+		internal float m_latencyCalculationWindowSize;
 		private bool[] m_disabledTypes;
 
 		public NetPeerConfiguration(string appIdentifier)
@@ -38,9 +39,10 @@ namespace Lidgren.Network2
 			m_receiveBufferSize = 131071;
 			m_sendBufferSize = 131071;
 			m_maximumTransmissionUnit = 1400;
-			m_pingFrequency = 5;
+			m_keepAliveDelay = 3;
 			m_connectionTimeOut = 25;
 			m_maximumConnections = 8;
+			m_latencyCalculationWindowSize = 1.0f;
 
 			// default disabled types
 			m_disabledTypes = new bool[Enum.GetNames(typeof(NetIncomingMessageType)).Length];
@@ -91,7 +93,7 @@ namespace Lidgren.Network2
 		/// </summary>
 		public bool IsMessageTypeEnabled(NetIncomingMessageType tp)
 		{
-			return m_disabledTypes[(int)tp];
+			return !m_disabledTypes[(int)tp];
 		}
 
 		/// <summary>
@@ -192,14 +194,28 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the number of seconds between each keepalive ping.
+		/// Gets or sets the number of seconds of inactivity before sending a dummy keepalive packet
 		/// </summary>
-		public float PingFrequency
+		public float KeepAliveDelay
 		{
-			get { return m_pingFrequency; }
+			get { return m_keepAliveDelay; }
 			set
 			{
-				m_pingFrequency = value;
+				m_keepAliveDelay = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the number of seconds during which the average roundtrip time should be calculated
+		/// </summary>
+		public float LatencyCalculationWindowSize
+		{
+			get { return m_latencyCalculationWindowSize; }
+			set
+			{
+				if (m_isLocked)
+					throw new NetException(c_isLockedMessage);
+				m_latencyCalculationWindowSize = value;
 			}
 		}
 

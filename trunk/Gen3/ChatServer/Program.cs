@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using Lidgren.Network2;
 using System.Threading;
+using System.IO;
+using System.Diagnostics;
 
 namespace ChatServer
 {
@@ -11,6 +13,7 @@ namespace ChatServer
 		static void Main(string[] args)
 		{
 			NetPeerConfiguration config = new NetPeerConfiguration("chatapp");
+			//config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
 			config.Port = 14242;
 
 			NetServer server = new NetServer(config);
@@ -28,17 +31,18 @@ namespace ChatServer
 						case NetIncomingMessageType.WarningMessage:
 						case NetIncomingMessageType.ErrorMessage:
 							string str = msg.ReadString();
-							Console.WriteLine(str);
+							Output(str);
 							break;
 
 						case NetIncomingMessageType.StatusChanged:
 							NetConnectionStatus status = (NetConnectionStatus)msg.ReadInt32();
-							Console.WriteLine(msg.SenderConnection.ToString() + " new status: " + status);
+							string reason = msg.ReadString();
+							Output("Status " + reason + " (" + status + ")");
 							break;
 
 						case NetIncomingMessageType.UnconnectedData:
 							string ustr = msg.ReadString();
-							Console.WriteLine(msg.SenderEndPoint + " wrote unconnected: " + ustr);
+							Output(msg.SenderEndPoint + " wrote unconnected: " + ustr);
 							break;
 
 						case NetIncomingMessageType.Data:
@@ -51,7 +55,7 @@ namespace ChatServer
 							break;
 
 						default:
-							Console.WriteLine("Not supported: " + msg.MessageType);
+							Output("Not supported: " + msg.MessageType);
 							break;
 					}
 				}
@@ -61,6 +65,12 @@ namespace ChatServer
 			server.Shutdown("Application exiting");
 
 			Thread.Sleep(100); // let disconnect make it out the door
+		}
+
+		private static void Output(string str)
+		{
+			Console.WriteLine(str);
+			File.AppendAllText("log.txt", Stopwatch.GetTimestamp() + " - SERVER - " + str + "\n");
 		}
 	}
 }
