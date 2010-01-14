@@ -44,7 +44,9 @@ namespace ChatServer
 							sender.Approve();
 							break;
 						case NetMessageType.StatusChanged:
-							Console.WriteLine("New status for " + sender + ": " + sender.Status + " (" + buffer.ReadString() + ")");
+							string statusMessage = buffer.ReadString();
+							NetConnectionStatus newStatus = (NetConnectionStatus)buffer.ReadByte();
+							Console.WriteLine("New status for " + sender + ": " + newStatus + " (" + statusMessage + ")");
 							break;
 						case NetMessageType.Data:
 							// A client sent this data!

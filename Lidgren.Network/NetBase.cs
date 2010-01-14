@@ -514,7 +514,19 @@ namespace Lidgren.Network
 		{
 			if ((m_enabledMessageTypes & NetMessageType.StatusChanged) != NetMessageType.StatusChanged)
 				return; // disabled
-			NotifyApplication(NetMessageType.StatusChanged, reason, connection);
+			
+			//NotifyApplication(NetMessageType.StatusChanged, reason, connection);
+			NetBuffer buffer = CreateBuffer(reason.Length + 2);
+			buffer.Write(reason);
+			buffer.Write((byte)connection.Status);
+
+			IncomingNetMessage msg = new IncomingNetMessage();
+			msg.m_data = buffer;
+			msg.m_msgType = NetMessageType.StatusChanged;
+			msg.m_sender = connection;
+			msg.m_senderEndPoint = null;
+
+			EnqueueReceivedMessage(msg);
 		}
 		
 		internal OutgoingNetMessage CreateSystemMessage(NetSystemType systemType)

@@ -61,7 +61,9 @@ namespace ChatClient
 							Console.WriteLine(buffer.ReadString());
 							break;
 						case NetMessageType.StatusChanged:
-							Console.WriteLine("New status: " + client.Status + " (" + buffer.ReadString() + ")");
+							string statusMessage = buffer.ReadString();
+							NetConnectionStatus newStatus = (NetConnectionStatus)buffer.ReadByte();
+							Console.WriteLine("New status: " + newStatus + " (" + statusMessage + ")");
 							break;
 						case NetMessageType.Data:
 							// The server sent this data!

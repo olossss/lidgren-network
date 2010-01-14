@@ -51,10 +51,12 @@ namespace DurableClient
 					switch (type)
 					{
 						case NetMessageType.StatusChanged:
+							string statusMessage = buffer.ReadString();
+							NetConnectionStatus newStatus = (NetConnectionStatus)buffer.ReadByte();
 							if (client.ServerConnection.RemoteHailData != null)
-								Output(wrt, "New status: " + client.Status + " (" + buffer.ReadString() + ") Remote hail is: " + Encoding.ASCII.GetString(client.ServerConnection.RemoteHailData));
+								Output(wrt, "New status: " + newStatus + " (" + statusMessage + ") Remote hail is: " + Encoding.ASCII.GetString(client.ServerConnection.RemoteHailData));
 							else
-								Output(wrt, "New status: " + client.Status + " (" + buffer.ReadString() + ") Remote hail hasn't arrived.");
+								Output(wrt, "New status: " + newStatus + " (" + statusMessage + ") Remote hail hasn't arrived.");
 							break;
 						case NetMessageType.BadMessageReceived:
 						case NetMessageType.ConnectionRejected:
