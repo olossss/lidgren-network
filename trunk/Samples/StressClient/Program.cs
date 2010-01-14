@@ -129,7 +129,9 @@ namespace StressClient
 					WriteToConsole(data.ReadString());
 					break;
 				case NetMessageType.StatusChanged:
-					WriteToConsole("New status: " + s_client.Status + " (" + data.ReadString() + ")");
+					string statusMessage = data.ReadString();
+					NetConnectionStatus newStatus = (NetConnectionStatus)data.ReadByte();
+					WriteToConsole("New status: " + newStatus + " (" + statusMessage + ")");
 					UpdateStatisticsDisplay(s_client.ServerConnection);
 					break;
 				case NetMessageType.Data:

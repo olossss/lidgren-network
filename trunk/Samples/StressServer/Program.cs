@@ -86,7 +86,10 @@ namespace StressServer
 					WriteToConsole(buffer.ReadString());
 					break;
 				case NetMessageType.StatusChanged:
-					WriteToConsole("New status: " + source.Status + " (" + buffer.ReadString() + ")");
+					string statusMessage = buffer.ReadString();
+					NetConnectionStatus newStatus = (NetConnectionStatus)buffer.ReadByte();
+
+					WriteToConsole("New status: " + newStatus + " (" + statusMessage + ")");
 					UpdateStatisticsDisplay(source);
 					break;
 				case NetMessageType.Data:
