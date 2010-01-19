@@ -44,64 +44,31 @@ namespace Lidgren.Network2
 			m_senderRemote = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
 			m_statistics = new NetPeerStatistics();
 
-			InitializeRecycling();
-			InitializeInternal();
+			// NetPeer.Recycling stuff
+			m_storagePool = new List<byte[]>();
+			m_incomingMessagesPool = new Queue<NetIncomingMessage>();
+
+			// NetPeer.Internal stuff
+			m_releasedIncomingMessages = new Queue<NetIncomingMessage>();
+			m_unsentUnconnectedMessage = new Queue<NetOutgoingMessage>();
+			m_unsentUnconnectedRecipients = new Queue<IPEndPoint>();
 		}
 
 		/// <summary>
 		/// Binds to socket
 		/// </summary>
-		public void Initialize()
+		public void Start()
 		{
-			lock (m_initializeLock)
-			{
-				if (m_isInitialized)
-					return;
-				m_configuration.Lock();
+			InternalStart();
 
-				m_statistics.Reset();
+			// start network thread
+			m_networkThread = new Thread(new ThreadStart(Run));
+			m_networkThread.Name = "Lidgren network thread";
+			m_networkThread.IsBackground = true;
+			m_networkThread.Start();
 
-				// bind to socket
-				IPEndPoint iep = null;
-				try
-				{
-					iep = new IPEndPoint(m_configuration.LocalAddress, m_configuration.Port);
-					EndPoint ep = (EndPoint)iep;
-
-					m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-					m_socket.ReceiveBufferSize = m_configuration.ReceiveBufferSize;
-					m_socket.SendBufferSize = m_configuration.SendBufferSize;
-					m_socket.Blocking = false;
-					m_socket.Bind(ep);
-
-					IPEndPoint boundEp = m_socket.LocalEndPoint as IPEndPoint;
-					LogDebug("Socket bound to " + boundEp + ": " + m_socket.IsBound);
-
-					m_receiveBuffer = new byte[m_configuration.ReceiveBufferSize];
-					m_sendBuffer = new byte[m_configuration.SendBufferSize];
-
-					// start network thread
-					m_networkThread = new Thread(new ThreadStart(Run));
-					m_networkThread.Name = "Lidgren network thread";
-					m_networkThread.IsBackground = true;
-					m_networkThread.Start();
-
-					LogVerbose("Initialization done");
-
-					// only set initialized if everything succeeds
-					m_isInitialized = true;
-				}
-				catch (SocketException sex)
-				{
-					if (sex.SocketErrorCode == SocketError.AddressAlreadyInUse)
-						throw new NetException("Failed to bind to port " + (iep == null ? "Null" : iep.ToString()) + " - Address already in use!", sex);
-					throw;
-				}
-				catch (Exception ex)
-				{
-					throw new NetException("Failed to bind to " + (iep == null ? "Null" : iep.ToString()), ex);
-				}
-			}
+			// allow some time for network thread to start up in case they call Connect() immediately
+			Thread.Sleep(3);
 		}
 
 		internal void SendPacket(int numBytes, IPEndPoint target)
@@ -118,7 +85,11 @@ namespace Lidgren.Network2
 				if (numBytes != bytesSent)
 					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
 
-				m_statistics.m_sentPackets++;
+				if (bytesSent >= 0)
+				{
+					m_statistics.m_sentPackets++;
+					m_statistics.m_sentBytes += bytesSent;
+				}
 			}
 			catch (Exception ex)
 			{
@@ -188,7 +159,7 @@ namespace Lidgren.Network2
 		public virtual NetConnection Connect(IPEndPoint remoteEndPoint)
 		{
 			if (!m_isInitialized)
-				Initialize();
+				throw new NetException("Must call Start() first");
 
 			if (m_connectionLookup.ContainsKey(remoteEndPoint))
 				throw new NetException("Already connected to that endpoint!");
@@ -198,7 +169,6 @@ namespace Lidgren.Network2
 			// handle on network thread
 			conn.m_connectRequested = true;
 			conn.m_connectionInitiator = true;
-			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
 
 			lock (m_connections)
 			{
@@ -209,8 +179,17 @@ namespace Lidgren.Network2
 			return conn;
 		}
 
+		[System.Diagnostics.Conditional("DEBUG")]
+		internal void VerifyNetworkThread()
+		{
+			if (System.Threading.Thread.CurrentThread != m_networkThread)
+				throw new NetException("Executing on wrong thread! Should be library system thread!");
+		}
+
 		public void Shutdown(string bye)
 		{
+			// called on user thread
+
 			if (m_socket == null)
 				return; // already shut down
 

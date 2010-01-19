@@ -23,6 +23,13 @@ namespace Lidgren.Network2
 		private Queue<NetOutgoingMessage> m_unsentUnconnectedMessage;
 		private Queue<IPEndPoint> m_unsentUnconnectedRecipients;
 
+		private void InternalStart()
+		{
+			m_releasedIncomingMessages.Clear();
+			m_unsentUnconnectedMessage.Clear();
+			m_unsentUnconnectedRecipients.Clear();
+		}
+
 		/// <summary>
 		/// Gets or sets the amount of time in milliseconds the network thread should sleep; recommended values 1 or 0
 		/// </summary>
@@ -32,12 +39,15 @@ namespace Lidgren.Network2
 			set { m_runSleepInMilliseconds = value; }
 		}
 
-		// called by constructor
-		private void InitializeInternal()
+		//
+		// Network loop
+		//
+		private void Run()
 		{
-			m_releasedIncomingMessages = new Queue<NetIncomingMessage>();
-			m_unsentUnconnectedMessage = new Queue<NetOutgoingMessage>();
-			m_unsentUnconnectedRecipients = new Queue<IPEndPoint>();
+			//
+			// Initialize
+			//
+			VerifyNetworkThread();
 
 			System.Net.NetworkInformation.PhysicalAddress pa = NetUtility.GetMacAddress();
 			if (pa != null)
@@ -49,14 +59,58 @@ namespace Lidgren.Network2
 			{
 				LogWarning("Failed to get Mac address");
 			}
-		}
 
-		//
-		// Network loop
-		//
-		private void Run()
-		{
+			InitializeRecycling();
+
 			LogDebug("Network thread started");
+
+			lock (m_initializeLock)
+			{
+				if (m_isInitialized)
+					return;
+				m_configuration.Lock();
+
+				m_statistics.Reset();
+
+				// bind to socket
+				IPEndPoint iep = null;
+				try
+				{
+					iep = new IPEndPoint(m_configuration.LocalAddress, m_configuration.Port);
+					EndPoint ep = (EndPoint)iep;
+
+					m_socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+					m_socket.ReceiveBufferSize = m_configuration.ReceiveBufferSize;
+					m_socket.SendBufferSize = m_configuration.SendBufferSize;
+					m_socket.Blocking = false;
+					m_socket.Bind(ep);
+
+					IPEndPoint boundEp = m_socket.LocalEndPoint as IPEndPoint;
+					LogDebug("Socket bound to " + boundEp + ": " + m_socket.IsBound);
+
+					m_receiveBuffer = new byte[m_configuration.ReceiveBufferSize];
+					m_sendBuffer = new byte[m_configuration.SendBufferSize];
+
+					LogVerbose("Initialization done");
+
+					// only set initialized if everything succeeds
+					m_isInitialized = true;
+				}
+				catch (SocketException sex)
+				{
+					if (sex.SocketErrorCode == SocketError.AddressAlreadyInUse)
+						throw new NetException("Failed to bind to port " + (iep == null ? "Null" : iep.ToString()) + " - Address already in use!", sex);
+					throw;
+				}
+				catch (Exception ex)
+				{
+					throw new NetException("Failed to bind to " + (iep == null ? "Null" : iep.ToString()), ex);
+				}
+			}
+
+			//
+			// Network loop
+			//
 
 			do
 			{
@@ -81,7 +135,7 @@ namespace Lidgren.Network2
 			// disconnect and make one final heartbeat
 			foreach (NetConnection conn in m_connections)
 				conn.ExecuteDisconnect(NetMessagePriority.High);
-			
+
 			// one final heartbeat, to get the disconnects onto the wire
 			Heartbeat();
 
@@ -106,6 +160,10 @@ namespace Lidgren.Network2
 				}
 			}
 
+			//
+			// TODO: make sure everything is DE-initialized (release etc)
+			//
+
 			return;
 		}
 
@@ -117,6 +175,8 @@ namespace Lidgren.Network2
 
 		private void Heartbeat()
 		{
+			VerifyNetworkThread();
+
 			// do connection heartbeats
 			foreach (NetConnection conn in m_connections)
 				conn.Heartbeat();
@@ -188,6 +248,8 @@ namespace Lidgren.Network2
 				try
 				{
 					bytesReceived = m_socket.ReceiveFrom(m_receiveBuffer, 0, m_receiveBuffer.Length, SocketFlags.None, ref m_senderRemote);
+					if (bytesReceived >= 0)
+						m_statistics.m_receivedBytes += bytesReceived;
 				}
 				catch (SocketException sx)
 				{
@@ -304,7 +366,7 @@ namespace Lidgren.Network2
 
 		private void HandleUnconnectedMessage(NetMessageType mtp, byte[] payload, int payloadLength, IPEndPoint senderEndPoint)
 		{
-			Debug.Assert(Thread.CurrentThread == m_networkThread);
+			VerifyNetworkThread();
 
 			switch (mtp)
 			{

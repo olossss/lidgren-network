@@ -26,12 +26,14 @@ namespace Lidgren.Network2
 
 			m_latencyWindowSize = owner.m_configuration.LatencyCalculationWindowSize;
 
-			InitializeReliability();
+			ReliabilityCtor();
 		}
 
 		// run on network thread
 		internal void Heartbeat()
 		{
+			m_owner.VerifyNetworkThread();
+
 			double now = NetTime.Now;
 
 			if (m_connectRequested)
@@ -196,6 +198,8 @@ namespace Lidgren.Network2
 
 		public void Disconnect(string byeMessage)
 		{
+			// called on user thread
+
 			if (m_status == NetConnectionStatus.Disconnected)
 				return;
 			m_owner.LogVerbose("Disconnect requested for " + this);
@@ -205,6 +209,8 @@ namespace Lidgren.Network2
 
 		internal void HandleReceivedConnectedMessage(double now, NetMessageType mtp, byte[] payload, int payloadLength)
 		{
+			m_owner.VerifyNetworkThread();
+
 			if (mtp < NetMessageType.LibraryNatIntroduction)
 			{
 				HandleIncomingLibraryData(now, mtp, payload, payloadLength);
@@ -234,6 +240,8 @@ namespace Lidgren.Network2
 
 		private void HandleIncomingLibraryData(double now, NetMessageType mtp, byte[] payload, int payloadLength)
 		{
+			m_owner.VerifyNetworkThread();
+
 			switch (mtp)
 			{
 				case NetMessageType.Error:

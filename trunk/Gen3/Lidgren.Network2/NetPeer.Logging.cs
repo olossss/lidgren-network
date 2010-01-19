@@ -10,42 +10,26 @@ namespace Lidgren.Network2
 		internal void LogVerbose(string message)
 		{
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.VerboseDebugMessage))
-			{
-				NetIncomingMessage msg = CreateIncomingMessage(NetIncomingMessageType.VerboseDebugMessage, message.Length + (message.Length > 126 ? 2 : 1));
-				msg.Write(message);
-				ReleaseMessage(msg);
-			}
+				ReleaseMessage(CreateIncomingMessage(NetIncomingMessageType.VerboseDebugMessage, message));
 		}
 
 		[Conditional("DEBUG")]
 		internal void LogDebug(string message)
 		{
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.DebugMessage))
-			{
-				NetIncomingMessage msg = CreateIncomingMessage(NetIncomingMessageType.DebugMessage, message.Length + (message.Length > 126 ? 2 : 1));
-				msg.Write(message);
-				ReleaseMessage(msg);
-			}
+				ReleaseMessage(CreateIncomingMessage(NetIncomingMessageType.DebugMessage, message));
 		}
 
 		internal void LogWarning(string message)
 		{
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.WarningMessage))
-			{
-				NetIncomingMessage msg = CreateIncomingMessage(NetIncomingMessageType.WarningMessage, message.Length + (message.Length > 126 ? 2 : 1));
-				msg.Write(message);
-				ReleaseMessage(msg);
-			}
+				ReleaseMessage(CreateIncomingMessage(NetIncomingMessageType.WarningMessage, message));
 		}
 
 		internal void LogError(string message)
 		{
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.ErrorMessage))
-			{
-				NetIncomingMessage msg = CreateIncomingMessage(NetIncomingMessageType.ErrorMessage, message.Length + (message.Length > 126 ? 2 : 1));
-				msg.Write(message);
-				ReleaseMessage(msg);
-			}
+				ReleaseMessage(CreateIncomingMessage(NetIncomingMessageType.ErrorMessage, message));
 		}
 	}
 }

@@ -15,6 +15,8 @@ namespace Lidgren.Network2
 
 		internal void SetStatus(NetConnectionStatus status, string reason)
 		{
+			m_owner.VerifyNetworkThread();
+
 			if (status == m_status)
 				return;
 			m_status = status;
@@ -31,9 +33,10 @@ namespace Lidgren.Network2
 			}
 		}
 
-		// runs on network thread
 		private void SendConnect()
 		{
+			m_owner.VerifyNetworkThread();
+
 			switch (m_status)
 			{
 				case NetConnectionStatus.Connected:
@@ -51,7 +54,7 @@ namespace Lidgren.Network2
 			}
 
 			m_connectRequested = false;
-			m_status = NetConnectionStatus.Connecting;
+			SetStatus(NetConnectionStatus.Connecting, "Connecting");
 
 			// start handshake
 
@@ -73,9 +76,10 @@ namespace Lidgren.Network2
 			return;
 		}
 
-		// run on network thread
 		internal void ExecuteDisconnect(NetMessagePriority prio)
 		{
+			m_owner.VerifyNetworkThread();
+
 			if (m_status == NetConnectionStatus.Disconnected)
 				return;
 
@@ -97,6 +101,8 @@ namespace Lidgren.Network2
 
 		private void HandleIncomingHandshake(NetMessageType mtp, byte[] payload, int payloadBytesLength)
 		{
+			m_owner.VerifyNetworkThread();
+
 			switch (mtp)
 			{
 				case NetMessageType.LibraryConnect:

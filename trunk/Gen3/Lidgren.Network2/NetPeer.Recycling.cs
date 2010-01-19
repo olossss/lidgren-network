@@ -103,6 +103,26 @@ namespace Lidgren.Network2
 		/// <summary>
 		/// Creates an incoming message with the required capacity for releasing to the application
 		/// </summary>
+		internal NetIncomingMessage CreateIncomingMessage(NetIncomingMessageType tp, string contents)
+		{
+			NetIncomingMessage retval;
+			if (string.IsNullOrEmpty(contents))
+			{
+				retval = CreateIncomingMessage(tp, 1);
+				retval.Write("");
+				return retval;
+			}
+
+			byte[] bytes = System.Text.Encoding.UTF8.GetBytes(contents);
+			retval = CreateIncomingMessage(tp, bytes.Length + (bytes.Length > 127 ? 2 : 1));
+			retval.Write(contents);
+
+			return retval;
+		}
+
+		/// <summary>
+		/// Creates an incoming message with the required capacity for releasing to the application
+		/// </summary>
 		internal NetIncomingMessage CreateIncomingMessage(NetIncomingMessageType tp, int requiredCapacity)
 		{
 			NetIncomingMessage retval;
