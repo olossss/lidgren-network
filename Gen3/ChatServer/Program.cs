@@ -13,7 +13,7 @@ namespace ChatServer
 		static void Main(string[] args)
 		{
 			NetPeerConfiguration config = new NetPeerConfiguration("chatapp");
-			//config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
+			config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
 			config.Port = 14242;
 
 			NetServer server = new NetServer(config);
@@ -49,7 +49,7 @@ namespace ChatServer
 
 							string astr = msg.ReadString();
 
-							NetOutgoingMessage reply = server.CreateMessage();
+							NetOutgoingMessage reply = server.CreateMessage(astr.Length + 1);
 							reply.Write(msg.SenderEndPoint.ToString() + " wrote: " + astr);
 							server.SendMessage(reply, server.Connections, NetMessageChannel.ReliableOrdered1, NetMessagePriority.Normal);
 							break;

@@ -55,9 +55,9 @@ namespace Lidgren.Network2
 					// send dummy keepalive message; remote host will response with an ack 
 					m_owner.LogVerbose("Sending keepalive ping");
 
-					NetOutgoingMessage ping = m_owner.CreateMessage();
+					NetOutgoingMessage ping = m_owner.CreateMessage(1);
 					ping.m_type = NetMessageType.LibraryKeepAlive;
-					SendMessage(ping, NetMessagePriority.High);
+					EnqueueOutgoingMessage(ping, NetMessagePriority.High);
 
 					m_nextKeepAlive = now + m_owner.m_configuration.KeepAliveDelay;
 				}

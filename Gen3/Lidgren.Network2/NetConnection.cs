@@ -177,10 +177,11 @@ namespace Lidgren.Network2
 				m_owner.SendPacket(ptr, m_remoteEndPoint);
 		}
 
-		public void SendMessage(NetOutgoingMessage msg, NetMessagePriority priority)
+		public void SendMessage(NetOutgoingMessage msg, NetMessageChannel channel, NetMessagePriority priority)
 		{
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
+			msg.m_type = (NetMessageType)channel;
 			EnqueueOutgoingMessage(msg, priority);
 		}
 
@@ -189,6 +190,7 @@ namespace Lidgren.Network2
 			Queue<NetOutgoingMessage> queue = m_unsentMessages[(int)priority];
 			lock (queue)
 				queue.Enqueue(msg);
+			
 			Interlocked.Increment(ref msg.m_inQueueCount);
 		}
 
@@ -213,18 +215,21 @@ namespace Lidgren.Network2
 			{
 				// TODO: propagate NetMessageType here to incoming message, exposing it to app?
 
+				//
+				// TODO: do reliabilility, sequence rejecting etc here
+				//
+
 				// it's an application data message
 				NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadLength);
 				im.m_senderConnection = this;
 				im.m_senderEndPoint = m_remoteEndPoint;
 
-				//
-				// TODO: do reliabilility, sequence rejecting etc here
-				//
-
 				m_owner.LogVerbose("Releasing " + im);
 				m_owner.ReleaseMessage(im);
+				return;
 			}
+
+			throw new NetException("Unhandled type " + mtp);
 		}
 
 		private void HandleIncomingLibraryData(double now, NetMessageType mtp, byte[] payload, int payloadLength)
