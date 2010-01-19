@@ -81,7 +81,7 @@ namespace Lidgren.Network
 
 		public NetBuffer CreateBuffer()
 		{
-			return CreateBuffer(4);
+			return CreateBuffer(m_config.m_defaultBufferCapacity);
 		}
 
 	}

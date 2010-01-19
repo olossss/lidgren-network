@@ -42,6 +42,7 @@ namespace Lidgren.Network
 		internal float m_throttleBytesPerSecond;
 		internal bool m_useBufferRecycling;
 		internal bool m_answerDiscoveryRequests;
+		internal int m_defaultBufferCapacity;
 
 		/// <summary>
 		/// Gets or sets the string identifying this particular application; distinquishing it from other Lidgren based applications. Ie. this needs to be the same on client and server.
@@ -131,6 +132,11 @@ namespace Lidgren.Network
 		public bool AnswerDiscoveryRequests { get { return m_answerDiscoveryRequests; } set { m_answerDiscoveryRequests = value; } }
 
 		/// <summary>
+		/// Default capacity of NetBuffer when creating with no argument
+		/// </summary>
+		public int DefaultBufferCapacity { get { return m_defaultBufferCapacity; } set { m_defaultBufferCapacity = value; } }
+
+		/// <summary>
 		/// Gets or sets the amount of bytes allowed to be sent per second; set to 0 for no throttling
 		/// </summary>
 		public float ThrottleBytesPerSecond
@@ -161,6 +167,7 @@ namespace Lidgren.Network
 			m_resendTimeMultiplier = 1.1f;
 			m_answerDiscoveryRequests = true;
 			m_useBufferRecycling = false; // TODO: enable this when sure there's no threading issues
+			m_defaultBufferCapacity = 8;
 		}
 	}
 }
