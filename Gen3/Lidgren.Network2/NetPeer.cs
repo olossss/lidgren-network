@@ -16,6 +16,7 @@ namespace Lidgren.Network2
 		private object m_initializeLock = new object();
 		
 		internal NetPeerConfiguration m_configuration;
+		private NetPeerStatistics m_statistics;
 		private Thread m_networkThread;
 
 		protected List<NetConnection> m_connections;
@@ -41,6 +42,7 @@ namespace Lidgren.Network2
 			m_connections = new List<NetConnection>();
 			m_connectionLookup = new Dictionary<IPEndPoint, NetConnection>();
 			m_senderRemote = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
+			m_statistics = new NetPeerStatistics();
 
 			InitializeRecycling();
 			InitializeInternal();
@@ -56,6 +58,8 @@ namespace Lidgren.Network2
 				if (m_isInitialized)
 					return;
 				m_configuration.Lock();
+
+				m_statistics.Reset();
 
 				// bind to socket
 				IPEndPoint iep = null;
@@ -114,7 +118,7 @@ namespace Lidgren.Network2
 				if (numBytes != bytesSent)
 					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
 
-				// TODO: add to statistics
+				m_statistics.m_sentPackets++;
 			}
 			catch (Exception ex)
 			{

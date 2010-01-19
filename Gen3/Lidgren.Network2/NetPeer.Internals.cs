@@ -207,6 +207,8 @@ namespace Lidgren.Network2
 				if (bytesReceived < 1)
 					return;
 
+				m_statistics.m_receivedPackets++;
+
 				double now = NetTime.Now;
 
 				//LogVerbose("Received " + bytesReceived + " bytes");
@@ -346,6 +348,8 @@ namespace Lidgren.Network2
 				case NetMessageType.LibraryConnectionRejected:
 				case NetMessageType.LibraryConnectResponse:
 				case NetMessageType.LibraryDisconnect:
+					throw new NetException("NetMessageType not valid for unconnected source");
+
 				case NetMessageType.LibraryDiscovery:
 				case NetMessageType.LibraryDiscoveryResponse:
 				case NetMessageType.LibraryNatIntroduction:

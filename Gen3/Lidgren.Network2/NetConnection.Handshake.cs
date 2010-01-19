@@ -18,9 +18,11 @@ namespace Lidgren.Network2
 			if (status == m_status)
 				return;
 			m_status = status;
+			if (reason == null)
+				reason = string.Empty;
 			if (m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.StatusChanged))
 			{
-				NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 4);
+				NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 4 + reason.Length + (reason.Length > 126 ? 2 : 1));
 				info.m_senderConnection = this;
 				info.m_senderEndPoint = m_remoteEndPoint;
 				info.Write((int)m_status);

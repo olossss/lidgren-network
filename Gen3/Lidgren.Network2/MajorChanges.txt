@@ -13,6 +13,7 @@ Major changes since the last version of the library
 * Much less allocations due to object pooling
 * More exact timeout
 * Higher frequency in ping/latency calculation
+* Reduced CPU usage
 * Completely thread safe
 
 
