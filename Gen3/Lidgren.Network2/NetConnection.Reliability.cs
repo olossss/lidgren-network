@@ -17,7 +17,8 @@ namespace Lidgren.Network2
 		private int m_packetListStart;
 		private int m_packetListLength;
 
-		private void InitializeReliability()
+		// called on user thread
+		private void ReliabilityCtor()
 		{
 			m_nextPacketNumberToSend = 1;
 			m_packetList = new List<NetOutgoingMessage>[WINDOW_SIZE];
@@ -34,7 +35,7 @@ namespace Lidgren.Network2
 		{
 			if (m_packetListLength == WINDOW_SIZE)
 			{
-				// window is shut; but if the first slot does not have any reliable messages; just push forward
+				// window is shut; but if the first slot does not have any reliable messages just push forward
 				if (m_packetList[m_packetListStart].Count > 0)
 				{
 					// window is shut
@@ -64,6 +65,8 @@ namespace Lidgren.Network2
 		// returns roundtrip time for this packet
 		private void ReceiveAcknowledge(double now, int packetNumber)
 		{
+			m_owner.VerifyNetworkThread(); 
+			
 			if (packetNumber < m_packetListStartNumber || packetNumber > (m_packetListStartNumber + m_packetListLength))
 			{
 				// not in list? odd
@@ -83,6 +86,8 @@ namespace Lidgren.Network2
 
 		internal void SendAcknowledge(int packetNumber)
 		{
+			m_owner.VerifyNetworkThread();
+
 			m_owner.LogVerbose("Queueing ack for R#" + packetNumber);
 
 			lock (m_acksToSend)

@@ -8,6 +8,9 @@ namespace Lidgren.Network2
 		internal int m_sentPackets;
 		internal int m_receivedPackets;
 
+		internal int m_sentBytes;
+		internal int m_receivedBytes;
+
 		internal NetPeerStatistics()
 		{
 			Reset();
@@ -28,5 +31,15 @@ namespace Lidgren.Network2
 		/// Gets the number of received packets since the NetPeer was initialized
 		/// </summary>
 		public int ReceivedPackets { get { return m_receivedPackets; } }
+
+		/// <summary>
+		/// Gets the number of sent bytes since the NetPeer was initialized
+		/// </summary>
+		public int SentBytes { get { return m_sentBytes; } }
+
+		/// <summary>
+		/// Gets the number of received bytes since the NetPeer was initialized
+		/// </summary>
+		public int ReceivedBytes { get { return m_receivedBytes; } }
 	}
 }

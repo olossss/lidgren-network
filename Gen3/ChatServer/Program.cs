@@ -17,7 +17,7 @@ namespace ChatServer
 			config.Port = 14242;
 
 			NetServer server = new NetServer(config);
-			server.Initialize();
+			server.Start();
 
 			while (!Console.KeyAvailable)
 			{

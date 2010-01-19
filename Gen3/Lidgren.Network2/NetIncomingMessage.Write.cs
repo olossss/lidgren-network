@@ -419,7 +419,7 @@ namespace Lidgren.Network2
 			}
 
 			byte[] bytes = Encoding.UTF8.GetBytes(source);
-			InternalEnsureBufferSize(m_bitLength + 1 + bytes.Length);
+			InternalEnsureBufferSize(m_bitLength + (bytes.Length > 127 ? 2 * 8 : 1 * 8) + (bytes.Length * 8));
 			WriteVariableUInt32((uint)bytes.Length);
 			Write(bytes);
 		}

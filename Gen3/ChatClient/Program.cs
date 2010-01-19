@@ -18,7 +18,7 @@ namespace ChatClient
 			config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
 
 			NetClient client = new NetClient(config);
-			client.Initialize();
+			client.Start();
 
 			Thread.Sleep(1000); // let server start up
 
