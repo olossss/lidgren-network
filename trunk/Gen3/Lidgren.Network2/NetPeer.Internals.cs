@@ -82,7 +82,7 @@ namespace Lidgren.Network2
 			foreach (NetConnection conn in m_connections)
 				conn.ExecuteDisconnect(NetMessagePriority.High);
 			
-			// one final heartbeat, to get the disconnects out the door
+			// one final heartbeat, to get the disconnects onto the wire
 			Heartbeat();
 
 			lock (m_initializeLock)
@@ -323,9 +323,12 @@ namespace Lidgren.Network2
 					// TODO: connection approval, including hail data
 
 					NetConnection conn = new NetConnection(this, senderEndPoint);
-					m_connections.Add(conn);
-					m_connectionLookup[senderEndPoint] = conn;
 					conn.m_connectionInitiator = false;
+					lock (m_connections)
+					{
+						m_connections.Add(conn);
+						m_connectionLookup[senderEndPoint] = conn;
+					}
 					conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
 
 					// send connection response

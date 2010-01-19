@@ -34,7 +34,7 @@ namespace Lidgren.Network2
 		/// <summary>
 		/// Sends message to server
 		/// </summary>
-		public void SendMessage(NetOutgoingMessage msg, NetMessagePriority priority)
+		public void SendMessage(NetOutgoingMessage msg, NetMessageChannel channel, NetMessagePriority priority)
 		{
 			NetConnection serverConnection = ServerConnection;
 			if (serverConnection == null)
@@ -42,7 +42,7 @@ namespace Lidgren.Network2
 				LogError("Cannot send message, no server connection!");
 				return;
 			}
-			serverConnection.SendMessage(msg, priority);
+			serverConnection.SendMessage(msg, channel, priority);
 		}
 	}
 }

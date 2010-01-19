@@ -2,7 +2,7 @@
 
 namespace Lidgren.Network2
 {
-	// visible subset of NetMessageType
+	// public visible subset of NetMessageType
 	public enum NetMessageChannel : byte
 	{
 		Unreliable = 14,

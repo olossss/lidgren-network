@@ -190,13 +190,17 @@ namespace Lidgren.Network2
 				throw new NetException("Already connected to that endpoint!");
 
 			NetConnection conn = new NetConnection(this, remoteEndPoint);
-			m_connections.Add(conn);
-			m_connectionLookup[remoteEndPoint] = conn;
 
 			// handle on network thread
 			conn.m_connectRequested = true;
 			conn.m_connectionInitiator = true;
 			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
+
+			lock (m_connections)
+			{
+				m_connections.Add(conn);
+				m_connectionLookup[remoteEndPoint] = conn;
+			}
 
 			return conn;
 		}
@@ -209,8 +213,11 @@ namespace Lidgren.Network2
 			LogDebug("Shutdown requested");
 
 			// disconnect all connections
-			foreach (NetConnection conn in m_connections)
-				conn.Disconnect(bye);
+			lock (m_connections)
+			{
+				foreach (NetConnection conn in m_connections)
+					conn.Disconnect(bye);
+			}
 
 			m_initiateShutdown = true;
 		}

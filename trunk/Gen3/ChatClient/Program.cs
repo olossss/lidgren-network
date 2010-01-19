@@ -15,7 +15,7 @@ namespace ChatClient
 		static void Main(string[] args)
 		{
 			NetPeerConfiguration config = new NetPeerConfiguration("chatapp");
-			//config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
+			config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
 
 			NetClient client = new NetClient(config);
 			client.Initialize();

@@ -3,7 +3,7 @@
 namespace Lidgren.Network2
 {
 	/// <summary>
-	/// Status for a connection
+	/// Status of a connection
 	/// </summary>
 	public enum NetConnectionStatus
 	{

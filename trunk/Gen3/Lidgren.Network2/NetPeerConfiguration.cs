@@ -43,6 +43,7 @@ namespace Lidgren.Network2
 			m_connectionTimeOut = 25;
 			m_maximumConnections = 8;
 			m_latencyCalculationWindowSize = 1.0f;
+			m_defaultOutgoingMessageCapacity = 8;
 
 			// default disabled types
 			m_disabledTypes = new bool[Enum.GetNames(typeof(NetIncomingMessageType)).Length];
@@ -106,7 +107,7 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
-		/// Gets or sets the maximum amount of connections this peer can hold, if accepting. Cannot be changed once NetPeer is initialized.
+		/// Gets or sets the maximum amount of connections this peer can hold. Cannot be changed once NetPeer is initialized.
 		/// </summary>
 		public int MaximumConnections
 		{

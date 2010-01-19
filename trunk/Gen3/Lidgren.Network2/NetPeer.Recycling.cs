@@ -105,7 +105,6 @@ namespace Lidgren.Network2
 		/// </summary>
 		internal NetIncomingMessage CreateIncomingMessage(NetIncomingMessageType tp, int requiredCapacity)
 		{
-			// TODO: get NetIncomingMessage object from recycling pool
 			NetIncomingMessage retval;
 			if (m_incomingMessagesPool.Count > 0)
 			{
@@ -146,8 +145,27 @@ namespace Lidgren.Network2
 
 		internal NetIncomingMessage CreateIncomingMessage(NetIncomingMessageType tp, byte[] payload, int payloadByteLength)
 		{
-			// TODO: get NetIncomingMessage object from recycling pool
-			NetIncomingMessage retval = new NetIncomingMessage();
+			NetIncomingMessage retval;
+			if (m_incomingMessagesPool.Count > 0)
+			{
+				lock (m_incomingMessagesPool)
+				{
+					if (m_incomingMessagesPool.Count > 0)
+					{
+						retval = m_incomingMessagesPool.Dequeue();
+						retval.Reset();
+					}
+					else
+					{
+						retval = new NetIncomingMessage();
+					}
+				}
+			}
+			else
+			{
+				retval = new NetIncomingMessage();
+			}
+
 			retval.m_data = payload;
 			retval.m_bitLength = payloadByteLength * 8;
 			retval.m_messageType = tp;
