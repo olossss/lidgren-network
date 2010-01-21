@@ -27,7 +27,7 @@ namespace Lidgren.Network2
 				NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 4 + reason.Length + (reason.Length > 126 ? 2 : 1));
 				info.m_senderConnection = this;
 				info.m_senderEndPoint = m_remoteEndPoint;
-				info.Write((int)m_status);
+				info.Write((byte)m_status);
 				info.Write(reason);
 				m_owner.ReleaseMessage(info);
 			}
@@ -61,8 +61,9 @@ namespace Lidgren.Network2
 			int len = 2 + m_owner.m_macAddressBytes.Length;
 			NetOutgoingMessage om = m_owner.CreateMessage(len);
 			om.m_type = NetMessageType.LibraryConnect;
-			om.Write((byte)m_owner.m_macAddressBytes.Length);
-			om.Write(m_owner.m_macAddressBytes);
+			om.Write(m_owner.m_configuration.AppIdentifier);
+			//om.Write((byte)m_owner.m_macAddressBytes.Length);
+			//om.Write(m_owner.m_macAddressBytes);
 			if (m_hail == null)
 				m_hail = string.Empty;
 			om.Write(m_hail);

@@ -134,7 +134,10 @@ namespace Lidgren.Network2
 
 			// disconnect and make one final heartbeat
 			foreach (NetConnection conn in m_connections)
+			{
+				conn.m_disconnectByeMessage = "Shutting down";
 				conn.ExecuteDisconnect(NetMessagePriority.High);
+			}
 
 			// one final heartbeat, to get the disconnects onto the wire
 			Heartbeat();
@@ -248,8 +251,6 @@ namespace Lidgren.Network2
 				try
 				{
 					bytesReceived = m_socket.ReceiveFrom(m_receiveBuffer, 0, m_receiveBuffer.Length, SocketFlags.None, ref m_senderRemote);
-					if (bytesReceived >= 0)
-						m_statistics.m_receivedBytes += bytesReceived;
 				}
 				catch (SocketException sx)
 				{
@@ -270,12 +271,11 @@ namespace Lidgren.Network2
 					return;
 
 				m_statistics.m_receivedPackets++;
+				m_statistics.m_receivedBytes += bytesReceived;
 
 				double now = NetTime.Now;
 
 				//LogVerbose("Received " + bytesReceived + " bytes");
-
-				// TODO: add received bytes statistics
 
 				IPEndPoint ipsender = (IPEndPoint)m_senderRemote;
 
@@ -316,7 +316,7 @@ namespace Lidgren.Network2
 
 						if (ptr >= bytesReceived)
 						{
-							LogWarning("Malformed message; not enough bytes");
+							LogWarning("Malformed message from " + ipsender.ToString() + "; not enough bytes");
 							break;
 						}
 
@@ -377,6 +377,31 @@ namespace Lidgren.Network2
 						return;
 					}
 
+					string appIdent;
+					byte[] macAddress;
+					string hail;
+					try
+					{
+						NetIncomingMessage reader = new NetIncomingMessage();
+						reader.m_data = payload;
+						reader.m_bitLength = payloadLength * 8;
+						appIdent = reader.ReadString();
+						hail = reader.ReadString();
+					}
+					catch (Exception ex)
+					{
+						// malformed connect packet
+						LogWarning("Malformed connect packet from " + senderEndPoint + " - " + ex.ToString());
+						return;
+					}
+
+					if (appIdent.Equals(m_configuration.AppIdentifier) == false)
+					{
+						// wrong app ident
+						LogWarning("Connect received with wrong appidentifier (need '" + m_configuration.AppIdentifier + "' found '" + appIdent + "') from " + senderEndPoint);
+						return;
+					}
+
 					// ok, someone wants to connect to us, and we're accepting connections!
 					if (m_connections.Count >= m_configuration.MaximumConnections)
 					{
@@ -384,7 +409,7 @@ namespace Lidgren.Network2
 						return;
 					}
 
-					// TODO: connection approval, including hail data
+					// TODO: connection approval, pass hail data
 
 					NetConnection conn = new NetConnection(this, senderEndPoint);
 					conn.m_connectionInitiator = false;
@@ -409,8 +434,11 @@ namespace Lidgren.Network2
 				case NetMessageType.LibraryConnectionEstablished:
 				case NetMessageType.LibraryConnectionRejected:
 				case NetMessageType.LibraryConnectResponse:
-				case NetMessageType.LibraryDisconnect:
 					throw new NetException("NetMessageType not valid for unconnected source");
+
+				case NetMessageType.LibraryDisconnect:
+					// really should never happen; but we'll let this one slip
+					break;
 
 				case NetMessageType.LibraryDiscovery:
 				case NetMessageType.LibraryDiscoveryResponse:

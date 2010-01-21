@@ -36,6 +36,14 @@ namespace Lidgren.Network2
 			}
 		}
 
+		/// <summary>
+		/// Returns the number of active connections
+		/// </summary>
+		public int ConnectionsCount
+		{
+			get { return m_connections.Count; }
+		}
+
 		public NetPeer(NetPeerConfiguration configuration)
 		{
 			m_configuration = configuration;

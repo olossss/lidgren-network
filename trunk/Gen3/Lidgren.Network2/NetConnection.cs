@@ -109,7 +109,10 @@ namespace Lidgren.Network2
 					}
 
 					if (msgPayloadLength > 0)
+					{
 						Buffer.BlockCopy(msg.m_data, 0, buffer, ptr, msgPayloadLength);
+						ptr += msgPayloadLength;
+					}
 	
 					if (msg.m_type >= NetMessageType.UserReliableUnordered)
 					{
