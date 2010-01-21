@@ -62,6 +62,7 @@ namespace Lidgren.Network2
 					m_nextKeepAlive = now + m_owner.m_configuration.KeepAliveDelay;
 				}
 
+				// timeout
 				if (!m_disconnectRequested && now > m_lastSendRespondedTo + m_owner.m_configuration.ConnectionTimeOut)
 					Disconnect("Timed out");
 			}

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace CSLogViewer.Properties
+namespace TestServer.Properties
 {
 
 
