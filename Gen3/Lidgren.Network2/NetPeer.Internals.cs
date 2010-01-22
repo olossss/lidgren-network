@@ -180,9 +180,22 @@ namespace Lidgren.Network2
 		{
 			VerifyNetworkThread();
 
+#if DEBUG
+			// send delayed packets
+			SendDelayedPackets();
+#endif
+
 			// do connection heartbeats
+			RestartConnectionHeartbeat:
 			foreach (NetConnection conn in m_connections)
+			{
 				conn.Heartbeat();
+				if (conn.m_status == NetConnectionStatus.Disconnected)
+				{
+					RemoveConnection(conn);
+					goto RestartConnectionHeartbeat;
+				}
+			}
 
 			// send unconnected sends
 			if (m_unsentUnconnectedMessage.Count > 0)
@@ -378,7 +391,6 @@ namespace Lidgren.Network2
 					}
 
 					string appIdent;
-					byte[] macAddress;
 					string hail;
 					try
 					{
@@ -430,12 +442,11 @@ namespace Lidgren.Network2
 
 					break;
 				case NetMessageType.LibraryAckNack:
-				case NetMessageType.LibraryAcknowledge:
 				case NetMessageType.LibraryConnectionEstablished:
-				case NetMessageType.LibraryConnectionRejected:
 				case NetMessageType.LibraryConnectResponse:
 					throw new NetException("NetMessageType not valid for unconnected source");
 
+				case NetMessageType.LibraryAcknowledge:
 				case NetMessageType.LibraryDisconnect:
 					// really should never happen; but we'll let this one slip
 					break;
@@ -460,12 +471,18 @@ namespace Lidgren.Network2
 			}
 		}
 
+		internal void RemoveConnection(NetConnection conn)
+		{
+			m_connections.Remove(conn);
+			m_connectionLookup.Remove(conn.m_remoteEndPoint);
+		}
+
 		private void HandleServerFull(IPEndPoint connecter)
 		{
 			const string rejectMessage = "Server is full!";
 
 			NetOutgoingMessage reply = CreateMessage(rejectMessage.Length + 1);
-			reply.m_type = NetMessageType.LibraryConnectionRejected;
+			reply.m_type = NetMessageType.LibraryDisconnect;
 			reply.Write(rejectMessage);
 			EnqueueUnconnectedMessage(reply, connecter);
 		}

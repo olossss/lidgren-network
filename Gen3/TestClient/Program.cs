@@ -21,12 +21,13 @@ namespace TestClient
 			MainForm = new Form1();
 
 			NetPeerConfiguration config = new NetPeerConfiguration("test");
-			config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
 			Client = new NetClient(config);
 			Client.Start();
 
 			Application.Idle += new EventHandler(AppLoop);
 			Application.Run(MainForm);
+
+			Client.Shutdown("application exiting");
 		}
 
 		static void AppLoop(object sender, EventArgs e)

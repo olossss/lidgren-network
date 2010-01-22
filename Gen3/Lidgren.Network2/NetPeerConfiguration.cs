@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using System.Diagnostics;
 
 namespace Lidgren.Network2
 {
@@ -27,6 +28,11 @@ namespace Lidgren.Network2
 		internal float m_latencyCalculationWindowSize;
 		private bool[] m_disabledTypes;
 
+		// bad network simulation
+		internal float m_loss;
+		internal float m_minimumOneWayLatency;
+		internal float m_randomOneWayLatency;
+
 		public NetPeerConfiguration(string appIdentifier)
 		{
 			if (string.IsNullOrEmpty(appIdentifier))
@@ -47,6 +53,10 @@ namespace Lidgren.Network2
 			m_latencyCalculationWindowSize = 1.0f;
 			m_defaultOutgoingMessageCapacity = 8;
 
+			m_loss = 0.0f;
+			m_minimumOneWayLatency = 0.0f;
+			m_randomOneWayLatency = 0.0f;
+
 			// default disabled types
 			m_disabledTypes = new bool[Enum.GetNames(typeof(NetIncomingMessageType)).Length];
 			m_disabledTypes[(int)NetIncomingMessageType.ConnectionApproval] = true;
@@ -58,6 +68,44 @@ namespace Lidgren.Network2
 		{
 			m_isLocked = true;
 		}
+
+#if DEBUG
+		/// <summary>
+		/// Gets or sets the simulated amount of sent packets lost from 0.0f to 1.0f
+		/// </summary>
+		public float SimulatedLoss
+		{
+			get { return m_loss; }
+			set { m_loss = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets the minimum simulated amount of one way latency for sent packets in seconds
+		/// </summary>
+		public float SimulatedMinimumLatency
+		{
+			get { return m_minimumOneWayLatency; }
+			set { m_minimumOneWayLatency = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets the simulated added random amount of one way latency for sent packets in seconds
+		/// </summary>
+		public float SimulatedRandomLatency
+		{
+			get { return m_randomOneWayLatency; }
+			set { m_randomOneWayLatency = value; }
+		}
+
+		/// <summary>
+		/// Gets the average simulated one way latency in seconds
+		/// </summary>
+		public float SimulatedAverageLatency
+		{
+			get { return m_minimumOneWayLatency + (m_randomOneWayLatency * 0.5f); }
+		}
+
+#endif
 
 		/// <summary>
 		/// Gets or sets the identifier of this application; the library can only connect to matching app identifier peers

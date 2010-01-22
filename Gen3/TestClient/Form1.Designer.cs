@@ -40,6 +40,8 @@
 			this.label6 = new System.Windows.Forms.Label();
 			this.button1 = new System.Windows.Forms.Button();
 			this.button2 = new System.Windows.Forms.Button();
+			this.button3 = new System.Windows.Forms.Button();
+			this.checkBox1 = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// richTextBox1
@@ -47,9 +49,9 @@
 			this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
 						| System.Windows.Forms.AnchorStyles.Left)
 						| System.Windows.Forms.AnchorStyles.Right)));
-			this.richTextBox1.Location = new System.Drawing.Point(12, 108);
+			this.richTextBox1.Location = new System.Drawing.Point(12, 159);
 			this.richTextBox1.Name = "richTextBox1";
-			this.richTextBox1.Size = new System.Drawing.Size(739, 343);
+			this.richTextBox1.Size = new System.Drawing.Size(739, 368);
 			this.richTextBox1.TabIndex = 0;
 			this.richTextBox1.Text = "";
 			// 
@@ -70,6 +72,7 @@
 			this.textBox2.TabIndex = 3;
 			this.textBox2.Text = "100";
 			this.textBox2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
 			// 
 			// textBox3
 			// 
@@ -95,6 +98,7 @@
 			this.textBox4.TabIndex = 7;
 			this.textBox4.Text = "100";
 			this.textBox4.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			this.textBox4.TextChanged += new System.EventHandler(this.textBox4_TextChanged);
 			// 
 			// label3
 			// 
@@ -152,11 +156,34 @@
 			this.button2.UseVisualStyleBackColor = true;
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
+			// button3
+			// 
+			this.button3.Location = new System.Drawing.Point(381, 67);
+			this.button3.Name = "button3";
+			this.button3.Size = new System.Drawing.Size(151, 23);
+			this.button3.TabIndex = 14;
+			this.button3.Text = "Disconnect";
+			this.button3.UseVisualStyleBackColor = true;
+			this.button3.Click += new System.EventHandler(this.button3_Click);
+			// 
+			// checkBox1
+			// 
+			this.checkBox1.AutoSize = true;
+			this.checkBox1.Location = new System.Drawing.Point(550, 71);
+			this.checkBox1.Name = "checkBox1";
+			this.checkBox1.Size = new System.Drawing.Size(158, 17);
+			this.checkBox1.TabIndex = 15;
+			this.checkBox1.Text = "Display verbose messages";
+			this.checkBox1.UseVisualStyleBackColor = true;
+			this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(763, 463);
+			this.ClientSize = new System.Drawing.Size(763, 539);
+			this.Controls.Add(this.checkBox1);
+			this.Controls.Add(this.button3);
 			this.Controls.Add(this.button2);
 			this.Controls.Add(this.button1);
 			this.Controls.Add(this.label6);
@@ -191,6 +218,8 @@
 		public System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.Button button2;
+		private System.Windows.Forms.Button button3;
+		private System.Windows.Forms.CheckBox checkBox1;
 	}
 }
 

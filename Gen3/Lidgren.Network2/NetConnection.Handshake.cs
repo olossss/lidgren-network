@@ -96,7 +96,11 @@ namespace Lidgren.Network2
 
 			EnqueueOutgoingMessage(om, prio);
 
+			m_connectionInitiator = false;
 			SetStatus(NetConnectionStatus.Disconnected, m_disconnectByeMessage);
+
+			m_disconnectByeMessage = null;
+
 			return;
 		}
 

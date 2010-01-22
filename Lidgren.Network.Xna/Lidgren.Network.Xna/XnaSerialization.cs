@@ -34,6 +34,32 @@ namespace Lidgren.Network.Xna
 		}
 
 		/// <summary>
+		/// Read a Point
+		/// </summary>
+		public static Point ReadPoint(NetBuffer buffer)
+		{
+			return new Point(buffer.ReadInt32(), buffer.ReadInt32());
+		}
+
+		/// <summary>
+		/// Write a Single with half precision (16 bits)
+		/// </summary>
+		public static void WriteHalfPrecision(NetBuffer buffer, float value)
+		{
+			buffer.Write(new HalfSingle(value).PackedValue);
+		}
+
+		/// <summary>
+		/// Reads a half precision Single written using WriteHalfPrecision(float)
+		/// </summary>
+		public static float ReadHalfPrecisionSingle(NetBuffer buffer)
+		{
+			HalfSingle h = new HalfSingle();
+			h.PackedValue = buffer.ReadUInt16();
+			return h.ToSingle();
+		}
+
+		/// <summary>
 		/// Writes a Vector2
 		/// </summary>
 		public static void Write(NetBuffer buffer, Vector2 vector)

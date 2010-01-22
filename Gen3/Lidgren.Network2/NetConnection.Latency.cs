@@ -70,6 +70,7 @@ namespace Lidgren.Network2
 
 		internal void UpdateLatency(double now, float rt)
 		{
+			m_owner.LogVerbose("Got lag: " + NetTime.ToReadable(m_currentAvgRoundtrip));
 			if (now > m_latencyWindowStart + m_latencyWindowSize)
 			{
 				// calculate avg rt 
