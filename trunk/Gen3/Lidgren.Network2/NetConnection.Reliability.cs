@@ -5,7 +5,7 @@ namespace Lidgren.Network2
 {
 	public partial class NetConnection
 	{
-		private const int WINDOW_SIZE = 4;
+		private const int WINDOW_SIZE = 32;
 
 		private ushort m_nextPacketNumberToSend;
 
@@ -59,6 +59,8 @@ namespace Lidgren.Network2
 			packetNumber = m_nextPacketNumberToSend;
 			m_nextPacketNumberToSend++;
 
+			m_owner.LogVerbose("SendPacket returned slot " + packetSlot + " T" + NetTime.ToReadable(NetTime.Now));
+
 			return true;
 		}
 
@@ -75,7 +77,7 @@ namespace Lidgren.Network2
 			else
 			{
 				int slot = (m_packetListStart + (packetNumber - m_packetListStartNumber)) % WINDOW_SIZE;
-				m_owner.LogVerbose("Received ack for packet P#" + packetNumber + " - clearing " + m_packetList[packetNumber - m_packetListStartNumber].Count + " stored messages");
+				m_owner.LogVerbose("Received ack for packet P#" + packetNumber + " - clearing slot " + slot + " of " + m_packetList[slot].Count + " stored messages T" + NetTime.ToReadable(NetTime.Now));
 				m_packetList[slot].Clear();
 
 				m_lastSendRespondedTo = m_packetSendTimes[slot];

@@ -45,6 +45,14 @@ namespace Lidgren.Network2
 		}
 
 		/// <summary>
+		/// Statistics on this NetPeer since it was initialized
+		/// </summary>
+		public NetPeerStatistics Statistics
+		{
+			get { return m_statistics; }
+		}
+
+		/// <summary>
 		/// Returns the configuration of the netpeer
 		/// </summary>
 		public NetPeerConfiguration Configuration { get { return m_configuration; } }
