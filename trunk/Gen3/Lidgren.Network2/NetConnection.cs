@@ -214,28 +214,40 @@ namespace Lidgren.Network2
 		{
 			m_owner.VerifyNetworkThread();
 
-			if (mtp < NetMessageType.LibraryNatIntroduction)
+			try
 			{
-				HandleIncomingLibraryData(now, mtp, payload, payloadLength);
-				return;
+				if (mtp < NetMessageType.LibraryNatIntroduction)
+				{
+					HandleIncomingLibraryData(now, mtp, payload, payloadLength);
+					return;
+				}
+
+				if (m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.Data))
+				{
+					// TODO: propagate NetMessageType here to incoming message, exposing it to app?
+
+					//
+					// TODO: do reliabilility, sequence rejecting etc here
+					//
+
+					// it's an application data message
+					NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadLength);
+					im.m_senderConnection = this;
+					im.m_senderEndPoint = m_remoteEndPoint;
+
+					m_owner.LogVerbose("Releasing " + im);
+					m_owner.ReleaseMessage(im);
+					return;
+				}
 			}
-
-			if (m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.Data))
+			catch (Exception ex)
 			{
-				// TODO: propagate NetMessageType here to incoming message, exposing it to app?
-
-				//
-				// TODO: do reliabilility, sequence rejecting etc here
-				//
-
-				// it's an application data message
-				NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadLength);
-				im.m_senderConnection = this;
-				im.m_senderEndPoint = m_remoteEndPoint;
-
-				m_owner.LogVerbose("Releasing " + im);
-				m_owner.ReleaseMessage(im);
+#if DEBUG
+				throw new NetException("Message generated exception: " + ex, ex);
+#else
+				m_owner.LogError("Message generated exception: " + ex);
 				return;
+#endif
 			}
 
 			throw new NetException("Unhandled type " + mtp);

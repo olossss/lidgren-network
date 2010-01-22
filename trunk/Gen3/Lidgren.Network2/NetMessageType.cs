@@ -71,14 +71,14 @@ namespace Lidgren.Network2
 		LibraryConnect = 4,
 		LibraryConnectResponse = 5,
 		LibraryConnectionEstablished = 6,
-		LibraryConnectionRejected = 7,
-		LibraryDisconnect = 8,
-		LibraryDiscovery = 9,
-		LibraryDiscoveryResponse = 10,
-		LibraryNatIntroduction = 11,
+		LibraryDisconnect = 7,
+		LibraryDiscovery = 8,
+		LibraryDiscoveryResponse = 9,
+		LibraryNatIntroduction = 10,
 
-		Unused1 = 12,
-		Unused2 = 13,
+		Unused1 = 11,
+		Unused2 = 12,
+		Unused3 = 13,
 
 		UserUnreliable = 14,
 

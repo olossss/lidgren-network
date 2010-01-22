@@ -79,8 +79,8 @@ namespace Lidgren.Network2
 				m_packetList[slot].Clear();
 
 				m_lastSendRespondedTo = m_packetSendTimes[slot];
-			
-				UpdateLatency(now, (float)(now - m_packetSendTimes[slot]));
+
+				UpdateLatency(now, (float)(now - m_lastSendRespondedTo));
 			}
 		}
 

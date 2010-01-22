@@ -44,6 +44,11 @@ namespace Lidgren.Network2
 			get { return m_connections.Count; }
 		}
 
+		/// <summary>
+		/// Returns the configuration of the netpeer
+		/// </summary>
+		public NetPeerConfiguration Configuration { get { return m_configuration; } }
+
 		public NetPeer(NetPeerConfiguration configuration)
 		{
 			m_configuration = configuration;
@@ -77,32 +82,6 @@ namespace Lidgren.Network2
 
 			// allow some time for network thread to start up in case they call Connect() immediately
 			Thread.Sleep(3);
-		}
-
-		internal void SendPacket(int numBytes, IPEndPoint target)
-		{
-			try
-			{
-#if DEBUG
-				ushort packetNumber = (ushort)(m_sendBuffer[0] | (m_sendBuffer[1] << 8));
-				LogVerbose("Sending packet P#" + packetNumber + " (" + numBytes + " bytes)");
-#endif
-
-				// TODO: Use SendToAsync()?
-				int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
-				if (numBytes != bytesSent)
-					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
-
-				if (bytesSent >= 0)
-				{
-					m_statistics.m_sentPackets++;
-					m_statistics.m_sentBytes += bytesSent;
-				}
-			}
-			catch (Exception ex)
-			{
-				LogError("Failed to send packet: " + ex);
-			}
 		}
 
 		public void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetMessageChannel channel, NetMessagePriority priority)

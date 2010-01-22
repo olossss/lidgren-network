@@ -65,6 +65,7 @@
     <Compile Include="NetOutgoingMessage.Write.cs" />
     <Compile Include="NetPeer.cs" />
     <Compile Include="NetPeer.Internals.cs" />
+    <Compile Include="NetPeer.LatencySimulation.cs" />
     <Compile Include="NetPeer.Logging.cs" />
     <Compile Include="NetPeer.Recycling.cs" />
     <Compile Include="NetPeerConfiguration.cs" />

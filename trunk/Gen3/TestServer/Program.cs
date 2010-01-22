@@ -22,12 +22,13 @@ namespace TestServer
 
 			NetPeerConfiguration config = new NetPeerConfiguration("test");
 			config.Port = 14242;
-			config.EnableMessageType(NetIncomingMessageType.VerboseDebugMessage);
 			Server = new NetServer(config);
 			Server.Start();
 
 			Application.Idle += new EventHandler(AppLoop);
 			Application.Run(MainForm);
+
+			Server.Shutdown("application exiting");
 		}
 
 		static void AppLoop(object sender, EventArgs e)
