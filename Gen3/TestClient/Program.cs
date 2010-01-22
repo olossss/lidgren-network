@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Lidgren.Network2;
 using System.Threading;
+using SamplesCommon;
 
 namespace TestClient
 {
@@ -52,6 +53,9 @@ namespace TestClient
 						case NetIncomingMessageType.StatusChanged:
 							NetConnectionStatus status = (NetConnectionStatus)msg.ReadByte();
 							ConsoleOut("New status: " + status + " (" + msg.ReadString() + ")");
+							break;
+						case NetIncomingMessageType.Data:
+							ConsoleOut("Server says: " + msg.ReadString());
 							break;
 						default:
 							ConsoleOut("Received " + msg.MessageType);

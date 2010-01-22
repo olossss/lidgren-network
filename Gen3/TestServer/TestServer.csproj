@@ -78,12 +78,15 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="NativeMethods.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Lidgren.Network2\Lidgren.Network2.csproj">
       <Project>{2A463F6F-7EFD-49B1-80F4-E00D66F9E61D}</Project>
       <Name>Lidgren.Network2</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SamplesCommon\SamplesCommon.csproj">
+      <Project>{A5631D80-6F05-4028-AB56-7EFBE971CD84}</Project>
+      <Name>SamplesCommon</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

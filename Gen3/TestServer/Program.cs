@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Lidgren.Network2;
 using System.Threading;
+using SamplesCommon;
 
 namespace TestServer
 {

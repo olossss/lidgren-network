@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using Lidgren.Network2;
+using SamplesCommon;
 
 namespace TestClient
 {
@@ -45,29 +46,11 @@ namespace TestClient
 				!Program.Client.Configuration.IsMessageTypeEnabled(NetIncomingMessageType.VerboseDebugMessage)
 			);
 		}
-
-		private void textBox2_TextChanged(object sender, EventArgs e)
+				
+		private void button4_Click(object sender, EventArgs e)
 		{
-			float min;
-			if (float.TryParse(textBox2.Text, out min))
-				Program.Client.Configuration.SimulatedMinimumLatency = (float)(min / 1000.0);
-			textBox2.Text = ((int)(Program.Client.Configuration.SimulatedMinimumLatency * 1000)).ToString();
-		}
-
-		private void textBox4_TextChanged(object sender, EventArgs e)
-		{
-			float max;
-			if (float.TryParse(textBox4.Text, out max))
-			{
-				max = (float)((double)max / 1000.0);
-				float r = max - Program.Client.Configuration.SimulatedMinimumLatency;
-				if (r > 0)
-				{
-					Program.Client.Configuration.SimulatedRandomLatency = r;
-					double nm = (double)Program.Client.Configuration.SimulatedMinimumLatency + (double)Program.Client.Configuration.SimulatedRandomLatency;
-					textBox4.Text = ((int)(max * 1000)).ToString();
-				}
-			}
+			NetPeerSettingsWindow win = new NetPeerSettingsWindow("Client settings", Program.Client);
+			win.Show();
 		}
 	}
 }

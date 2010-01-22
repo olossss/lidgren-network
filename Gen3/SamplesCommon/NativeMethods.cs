@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace TestClient
+namespace SamplesCommon
 {
 	public static class NativeMethods
 	{
