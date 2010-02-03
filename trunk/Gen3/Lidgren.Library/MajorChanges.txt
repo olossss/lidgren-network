@@ -1,0 +1,23 @@
+﻿
+Major changes since the last version of the library
+---------------------------------------------------
+
+* More robust flow control
+* Improved API interface
+	Configuration locked once used, cannot change by mistake
+	Message cannot be sent twice by accident
+	No inconsistencies between status messages and status flags
+	Impossible to confuse sending and receiving buffers
+	Reduce confusion when to create a new buffer and when to pass an existing buffer
+* Much less allocations due to object pooling
+* More exact timeout
+* Higher frequency in ping/latency calculation
+* Reduced CPU usage
+* Completely thread safe
+* Larger amounts of delivery channels
+
+New features:
+* Message prioritation
+* New delivery type: Reliable sequenced (Lost packets are resent but late arrivals are dropped)
+
+
