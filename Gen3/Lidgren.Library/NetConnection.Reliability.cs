@@ -4,6 +4,27 @@ using System.Text;
 
 namespace Lidgren.Network
 {
+	internal sealed class WindowSlot
+	{
+		public double SentTime;
+		public List<NetOutgoingMessage> StoredReliableMessages;
+		public int NumResends;
+
+		public WindowSlot()
+		{
+			Reset();
+		}
+
+		public void Reset()
+		{
+			SentTime = 0;
+			NumResends = 0;
+			if (StoredReliableMessages == null)
+				StoredReliableMessages = new List<NetOutgoingMessage>();
+			StoredReliableMessages.Clear();
+		}
+	}
+
 	public partial class NetConnection
 	{
 		//
@@ -13,8 +34,10 @@ namespace Lidgren.Network
 		internal int m_sendWindowBase;
 		internal int m_sendNext;
 
-		internal double[] m_sendTimes = new double[NetPeer.WINDOW_SIZE];
+		internal WindowSlot[] m_windowSlots = new WindowSlot[NetPeer.WINDOW_SIZE];
 		internal int m_numUnackedPackets;
+
+		internal List<NetOutgoingMessage>[] m_storedMessages = new List<NetOutgoingMessage>[NetPeer.WINDOW_SIZE];
 
 		internal uint EarlyArrivalBitMask;
 
@@ -23,6 +46,14 @@ namespace Lidgren.Network
 			m_receiveWindowBase = 0;
 			m_sendWindowBase = 0;
 			m_sendNext = 0;
+			m_numUnackedPackets = 0;
+			for (int i = 0; i < m_windowSlots.Length; i++)
+			{
+				if (m_windowSlots[i] == null)
+					m_windowSlots[i] = new WindowSlot();
+				else
+					m_windowSlots[i].Reset();
+			}
 		}
 
 		internal bool CanSend()
@@ -33,13 +64,16 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Returns true if a packet can be sent (and if it does, it must be sent!)
+		/// Returns slot to store reliable messages in
 		/// </summary>
-		internal void PrepareSend(double now)
+		internal WindowSlot PrepareSend(double now)
 		{
 			byte[] buffer = m_owner.m_sendBuffer;
 
-			m_sendTimes[m_sendNext % NetPeer.WINDOW_SIZE] = now;
+			WindowSlot slot = m_windowSlots[m_sendNext % NetPeer.WINDOW_SIZE];
+			slot.SentTime = now;
+
+			m_owner.LogVerbose("Storing packet " + m_sendNext + " in store " + (m_sendNext % NetPeer.WINDOW_SIZE));
 
 			buffer[0] = (byte)m_sendNext;
 			m_sendNext = (m_sendNext + 1) % NetPeer.NUM_SERIALS;
@@ -50,6 +84,8 @@ namespace Lidgren.Network
 			buffer[3] = (byte)(EarlyArrivalBitMask >> 8);
 			buffer[4] = (byte)(EarlyArrivalBitMask >> 16);
 			buffer[5] = (byte)(EarlyArrivalBitMask >> 24);
+
+			return slot;
 		}
 
 		/// <summary>
@@ -119,10 +155,13 @@ namespace Lidgren.Network
 
 		private void HandleReceivedAck(double now, int ackSerial, uint ackMask)
 		{
+			m_owner.VerifyNetworkThread();
+
 			if (ackMask != 0)
 			{
 				StringBuilder b = new StringBuilder();
-				b.Append("Packet loss detected; serial(s) " + ((ackSerial + 1) % NetPeer.NUM_SERIALS));
+				int lost = ((ackSerial + 1) % NetPeer.NUM_SERIALS);
+				b.Append("Packet loss detected; serial(s) " + lost);
 
 				// get last SET bit in array (last received (early) packet)
 				uint tmp;
@@ -146,16 +185,45 @@ namespace Lidgren.Network
 					tmp = tmp >> 1;
 				}
 
-				//
-				// TODO: resend the lost packets (if stored/stored part)?
-				//
+				WindowSlot lostSlot = m_windowSlots[lost % NetPeer.WINDOW_SIZE];
 
-				throw new NotImplementedException("resend lost packets (or reliable parts)");
+				if (lostSlot.NumResends == 0 ||
+					now > lostSlot.SentTime + (m_owner.m_configuration.m_initialTimeBetweenResends * lostSlot.NumResends))
+				{
 
-				m_owner.LogDebug(b.ToString());
+					if (lostSlot.NumResends > m_owner.m_configuration.m_maxResends)
+					{
+						Disconnect("Too many failed resends without ack");
+					}
+					else
+					{
+						//
+						// Resend lost packets (with original packet serials!)
+						//
+						byte[] buffer = m_owner.m_sendBuffer;
+						buffer[0] = (byte)lost;
+
+						buffer[1] = (byte)((m_receiveWindowBase - 1 + NetPeer.NUM_SERIALS) % NetPeer.NUM_SERIALS);
+						buffer[2] = (byte)EarlyArrivalBitMask;
+						buffer[3] = (byte)(EarlyArrivalBitMask >> 8);
+						buffer[4] = (byte)(EarlyArrivalBitMask >> 16);
+						buffer[5] = (byte)(EarlyArrivalBitMask >> 24);
+
+						int ptr = 6;
+
+						foreach (NetOutgoingMessage om in lostSlot.StoredReliableMessages)
+							ptr = om.Encode(buffer, ptr);
+
+						m_owner.SendPacket(ptr, m_remoteEndPoint);
+
+						// TODO: what to do with the rest of the lost packets?
+						lostSlot.NumResends++;
+						lostSlot.SentTime = now;
+					}
+					m_owner.LogDebug(b.ToString());
+				}
 			}
 
-			// late ack?
 			int diff = (ackSerial < m_sendWindowBase ? (ackSerial + NetPeer.NUM_SERIALS) - m_sendWindowBase : ackSerial - m_sendWindowBase);
 
 			if (diff == NetPeer.NUM_SERIALS - 1)
@@ -174,12 +242,26 @@ namespace Lidgren.Network
 
 			// advance window
 			int inc = diff + 1;
+
 			m_sendWindowBase = (m_sendWindowBase + inc) % NetPeer.NUM_SERIALS;
 
-			double wasSent = m_sendTimes[ackSerial % NetPeer.WINDOW_SIZE];
-			UpdateLastSendRespondedTo(wasSent);
+			WindowSlot ackSlot = m_windowSlots[ackSerial % NetPeer.WINDOW_SIZE];
+			ackSlot.NumResends = 0;
+			ackSlot.StoredReliableMessages.Clear();
+			UpdateLastSendRespondedTo(ackSlot.SentTime);
 
-			m_owner.LogVerbose("Received ack for " + ackSerial + " (after " + (int)((now - wasSent) * 1000) + " ms; advancing SendWindowBase to " + m_sendWindowBase);
+			if (inc > 1)
+			{
+				for (int i = 1; i < inc; i++)
+				{
+					ackSlot = m_windowSlots[(ackSerial + NetPeer.WINDOW_SIZE - i) % NetPeer.WINDOW_SIZE];
+					ackSlot.NumResends = 0;
+					ackSlot.StoredReliableMessages.Clear();
+				}
+			}
+
+			m_owner.LogVerbose("Received ack for " + ackSerial + " (after " + (int)((now - ackSlot.SentTime) * 1000) + " ms; advancing SendWindowBase to " + m_sendWindowBase);
 		}
+
 	}
 }

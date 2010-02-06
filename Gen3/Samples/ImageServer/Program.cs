@@ -62,7 +62,7 @@ namespace ImageServer
 									om.WriteVariableUInt32(seg++);
 									om.Write(ImageData, ptr, l);
 									ptr += 990;
-									Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.Unreliable);
+									Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered);
 								}
 							}
 							break;

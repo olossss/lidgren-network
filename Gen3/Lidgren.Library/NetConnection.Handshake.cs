@@ -43,6 +43,7 @@ namespace Lidgren.Network
 					// reconnect
 					m_disconnectByeMessage = "Reconnecting";
 					ExecuteDisconnect(NetMessagePriority.High, true);
+					FinishDisconnect();
 					break;
 				case NetConnectionStatus.Connecting:
 				case NetConnectionStatus.Disconnected:
@@ -84,8 +85,6 @@ namespace Lidgren.Network
 			if (m_status == NetConnectionStatus.Disconnected)
 				return;
 
-			m_disconnectRequested = false;
-
 			if (sendByeMessage)
 			{
 				NetOutgoingMessage om = m_owner.CreateMessage(0);
@@ -98,15 +97,21 @@ namespace Lidgren.Network
 			}
 
 			m_owner.LogVerbose("Executing Disconnect(" + m_disconnectByeMessage + ")");
+		
+			return;
+		}
 
-			m_connectionInitiator = false;
-			SetStatus(NetConnectionStatus.Disconnected, m_disconnectByeMessage);
-			
-			m_disconnectByeMessage = null;
+		private void FinishDisconnect()
+		{
+			m_disconnectRequested = false;
+
+			m_owner.LogVerbose("Finishing Disconnect(" + m_disconnectByeMessage + ")");
 
 			ResetSlidingWindow();
 
-			return;
+			SetStatus(NetConnectionStatus.Disconnected, m_disconnectByeMessage);
+			m_disconnectByeMessage = null;
+			m_connectionInitiator = false;
 		}
 
 		private void HandleIncomingHandshake(NetMessageType mtp, byte[] payload, int payloadBytesLength)
@@ -160,7 +165,8 @@ namespace Lidgren.Network
 					// extract bye message
 					NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, payload, payloadBytesLength);
 					m_disconnectByeMessage = im.ReadString();
-					ExecuteDisconnect(NetMessagePriority.Low, false);
+					m_disconnectRequested = true;
+					//ExecuteDisconnect(NetMessagePriority.Low, false);
 					break;
 				default:
 					// huh?

@@ -25,6 +25,8 @@ namespace Lidgren.Network
 			m_nextKeepAlive = double.MaxValue;
 
 			m_latencyWindowSize = owner.m_configuration.LatencyCalculationWindowSize;
+
+			ResetSlidingWindow();
 		}
 
 		// run on network thread
@@ -44,7 +46,7 @@ namespace Lidgren.Network
 			}
 
 			// window closed?
-			if (CanSend() == false)
+			if (CanSend() == false && !m_disconnectRequested)
 				return;
 
 			// keepalive
@@ -53,6 +55,7 @@ namespace Lidgren.Network
 			// send unsent messages; high priority first
 			byte[] buffer = m_owner.m_sendBuffer;
 			int ptr = 0;
+			WindowSlot packetWindowSlot = null;
 			for (int i = 2; i >= 0; i--)
 			{
 				Queue<NetOutgoingMessage> queue = m_unsentMessages[i];
@@ -79,7 +82,7 @@ namespace Lidgren.Network
 							ptr = -1;
 							break; // window full
 						}
-						PrepareSend(now);
+						packetWindowSlot = PrepareSend(now);
 						ptr = NetPeer.PACKET_HEADER_SIZE;
 					}
 
@@ -93,32 +96,12 @@ namespace Lidgren.Network
 					// encode message
 					//
 
-					// flags
-					buffer[ptr++] = (byte)msg.m_type;
-
-					System.Diagnostics.Debug.Assert(msgPayloadLength < 32768);
-					if (msgPayloadLength < 127)
-					{
-						buffer[ptr++] = (byte)msgPayloadLength;
-					} else {
-						buffer[ptr++] = (byte)((msgPayloadLength & 127) | 128);
-						buffer[ptr++] = (byte)(msgPayloadLength >> 7);
-					}
-
-					if (msgPayloadLength > 0)
-					{
-						Buffer.BlockCopy(msg.m_data, 0, buffer, ptr, msgPayloadLength);
-						ptr += msgPayloadLength;
-					}
+					ptr = msg.Encode(buffer, ptr);
 	
 					if (msg.m_type >= NetMessageType.UserReliableUnordered)
 					{
-						// message is reliable
-
-						//
-						// TODO: store for resending
-						//
-						// m_packetList[packetSlot].Add(msg);
+						// message is reliable, store for resend
+						packetWindowSlot.StoredReliableMessages.Add(msg);
 					}
 					else
 					{
@@ -133,6 +116,9 @@ namespace Lidgren.Network
 
 			if (ptr > 0)
 				m_owner.SendPacket(ptr, m_remoteEndPoint);
+
+			if (m_disconnectRequested)
+				FinishDisconnect();
 		}
 
 		public void SendMessage(NetOutgoingMessage msg, NetDeliveryMethod channel, NetMessagePriority priority)
@@ -160,7 +146,6 @@ namespace Lidgren.Network
 			m_owner.LogVerbose("Disconnect requested for " + this);
 			m_disconnectByeMessage = byeMessage;
 			m_disconnectRequested = true;
-			ResetSlidingWindow();
 		}
 
 		internal void HandleReceivedConnectedMessage(double now, NetMessageType mtp, byte[] payload, int payloadLength)

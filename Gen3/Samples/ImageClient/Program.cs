@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using SamplesCommon;
+using Lidgren.Network;
 
 namespace ImageClient
 {
@@ -32,9 +33,9 @@ namespace ImageClient
 			}
 		}
 
-		internal static void SpawnGetter(string host)
+		internal static void SpawnGetter(string host, NetPeerConfiguration copyConfig)
 		{
-			ImageGetter getter = new ImageGetter(host);
+			ImageGetter getter = new ImageGetter(host, copyConfig);
 			Getters.Add(getter);
 			getter.Show();
 		}

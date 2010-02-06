@@ -13,12 +13,15 @@ namespace ImageClient
 	{
 		public NetClient Client;
 		public byte[] Buffer = new byte[990];
+		public bool[] ReceivedSegments;
+		public int NumReceivedSegments;
 
-		public ImageGetter(string host)
+		public ImageGetter(string host, NetPeerConfiguration copyConfig)
 		{
 			InitializeComponent();
 
-			NetPeerConfiguration config = new NetPeerConfiguration("ImageTransfer");
+			NetPeerConfiguration config = copyConfig.Clone();
+
 			Client = new NetClient(config);
 			Client.Start();
 			Client.Connect(host, 14242);
@@ -31,6 +34,12 @@ namespace ImageClient
 			{
 				switch(inc.MessageType)
 				{
+					case NetIncomingMessageType.DebugMessage:
+					case NetIncomingMessageType.VerboseDebugMessage:
+					case NetIncomingMessageType.WarningMessage:
+					case NetIncomingMessageType.ErrorMessage:
+						SamplesCommon.NativeMethods.AppendText(richTextBox1, inc.ReadString());
+						break;
 					case NetIncomingMessageType.Data:
 						// image data, whee!
 						// ineffective but simple data model
@@ -41,8 +50,23 @@ namespace ImageClient
 						int totalBytes = (width * height * 3);
 						int wholeSegments = totalBytes / 990;
 						int segLen = 990;
+						int remainder = totalBytes - (wholeSegments * 990);
+						int totalNumberOfSegments = wholeSegments + (remainder > 0 ? 1 : 0);
 						if (segment >= wholeSegments)
-							segLen = totalBytes - (wholeSegments * 990); // last segment can be shorter
+							segLen = remainder; // last segment can be shorter
+
+
+						if (ReceivedSegments == null)
+							ReceivedSegments = new bool[totalNumberOfSegments];
+						if (ReceivedSegments[segment] == false)
+						{
+							ReceivedSegments[segment] = true;
+							NumReceivedSegments++;
+							if (NumReceivedSegments >= totalNumberOfSegments)
+							{
+								Client.Disconnect("So long and thanks for all the fish!");
+							}
+						}
 
 						Bitmap bm = pictureBox1.Image as Bitmap;
 						if (bm == null)
@@ -76,6 +100,8 @@ namespace ImageClient
 						}
 
 						pictureBox1.ResumeLayout();
+						pictureBox1.Invalidate();
+						System.Threading.Thread.Sleep(0);
 
 						break;
 				}
