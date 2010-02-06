@@ -42,11 +42,17 @@ namespace SamplesCommon
 
 		private void RefreshData()
 		{
+#if DEBUG
 			LossTextBox.Text = ((int)(Peer.Configuration.SimulatedLoss * 100)).ToString();
-			DebugCheckBox.Checked = Peer.Configuration.IsMessageTypeEnabled(NetIncomingMessageType.DebugMessage);
-			VerboseCheckBox.Checked = Peer.Configuration.IsMessageTypeEnabled(NetIncomingMessageType.VerboseDebugMessage);
 			MinLatencyTextBox.Text = ((int)(Peer.Configuration.SimulatedMinimumLatency * 1000)).ToString();
 			textBox3.Text = ((int)((Peer.Configuration.SimulatedMinimumLatency + Peer.Configuration.SimulatedRandomLatency) * 1000)).ToString();
+#else
+			LossTextBox.Text = "0";
+			MinLatencyTextBox.Text = "0";
+			textBox3.Text = "0";
+#endif
+			DebugCheckBox.Checked = Peer.Configuration.IsMessageTypeEnabled(NetIncomingMessageType.DebugMessage);
+			VerboseCheckBox.Checked = Peer.Configuration.IsMessageTypeEnabled(NetIncomingMessageType.VerboseDebugMessage);
 			textBox1.Text = (Peer.Configuration.KeepAliveDelay * 1000).ToString();
 			StatisticsLabel.Text = Peer.Statistics.ToString();
 
@@ -68,21 +74,26 @@ namespace SamplesCommon
 
 		private void LossTextBox_TextChanged(object sender, EventArgs e)
 		{
+#if DEBUG
 			float ms;
 			if (Single.TryParse(LossTextBox.Text, out ms))
 				Peer.Configuration.SimulatedLoss = (float)((double)ms / 100.0);
-		}
+#endif
+			}
 
 		private void MinLatencyTextBox_TextChanged(object sender, EventArgs e)
 		{
+#if DEBUG
 			float min;
 			if (float.TryParse(MinLatencyTextBox.Text, out min))
 				Peer.Configuration.SimulatedMinimumLatency = (float)(min / 1000.0);
 			MinLatencyTextBox.Text = ((int)(Peer.Configuration.SimulatedMinimumLatency * 1000)).ToString();
+#endif
 		}
 			
 		private void textBox3_TextChanged(object sender, EventArgs e)
 		{
+#if DEBUG
 			float max;
 			if (float.TryParse(textBox3.Text, out max))
 			{
@@ -95,6 +106,7 @@ namespace SamplesCommon
 					textBox3.Text = ((int)(max * 1000)).ToString();
 				}
 			}
+#endif
 		}
 
 		private void button1_Click(object sender, EventArgs e)

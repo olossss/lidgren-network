@@ -154,16 +154,14 @@ namespace Lidgren.Network
 			foreach (NetConnection conn in m_connections)
 			{
 				conn.m_disconnectByeMessage = "Shutting down";
-				conn.ExecuteDisconnect(NetMessagePriority.High, true);
+				conn.m_disconnectRequested = true;
 			}
 
-			// one final heartbeat, to get the disconnects onto the wire
+			// one final heartbeat, will send stuff and do disconnect
 			Heartbeat();
 
 			lock (m_initializeLock)
 			{
-				// TODO: Send all outgoing message immediately
-
 				try
 				{
 					if (m_socket != null)

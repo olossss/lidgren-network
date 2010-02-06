@@ -28,6 +28,8 @@ namespace Lidgren.Network
 		internal float m_latencyCalculationWindowSize;
 		internal bool[] m_disabledTypes;
 		internal float m_maxExplicitAckDelay;
+		internal double m_initialTimeBetweenResends;
+		internal int m_maxResends;
 
 		// bad network simulation
 		internal float m_loss;
@@ -53,6 +55,8 @@ namespace Lidgren.Network
 			m_latencyCalculationWindowSize = 1.0f;
 			m_defaultOutgoingMessageCapacity = 8;
 			m_maxExplicitAckDelay = 0.25f;
+			m_initialTimeBetweenResends = 0.25f;
+			m_maxResends = 8;
 
 			m_loss = 0.0f;
 			m_minimumOneWayLatency = 0.0f;
@@ -72,6 +76,13 @@ namespace Lidgren.Network
 			//  1 byte just to be sure
 			// Totals 1440 minus 38 = 1402 bytes free for payload
 			m_maximumTransmissionUnit = 1402;
+		}
+
+		public NetPeerConfiguration Clone()
+		{
+			NetPeerConfiguration retval = this.MemberwiseClone() as NetPeerConfiguration;
+			retval.m_isLocked = false;
+			return retval;
 		}
 
 		public void VerifyAndLock()

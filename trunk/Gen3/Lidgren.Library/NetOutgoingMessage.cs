@@ -32,5 +32,32 @@ namespace Lidgren.Network
 			m_inQueueCount = 0;
 			m_priority = NetMessagePriority.Normal;
 		}
+
+		internal int Encode(byte[] buffer, int ptr)
+		{
+			// flags
+			buffer[ptr++] = (byte)m_type;
+
+			int msgPayloadLength = (m_bitLength >> 3) + ((m_bitLength & 7) > 0 ? 1 : 0);
+
+			System.Diagnostics.Debug.Assert(msgPayloadLength < 32768);
+			if (msgPayloadLength < 127)
+			{
+				buffer[ptr++] = (byte)msgPayloadLength;
+			}
+			else
+			{
+				buffer[ptr++] = (byte)((msgPayloadLength & 127) | 128);
+				buffer[ptr++] = (byte)(msgPayloadLength >> 7);
+			}
+
+			if (msgPayloadLength > 0)
+			{
+				Buffer.BlockCopy(m_data, 0, buffer, ptr, msgPayloadLength);
+				ptr += msgPayloadLength;
+			}
+
+			return ptr;
+		}
 	}
 }
