@@ -64,11 +64,18 @@ namespace Lidgren.Network
 		{
 			int seed = (int)Environment.TickCount;
 
-			// tickcount + gettimestamp + workingset should be random enough
-			if (!string.IsNullOrEmpty(Environment.CommandLine))
-				seed ^= Environment.CommandLine.GetHashCode();
-			seed ^= (int)(Stopwatch.GetTimestamp() & uint.MaxValue);
-			seed ^= (int)(Environment.WorkingSet & uint.MaxValue);
+			try
+			{
+				// tickcount + gettimestamp + workingset should be random enough
+				if (!string.IsNullOrEmpty(Environment.CommandLine))
+					seed ^= Environment.CommandLine.GetHashCode();
+				seed ^= (int)(Stopwatch.GetTimestamp() & uint.MaxValue);
+				seed ^= (int)(Environment.WorkingSet & uint.MaxValue);
+			}
+			catch
+			{
+				// maybe commandline etc is not available, TickCount will have to do
+			}
 
 			int extraSeed = Interlocked.Increment(ref m_extraSeed);
 
