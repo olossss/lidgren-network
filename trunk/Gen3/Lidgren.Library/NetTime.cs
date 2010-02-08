@@ -16,6 +16,8 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRA
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+#define IS_STOPWATCH_AVAILABLE
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,6 +30,7 @@ namespace Lidgren.Network
 	/// </summary>
 	public static class NetTime
 	{
+#if IS_STOPWATCH_AVAILABLE
 		private static long s_timeInitialized = Stopwatch.GetTimestamp();
 		private static double s_dInvFreq = 1.0 / (double)Stopwatch.Frequency;
 
@@ -35,6 +38,12 @@ namespace Lidgren.Network
 		/// Get number of seconds since the application started
 		/// </summary>
 		public static double Now { get { return (double)(Stopwatch.GetTimestamp() - s_timeInitialized) * s_dInvFreq; } }
+#else
+		/// <summary>
+		/// Get number of seconds since the application started
+		/// </summary>
+		public static double Now { get { return (double)Environment.TickCount / 1000.0; } }
+#endif
 
 		public static string ToReadable(double seconds)
 		{

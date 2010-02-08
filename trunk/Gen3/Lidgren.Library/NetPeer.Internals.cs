@@ -460,10 +460,10 @@ namespace Lidgren.Network
 					break;
 				case NetMessageType.LibraryConnectionEstablished:
 				case NetMessageType.LibraryConnectResponse:
-					throw new NetException("NetMessageType not valid for unconnected source");
+					throw new NetException("NetMessageType " + mtp + " not valid for unconnected source");
 
 				case NetMessageType.LibraryDisconnect:
-					// really should never happen; but we'll let this one slip
+					// really should never happen but can; we'll let this one slip
 					break;
 
 				case NetMessageType.LibraryDiscovery:
@@ -474,8 +474,13 @@ namespace Lidgren.Network
 				case NetMessageType.LibraryKeepAlive:
 					// no operation - we just want the the packet ack
 					break;
+
 				default:
 					// user data
+#if DEBUG
+					if (mtp < NetMessageType.UserUnreliable)
+						throw new NetException("Expected unconnected user data; got " + mtp);
+#endif
 					if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData))
 					{
 						NetIncomingMessage ium = CreateIncomingMessage(NetIncomingMessageType.UnconnectedData, payload, payloadLength);

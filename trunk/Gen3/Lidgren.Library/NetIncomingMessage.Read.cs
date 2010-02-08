@@ -244,7 +244,7 @@ namespace Lidgren.Network
 		//
 
 		/// <summary>
-		/// Reads a UInt32 written using WriteUnsignedVarInt()
+		/// Reads a UInt32 written using WriteVariableUInt32()
 		/// </summary>
 		[CLSCompliant(false)]
 		public uint ReadVariableUInt32()
@@ -257,7 +257,7 @@ namespace Lidgren.Network
 					throw new FormatException("Bad 7-bit encoded integer");
 
 				byte num3 = this.ReadByte();
-				num1 |= (num3 & 0x7f) << (num2 & 0x1f);
+				num1 |= (num3 & 0x7f) << num2;
 				num2 += 7;
 				if ((num3 & 0x80) == 0)
 					return (uint)num1;
@@ -265,7 +265,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Reads a Int32 written using WriteSignedVarInt()
+		/// Reads a Int32 written using WriteVariableInt32()
 		/// </summary>
 		public int ReadVariableInt32()
 		{
@@ -288,7 +288,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Reads a UInt32 written using WriteUnsignedVarInt()
+		/// Reads a UInt32 written using WriteVariableInt64()
 		/// </summary>
 		[CLSCompliant(false)]
 		public UInt64 ReadVariableUInt64()
@@ -301,7 +301,7 @@ namespace Lidgren.Network
 					throw new FormatException("Bad 7-bit encoded integer");
 
 				byte num3 = this.ReadByte();
-				num1 |= ((UInt64)num3 & 0x7f) << (num2 & 0x1f);
+				num1 |= ((UInt64)num3 & 0x7f) << num2;
 				num2 += 7;
 				if ((num3 & 0x80) == 0)
 					return num1;
