@@ -16,6 +16,8 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRA
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+//#define WEB_PLAYER
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -28,6 +30,14 @@ namespace Lidgren.Network
 	/// </summary>
 	public static class NetTime
 	{
+#if WEB_PLAYER
+		private static int s_timeInitialized = Environment.TickCount;
+
+		/// <summary>
+		/// Get number of seconds since the application started
+		/// </summary>
+		public static double Now { get { return (double)((Environment.TickCount - s_timeInitialized) / 1000.0); } }
+#else
 		private static long s_timeInitialized = Stopwatch.GetTimestamp();
 		private static double s_dInvFreq = 1.0 / (double)Stopwatch.Frequency;
 
@@ -35,6 +45,7 @@ namespace Lidgren.Network
 		/// Get number of seconds since the application started
 		/// </summary>
 		public static double Now { get { return (double)(Stopwatch.GetTimestamp() - s_timeInitialized) * s_dInvFreq; } }
+#endif
 
 		/// <summary>
 		/// Get current time encoded into a cyclic ushort
