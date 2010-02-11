@@ -43,12 +43,13 @@ namespace Lidgren.Network
 			m_currentAvgRoundtrip = roundtripTime;
 			m_owner.LogDebug("Initializing avg rtt to " + NetTime.ToReadable(m_currentAvgRoundtrip));
 			m_isPingInitialized = true;
-			m_nextKeepAlive = NetTime.Now + (m_owner.m_configuration.KeepAliveDelay * 3);
+			m_nextKeepAlive = now + (m_owner.m_configuration.KeepAliveDelay * 3);
+			m_lastSendRespondedTo = now;
 		}
 
 		private void KeepAliveHeartbeat(double now)
 		{
-			if (m_status != NetConnectionStatus.Disconnected)
+			if (m_status != NetConnectionStatus.Disconnected && m_status != NetConnectionStatus.None)
 			{
 				if (now > m_nextKeepAlive || m_numUnackedPackets > NetPeer.WINDOW_SIZE / 2)
 				{

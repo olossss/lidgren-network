@@ -7,9 +7,10 @@ namespace Lidgren.Network
 	/// </summary>
 	public enum NetConnectionStatus
 	{
-		Disconnected,
+		None,
 		Connecting,
 		Connected,
 		Disconnecting,
+		Disconnected
 	}
 }
