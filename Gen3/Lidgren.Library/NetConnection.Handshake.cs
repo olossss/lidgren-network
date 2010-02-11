@@ -16,7 +16,7 @@ namespace Lidgren.Network
 		internal void SetStatus(NetConnectionStatus status, string reason)
 		{
 			m_owner.VerifyNetworkThread();
-
+	
 			if (status == m_status)
 				return;
 			m_status = status;
@@ -46,8 +46,11 @@ namespace Lidgren.Network
 					FinishDisconnect();
 					break;
 				case NetConnectionStatus.Connecting:
-				case NetConnectionStatus.Disconnected:
+				case NetConnectionStatus.None:
 					// just send connect, regardless of who was previous initiator
+					break;
+				case NetConnectionStatus.Disconnected:
+					throw new Exception("This connection is Disconnected; spent. A new one should have been created");
 					break;
 				case NetConnectionStatus.Disconnecting:
 					// let disconnect finish first
@@ -82,7 +85,7 @@ namespace Lidgren.Network
 		{
 			m_owner.VerifyNetworkThread();
 
-			if (m_status == NetConnectionStatus.Disconnected)
+			if (m_status == NetConnectionStatus.Disconnected || m_status == NetConnectionStatus.None)
 				return;
 
 			if (sendByeMessage)
@@ -103,7 +106,8 @@ namespace Lidgren.Network
 
 		private void FinishDisconnect()
 		{
-			m_disconnectRequested = false;
+			if (m_status == NetConnectionStatus.Disconnected || m_status == NetConnectionStatus.None)
+				return;
 
 			m_owner.LogVerbose("Finishing Disconnect(" + m_disconnectByeMessage + ")");
 
@@ -111,6 +115,7 @@ namespace Lidgren.Network
 
 			SetStatus(NetConnectionStatus.Disconnected, m_disconnectByeMessage);
 			m_disconnectByeMessage = null;
+			m_disconnectRequested = false;
 			m_connectionInitiator = false;
 		}
 

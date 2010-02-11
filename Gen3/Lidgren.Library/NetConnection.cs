@@ -20,11 +20,12 @@ namespace Lidgren.Network
 			m_unsentMessages[0] = new Queue<NetOutgoingMessage>(4);
 			m_unsentMessages[1] = new Queue<NetOutgoingMessage>(8);
 			m_unsentMessages[2] = new Queue<NetOutgoingMessage>(4);
-			m_status = NetConnectionStatus.Disconnected;
+			m_status = NetConnectionStatus.None;
 			m_isPingInitialized = false;
 			m_nextKeepAlive = double.MaxValue;
 
 			m_latencyWindowSize = owner.m_configuration.LatencyCalculationWindowSize;
+			m_lastSendRespondedTo = NetTime.Now;
 
 			ResetSlidingWindow();
 		}
@@ -141,7 +142,7 @@ namespace Lidgren.Network
 		public void Disconnect(string byeMessage)
 		{
 			// called on user thread
-			if (m_status == NetConnectionStatus.Disconnected)
+			if (m_status == NetConnectionStatus.None || m_status == NetConnectionStatus.Disconnected)
 				return;
 			m_owner.LogVerbose("Disconnect requested for " + this);
 			m_disconnectByeMessage = byeMessage;
