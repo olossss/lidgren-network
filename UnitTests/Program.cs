@@ -164,8 +164,7 @@ namespace UnitTests
 			UInt64[] largeNumbers = new ulong[100];
 			for (int i = 0; i < 100; i++)
 			{
-				largeNumbers[i] = NetRandom.Instance.NextUInt() << 32;
-				largeNumbers[i] |= NetRandom.Instance.NextUInt();
+				largeNumbers[i] = ((ulong)NetRandom.Instance.NextUInt() << 32) | (ulong)NetRandom.Instance.NextUInt();
 				largeBuffer.WriteVariableUInt64(largeNumbers[i]);
 			}
 
