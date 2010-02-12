@@ -121,8 +121,9 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Gets or sets the length of the buffer in bytes
 		/// </summary>
-		public int LengthBytes {
-			get { return (m_bitLength >> 3) + ((m_bitLength & 7) > 0 ? 1 : 0); }
+		public int LengthBytes
+		{
+			get { return ((m_bitLength + 7) >> 3); }
 			set
 			{
 				m_bitLength = value * 8;
@@ -173,13 +174,13 @@ namespace Lidgren.Network
 			m_refCount = 0;
 			Tag = null;
 		}
-		
+
 		/// <summary>
 		/// Ensures this buffer can hold the specified number of bits prior to a write operation
 		/// </summary>
 		public void EnsureBufferSize(int numberOfBits)
 		{
-			int byteLen = (numberOfBits >> 3) + ((numberOfBits & 7) > 0 ? 1 : 0);
+			int byteLen = ((numberOfBits + 7) >> 3);
 			if (Data == null)
 			{
 				Data = new byte[byteLen + 4]; // overallocate 4 bytes
@@ -192,7 +193,7 @@ namespace Lidgren.Network
 
 		internal void InternalEnsureBufferSize(int numberOfBits)
 		{
-			int byteLen = (numberOfBits >> 3) + ((numberOfBits & 7) > 0 ? 1 : 0);
+			int byteLen = ((numberOfBits + 7) >> 3);
 			if (Data == null)
 			{
 				Data = new byte[byteLen];
