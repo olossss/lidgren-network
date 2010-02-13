@@ -44,18 +44,26 @@ namespace Lidgren.Network
 				return;
 			}
 
-			float delay = m_configuration.m_minimumOneWayLatency + (NetRandom.Instance.NextFloat() * m_configuration.m_randomOneWayLatency);
+			int num = 1;
+			if (m_configuration.m_duplicates > 0.0f && NetRandom.Instance.Chance(m_configuration.m_duplicates))
+				num++;
 
-			// Enqueue delayed packet
-			DelayedPacket p = new DelayedPacket();
-			p.Target = target;
-			p.Data = new byte[numBytes];
-			Buffer.BlockCopy(m_sendBuffer, 0, p.Data, 0, numBytes);
-			p.DelayedUntil = NetTime.Now + delay;
+			float delay = 0;
+			for (int i = 0; i < num; i++)
+			{
+				delay = m_configuration.m_minimumOneWayLatency + (NetRandom.Instance.NextFloat() * m_configuration.m_randomOneWayLatency);
+
+				// Enqueue delayed packet
+				DelayedPacket p = new DelayedPacket();
+				p.Target = target;
+				p.Data = new byte[numBytes];
+				Buffer.BlockCopy(m_sendBuffer, 0, p.Data, 0, numBytes);
+				p.DelayedUntil = NetTime.Now + delay;
+
+				m_delayedPackets.Add(p);
+			}
 
 			LogVerbose("Sending packet #" + packetNumber + " (" + numBytes + " bytes) - Delayed " + NetTime.ToReadable(delay));
-
-			m_delayedPackets.Add(p);
 		}
 
 		private void SendDelayedPackets()

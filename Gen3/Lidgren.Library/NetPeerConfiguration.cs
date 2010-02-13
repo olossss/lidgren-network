@@ -25,14 +25,16 @@ namespace Lidgren.Network
 		internal float m_keepAliveDelay;
 		internal float m_connectionTimeOut;
 		internal int m_maximumConnections;
-		internal float m_latencyCalculationWindowSize;
 		internal bool[] m_disabledTypes;
 		internal float m_maxExplicitAckDelay;
 		internal double m_initialTimeBetweenResends;
 		internal int m_maxResends;
+		internal float m_pingFrequency;
+		internal int m_windowSize;
 
 		// bad network simulation
 		internal float m_loss;
+		internal float m_duplicates;
 		internal float m_minimumOneWayLatency;
 		internal float m_randomOneWayLatency;
 
@@ -52,11 +54,12 @@ namespace Lidgren.Network
 			m_keepAliveDelay = 3;
 			m_connectionTimeOut = 25;
 			m_maximumConnections = 8;
-			m_latencyCalculationWindowSize = 1.0f;
 			m_defaultOutgoingMessageCapacity = 8;
 			m_maxExplicitAckDelay = 0.25f;
 			m_initialTimeBetweenResends = 0.25f;
 			m_maxResends = 8;
+			m_pingFrequency = 3;
+			m_windowSize = 64;
 
 			m_loss = 0.0f;
 			m_minimumOneWayLatency = 0.0f;
@@ -124,6 +127,15 @@ namespace Lidgren.Network
 		public float SimulatedAverageLatency
 		{
 			get { return m_minimumOneWayLatency + (m_randomOneWayLatency * 0.5f); }
+		}
+
+		/// <summary>
+		/// Gets or sets the simulated amount of duplicated packets from 0.0f to 1.0f
+		/// </summary>
+		public float SimulatedDuplicatesChance
+		{
+			get { return m_duplicates; }
+			set { m_duplicates = value; }
 		}
 
 #endif
@@ -278,20 +290,6 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Gets or sets the number of seconds during which the average roundtrip time should be calculated
-		/// </summary>
-		public float LatencyCalculationWindowSize
-		{
-			get { return m_latencyCalculationWindowSize; }
-			set
-			{
-				if (m_isLocked)
-					throw new NetException(c_isLockedMessage);
-				m_latencyCalculationWindowSize = value;
-			}
-		}
-
-		/// <summary>
 		/// Gets or sets the number of seconds of non-response before disconnecting because of time out. Cannot be changed once NetPeer is initialized.
 		/// </summary>
 		public float ConnectionTimeOut
@@ -314,5 +312,13 @@ namespace Lidgren.Network
 			set { m_maxExplicitAckDelay = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the number of seconds between latency calculation (rtt) pings
+		/// </summary>
+		public float PingFrequency
+		{
+			get { return m_pingFrequency; }
+			set { m_pingFrequency = value; }
+		}
 	}
 }

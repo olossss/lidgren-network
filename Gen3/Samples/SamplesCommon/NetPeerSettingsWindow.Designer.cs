@@ -47,6 +47,9 @@
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
 			this.StatisticsLabel = new System.Windows.Forms.Label();
 			this.button2 = new System.Windows.Forms.Button();
+			this.label8 = new System.Windows.Forms.Label();
+			this.label9 = new System.Windows.Forms.Label();
+			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.groupBox1.SuspendLayout();
 			this.groupBox2.SuspendLayout();
 			this.groupBox3.SuspendLayout();
@@ -76,6 +79,9 @@
 			// 
 			// groupBox1
 			// 
+			this.groupBox1.Controls.Add(this.label8);
+			this.groupBox1.Controls.Add(this.label9);
+			this.groupBox1.Controls.Add(this.textBox2);
 			this.groupBox1.Controls.Add(this.label5);
 			this.groupBox1.Controls.Add(this.label4);
 			this.groupBox1.Controls.Add(this.textBox3);
@@ -86,7 +92,7 @@
 			this.groupBox1.Controls.Add(this.MinLatencyTextBox);
 			this.groupBox1.Location = new System.Drawing.Point(308, 12);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(283, 101);
+			this.groupBox1.Size = new System.Drawing.Size(283, 109);
 			this.groupBox1.TabIndex = 2;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Simulation";
@@ -169,7 +175,7 @@
 			this.groupBox2.Controls.Add(this.textBox1);
 			this.groupBox2.Location = new System.Drawing.Point(12, 12);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(290, 101);
+			this.groupBox2.Size = new System.Drawing.Size(290, 109);
 			this.groupBox2.TabIndex = 3;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Settings";
@@ -213,9 +219,9 @@
 			// groupBox3
 			// 
 			this.groupBox3.Controls.Add(this.StatisticsLabel);
-			this.groupBox3.Location = new System.Drawing.Point(12, 119);
+			this.groupBox3.Location = new System.Drawing.Point(12, 127);
 			this.groupBox3.Name = "groupBox3";
-			this.groupBox3.Size = new System.Drawing.Size(575, 153);
+			this.groupBox3.Size = new System.Drawing.Size(575, 145);
 			this.groupBox3.TabIndex = 6;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Statistics";
@@ -239,11 +245,37 @@
 			this.button2.UseVisualStyleBackColor = true;
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
+			// label8
+			// 
+			this.label8.AutoSize = true;
+			this.label8.Location = new System.Drawing.Point(163, 80);
+			this.label8.Name = "label8";
+			this.label8.Size = new System.Drawing.Size(16, 13);
+			this.label8.TabIndex = 10;
+			this.label8.Text = "%";
+			// 
+			// label9
+			// 
+			this.label9.AutoSize = true;
+			this.label9.Location = new System.Drawing.Point(6, 80);
+			this.label9.Name = "label9";
+			this.label9.Size = new System.Drawing.Size(61, 13);
+			this.label9.TabIndex = 9;
+			this.label9.Text = "Duplicates";
+			// 
+			// textBox2
+			// 
+			this.textBox2.Location = new System.Drawing.Point(103, 77);
+			this.textBox2.Name = "textBox2";
+			this.textBox2.Size = new System.Drawing.Size(54, 22);
+			this.textBox2.TabIndex = 8;
+			this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
+			// 
 			// NetPeerSettingsWindow
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(599, 326);
+			this.ClientSize = new System.Drawing.Size(599, 337);
 			this.Controls.Add(this.button2);
 			this.Controls.Add(this.groupBox3);
 			this.Controls.Add(this.button1);
@@ -283,5 +315,8 @@
 		private System.Windows.Forms.GroupBox groupBox3;
 		public System.Windows.Forms.Label StatisticsLabel;
 		private System.Windows.Forms.Button button2;
+		private System.Windows.Forms.Label label8;
+		private System.Windows.Forms.Label label9;
+		public System.Windows.Forms.TextBox textBox2;
 	}
 }

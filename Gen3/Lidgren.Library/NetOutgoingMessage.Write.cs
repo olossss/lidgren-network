@@ -26,7 +26,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public int LengthBytes
 		{
-			get { return (m_bitLength >> 3) + ((m_bitLength & 7) > 0 ? 1 : 0); }
+			get { return ((m_bitLength + 7) >> 3); }
 			set
 			{
 				m_bitLength = value * 8;
@@ -52,7 +52,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void EnsureBufferSize(int numberOfBits)
 		{
-			int byteLen = (numberOfBits >> 3) + ((numberOfBits & 7) > 0 ? 1 : 0);
+			int byteLen = ((numberOfBits + 7) >> 3);
 			if (m_data == null)
 			{
 				m_data = new byte[byteLen + c_overAllocateAmount];
@@ -68,7 +68,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void InternalEnsureBufferSize(int numberOfBits)
 		{
-			int byteLen = (numberOfBits >> 3) + ((numberOfBits & 7) > 0 ? 1 : 0);
+			int byteLen = ((numberOfBits + 7) >> 3);
 			if (m_data == null)
 			{
 				m_data = new byte[byteLen];

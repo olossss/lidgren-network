@@ -12,8 +12,8 @@ namespace Lidgren.Network
 	//
 	public partial class NetPeer
 	{
-		internal const int PACKET_HEADER_SIZE = 6;
-		internal const int WINDOW_SIZE = 32;
+		internal const int kMinPacketHeaderSize = 2 + 1;
+		internal const int kMaxPacketHeaderSize = 2 + 5;
 		internal const int NUM_SERIALS = 256;
 		
 		private int m_runSleepInMilliseconds = 1;
@@ -221,18 +221,14 @@ namespace Lidgren.Network
 					{
 						m_sendBuffer[0] = 0; // serial
 						m_sendBuffer[1] = 0; // ack serial
-
 						m_sendBuffer[2] = 0; // ack mask
-						m_sendBuffer[3] = 0; // ack mask
-						m_sendBuffer[4] = 0; // ack mask
-						m_sendBuffer[5] = 0; // ack mask
 		
 						NetOutgoingMessage msg = m_unsentUnconnectedMessage.Dequeue();
 						IPEndPoint recipient = m_unsentUnconnectedRecipients.Dequeue();
 
 						int msgPayloadLength = msg.LengthBytes;
 
-						int ptr = NetPeer.PACKET_HEADER_SIZE;
+						int ptr = 3;
 
 						m_sendBuffer[ptr++] = (byte)msg.m_type;
 
@@ -278,7 +274,7 @@ namespace Lidgren.Network
 			//
 			// read from socket
 			//
-			while (true)
+			do
 			{
 				if (m_socket == null || m_socket.Available < 1)
 					return;
@@ -325,21 +321,21 @@ namespace Lidgren.Network
 					sender.m_lastHeardFrom = now;
 				}
 
-				if (bytesReceived < PACKET_HEADER_SIZE)
+				if (bytesReceived < NetPeer.kMinPacketHeaderSize)
 				{
 					// malformed packet
 					LogWarning("Malformed packet from " + sender + " (" + ipsender + "); only " + bytesReceived + " bytes long");
 					continue;
 				}
 
-				bool useMessages = (sender == null ? true : sender.ReceivePacket(now, m_receiveBuffer, bytesReceived));
+				int ptr = 3;
+				bool useMessages = (sender == null ? true : sender.ReceivePacket(now, m_receiveBuffer, bytesReceived, out ptr));
 
 				//
 				// parse packet into messages
 				//
 				if (useMessages)
 				{
-					int ptr = PACKET_HEADER_SIZE;
 					while (ptr < bytesReceived)
 					{
 						// get message flags
@@ -389,7 +385,7 @@ namespace Lidgren.Network
 						}
 					}
 				}
-			}
+			} while (true);
 			// heartbeat done
 		}
 
@@ -460,9 +456,12 @@ namespace Lidgren.Network
 					break;
 				case NetMessageType.LibraryConnectionEstablished:
 				case NetMessageType.LibraryConnectResponse:
+				case NetMessageType.LibraryPong:
 					throw new NetException("NetMessageType " + mtp + " not valid for unconnected source");
 
 				case NetMessageType.LibraryDisconnect:
+				case NetMessageType.LibraryPing:
+				case NetMessageType.LibraryKeepAlive:
 					// really should never happen but can; we'll let this one slip
 					break;
 
@@ -470,10 +469,6 @@ namespace Lidgren.Network
 				case NetMessageType.LibraryDiscoveryResponse:
 				case NetMessageType.LibraryNatIntroduction:
 					throw new NotImplementedException();
-
-				case NetMessageType.LibraryKeepAlive:
-					// no operation - we just want the the packet ack
-					break;
 
 				default:
 					// user data

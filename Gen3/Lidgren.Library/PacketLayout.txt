@@ -3,7 +3,7 @@
 PER PACKET:
 8 - packet serial
 8 - ack serial
-32 - ack bitmask
+8 - 40 ack bitmask
 
 PER MESSAGE:
 8 - Message type

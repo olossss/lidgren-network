@@ -16,14 +16,16 @@ namespace Lidgren.Network
 	{
 		Error = 0,
 
-		LibraryKeepAlive = 1, // also used for explicit/forced ack
-		LibraryConnect = 2,
-		LibraryConnectResponse = 3,
-		LibraryConnectionEstablished = 4,
-		LibraryDisconnect = 5,
-		LibraryDiscovery = 6,
-		LibraryDiscoveryResponse = 7,
-		LibraryNatIntroduction = 8,
+		LibraryKeepAlive = 1, // also used for keepalive + explicit/forced ack
+		LibraryPing = 2, // used for RTT calculation
+		LibraryPong = 3, // used for RTT calculation
+		LibraryConnect = 4,
+		LibraryConnectResponse = 5,
+		LibraryConnectionEstablished = 6,
+		LibraryDisconnect = 7,
+		LibraryDiscovery = 8,
+		LibraryDiscoveryResponse = 9,
+		LibraryNatIntroduction = 10,
 
 		UserUnreliable = 16,
 

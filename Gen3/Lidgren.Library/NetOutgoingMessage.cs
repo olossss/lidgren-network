@@ -38,8 +38,8 @@ namespace Lidgren.Network
 			// flags
 			buffer[ptr++] = (byte)m_type;
 
-			int msgPayloadLength = (m_bitLength >> 3) + ((m_bitLength & 7) > 0 ? 1 : 0);
-
+			int msgPayloadLength = LengthBytes;
+			
 			System.Diagnostics.Debug.Assert(msgPayloadLength < 32768);
 			if (msgPayloadLength < 127)
 			{

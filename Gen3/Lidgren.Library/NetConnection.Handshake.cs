@@ -51,7 +51,7 @@ namespace Lidgren.Network
 					break;
 				case NetConnectionStatus.Disconnected:
 					throw new Exception("This connection is Disconnected; spent. A new one should have been created");
-					break;
+
 				case NetConnectionStatus.Disconnecting:
 					// let disconnect finish first
 					return;
