@@ -44,12 +44,14 @@ namespace SamplesCommon
 		{
 #if DEBUG
 			LossTextBox.Text = ((int)(Peer.Configuration.SimulatedLoss * 100)).ToString();
+			textBox2.Text = ((int)(Peer.Configuration.SimulatedDuplicatesChance * 100)).ToString();
 			MinLatencyTextBox.Text = ((int)(Peer.Configuration.SimulatedMinimumLatency * 1000)).ToString();
 			textBox3.Text = ((int)((Peer.Configuration.SimulatedMinimumLatency + Peer.Configuration.SimulatedRandomLatency) * 1000)).ToString();
 #else
 			LossTextBox.Text = "0";
 			MinLatencyTextBox.Text = "0";
 			textBox3.Text = "0";
+			textBox2.Text = "0";
 #endif
 			DebugCheckBox.Checked = Peer.Configuration.IsMessageTypeEnabled(NetIncomingMessageType.DebugMessage);
 			VerboseCheckBox.Checked = Peer.Configuration.IsMessageTypeEnabled(NetIncomingMessageType.VerboseDebugMessage);
@@ -79,7 +81,16 @@ namespace SamplesCommon
 			if (Single.TryParse(LossTextBox.Text, out ms))
 				Peer.Configuration.SimulatedLoss = (float)((double)ms / 100.0);
 #endif
-			}
+		}
+
+		private void textBox2_TextChanged(object sender, EventArgs e)
+		{
+#if DEBUG
+			float ms;
+			if (Single.TryParse(textBox2.Text, out ms))
+				Peer.Configuration.SimulatedDuplicatesChance = (float)((double)ms / 100.0);
+#endif
+		}
 
 		private void MinLatencyTextBox_TextChanged(object sender, EventArgs e)
 		{

@@ -1,0 +1,20 @@
+﻿
+Completed features:
+* Message coalescing
+* Message prioritation
+* Peer statistics
+* Lag, loss and duplication simulation for testing
+
+Bugs:
+* Fix project name (Lidgren.Library => Lidgren.Network)
+* Fix ping/pong issue with waiting for full window
+* Add configurable window size 32, 64, 128
+
+Missing features:
+* Message fragmentation
+* Connection statistics
+* Receipts
+* Local server discovery
+
+
+

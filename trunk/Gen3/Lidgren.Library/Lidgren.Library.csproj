@@ -45,6 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="INetBitVector.cs" />
+    <Compile Include="NetBitVector.cs" />
     <Compile Include="NetBitWriter.cs" />
     <Compile Include="NetClient.cs" />
     <Compile Include="NetConnection.cs" />
@@ -78,6 +80,7 @@
   <ItemGroup>
     <Content Include="MajorChanges.txt" />
     <Content Include="PacketLayout.txt" />
+    <Content Include="TODO.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

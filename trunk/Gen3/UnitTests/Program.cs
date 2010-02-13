@@ -15,6 +15,8 @@ namespace UnitTests
 
 			ReadWriteTests.Run(peer);
 
+			NetBitVectorTests.Run();
+
 			Console.ReadKey();
 		}
 	}

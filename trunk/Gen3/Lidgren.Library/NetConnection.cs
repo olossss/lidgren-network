@@ -22,9 +22,9 @@ namespace Lidgren.Network
 			m_unsentMessages[2] = new Queue<NetOutgoingMessage>(4);
 			m_status = NetConnectionStatus.None;
 			m_isPingInitialized = false;
-			m_nextKeepAlive = double.MaxValue;
+			m_nextKeepAlive = NetTime.Now + 5.0;
+			m_pingSendTime = NetTime.Now;
 
-			m_latencyWindowSize = owner.m_configuration.LatencyCalculationWindowSize;
 			m_lastSendRespondedTo = NetTime.Now;
 
 			ResetSlidingWindow();
@@ -83,8 +83,7 @@ namespace Lidgren.Network
 							ptr = -1;
 							break; // window full
 						}
-						packetWindowSlot = PrepareSend(now);
-						ptr = NetPeer.PACKET_HEADER_SIZE;
+						packetWindowSlot = PrepareSend(now, out ptr);
 					}
 
 					// previously just peeked; now dequeue for real
@@ -208,8 +207,19 @@ namespace Lidgren.Network
 					HandleIncomingHandshake(mtp, payload, payloadLength);
 					break;
 				case NetMessageType.LibraryKeepAlive:
-					// no op, we just want the acks, maam
-					m_owner.LogVerbose("Received keepalive (no action)");
+					// no operation, we just want the acks
+					break;
+				case NetMessageType.LibraryPing:
+					if (payloadLength > 0)
+						HandleIncomingPing(payload[0]);
+					else
+						m_owner.LogWarning("Received malformed ping");
+					break;
+				case NetMessageType.LibraryPong:
+					if (payloadLength > 0)
+						HandleIncomingPong(now, payload[0]);
+					else
+						m_owner.LogWarning("Received malformed pong");
 					break;
 				default:
 					throw new NotImplementedException();

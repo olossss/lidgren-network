@@ -13,7 +13,7 @@ namespace Lidgren.Network
 		/// </summary>
 		private void InternalEnsureBufferSize(int numberOfBits)
 		{
-			int byteLen = (numberOfBits >> 3) + ((numberOfBits & 7) > 0 ? 1 : 0);
+			int byteLen = ((numberOfBits + 7) >> 3);
 			if (m_data == null)
 			{
 				m_data = new byte[byteLen];
