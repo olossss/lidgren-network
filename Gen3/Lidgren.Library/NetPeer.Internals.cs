@@ -502,15 +502,8 @@ namespace Lidgren.Network
 			LogVerbose("Sending LibraryConnectResponse");
 			NetOutgoingMessage reply = CreateMessage(3 + (conn.m_localHailData == null ? 0 : conn.m_localHailData.Length));
 			reply.m_type = NetMessageType.LibraryConnectResponse;
-			if (conn.m_localHailData == null)
-			{
-				reply.WriteVariableUInt32(0);
-			}
-			else
-			{
-				reply.WriteVariableUInt32((uint)conn.m_localHailData.Length);
+			if (conn.m_localHailData != null)
 				reply.Write(conn.m_localHailData);
-			}
 			conn.EnqueueOutgoingMessage(reply, NetMessagePriority.High);
 
 			return;
