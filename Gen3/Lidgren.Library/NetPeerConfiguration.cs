@@ -39,6 +39,7 @@ namespace Lidgren.Network
 		internal int m_maxResends;
 		internal float m_pingFrequency;
 		internal int m_windowSize;
+		internal float m_maxDelayedMessageDuration;
 
 		// bad network simulation
 		internal float m_loss;
@@ -68,6 +69,7 @@ namespace Lidgren.Network
 			m_maxResends = 8;
 			m_pingFrequency = 3;
 			m_windowSize = 64;
+			m_maxDelayedMessageDuration = 0.5f;
 
 			m_loss = 0.0f;
 			m_minimumOneWayLatency = 0.0f;
@@ -318,6 +320,15 @@ namespace Lidgren.Network
 		{
 			get { return m_maxExplicitAckDelay; }
 			set { m_maxExplicitAckDelay = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets the maximum number of seconds to wait before forcing send of NetMessagePriority.Delayed messages
+		/// </summary>
+		public float MaxDelayedMessageDuration
+		{
+			get { return m_maxDelayedMessageDuration; }
+			set { m_maxDelayedMessageDuration = value; }
 		}
 
 		/// <summary>

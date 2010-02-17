@@ -7,8 +7,9 @@ namespace Lidgren.Network
 	/// </summary>
 	public enum NetMessagePriority
 	{
-		Low = 0,
-		Normal = 1,
-		High = 2
+		Delayed = 0,
+		Low = 1,
+		Normal = 2,
+		High = 3
 	}
 }
