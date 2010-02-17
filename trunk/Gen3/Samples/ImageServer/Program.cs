@@ -88,7 +88,7 @@ namespace ImageServer
 									ptr += 990;
 
 									// simple "interlace"
-									NetMessagePriority prio = (NetMessagePriority)(seg % 3);
+									NetMessagePriority prio = (NetMessagePriority)(seg % 3) + 1;
 
 									Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0, prio);
 								}

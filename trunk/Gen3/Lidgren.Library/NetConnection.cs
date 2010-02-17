@@ -10,7 +10,8 @@ namespace Lidgren.Network
 		private NetPeer m_owner;
 		internal IPEndPoint m_remoteEndPoint;
 		internal double m_lastHeardFrom;
-		private Queue<NetOutgoingMessage>[] m_unsentMessages; // low, normal, high
+		private Queue<NetOutgoingMessage>[] m_unsentMessages; // delayed, low, normal, high
+		internal double m_nextForceSendDelayed;
 
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
@@ -26,14 +27,16 @@ namespace Lidgren.Network
 		{
 			m_owner = owner;
 			m_remoteEndPoint = remoteEndPoint;
-			m_unsentMessages = new Queue<NetOutgoingMessage>[3];
-			m_unsentMessages[0] = new Queue<NetOutgoingMessage>(4);
-			m_unsentMessages[1] = new Queue<NetOutgoingMessage>(8);
-			m_unsentMessages[2] = new Queue<NetOutgoingMessage>(4);
+			m_unsentMessages = new Queue<NetOutgoingMessage>[4];
+			m_unsentMessages[0] = new Queue<NetOutgoingMessage>(8);
+			m_unsentMessages[1] = new Queue<NetOutgoingMessage>(4);
+			m_unsentMessages[2] = new Queue<NetOutgoingMessage>(8);
+			m_unsentMessages[3] = new Queue<NetOutgoingMessage>(4);
 			m_status = NetConnectionStatus.None;
 			m_isPingInitialized = false;
 			m_nextKeepAlive = NetTime.Now + 5.0;
 			m_pingSendTime = NetTime.Now;
+			m_nextForceSendDelayed = double.MaxValue;
 
 			m_lastSendRespondedTo = NetTime.Now;
 
@@ -67,9 +70,18 @@ namespace Lidgren.Network
 			byte[] buffer = m_owner.m_sendBuffer;
 			int ptr = 0;
 			WindowSlot packetWindowSlot = null;
-			for (int i = 2; i >= 0; i--)
+			for (int i = 3; i >= 0; i--)
 			{
 				Queue<NetOutgoingMessage> queue = m_unsentMessages[i];
+
+				if (i == (int)NetMessagePriority.Delayed)
+				{
+					// delayed queue
+					if (ptr == 0 && now < m_nextForceSendDelayed)
+						break; // not time to send this message yet and this is last queue
+					m_nextForceSendDelayed = double.MaxValue;
+					// proceed to send any delayed message
+				}
 
 				while (queue.Count > 0)
 				{
@@ -144,7 +156,10 @@ namespace Lidgren.Network
 			Queue<NetOutgoingMessage> queue = m_unsentMessages[(int)priority];
 			lock (queue)
 				queue.Enqueue(msg);
-			
+
+			if (priority == NetMessagePriority.Delayed && m_nextForceSendDelayed == double.MaxValue)
+				m_nextForceSendDelayed = NetTime.Now + m_owner.m_configuration.m_maxDelayedMessageDuration;
+
 			Interlocked.Increment(ref msg.m_inQueueCount);
 		}
 
