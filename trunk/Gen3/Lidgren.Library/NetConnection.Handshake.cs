@@ -20,6 +20,7 @@ namespace Lidgren.Network
 		public byte[] LocalHailData
 		{
 			get { return m_localHailData; }
+			set { m_localHailData = value; }
 		}
 
 		/// <summary>
