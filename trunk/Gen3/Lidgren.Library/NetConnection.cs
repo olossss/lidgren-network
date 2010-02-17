@@ -12,6 +12,16 @@ namespace Lidgren.Network
 		internal double m_lastHeardFrom;
 		private Queue<NetOutgoingMessage>[] m_unsentMessages; // low, normal, high
 
+		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
+		internal string m_pendingDenialReason;
+		
+		public object Tag;
+
+		/// <summary>
+		/// Gets the remote endpoint for this connection
+		/// </summary>
+		public IPEndPoint RemoteEndPoint { get { return m_remoteEndPoint; } }
+
 		internal NetConnection(NetPeer owner, IPEndPoint remoteEndPoint)
 		{
 			m_owner = owner;
@@ -224,6 +234,27 @@ namespace Lidgren.Network
 				default:
 					throw new NotImplementedException();
 			}
+		}
+
+		public void Approve()
+		{
+			if (m_pendingStatus != PendingConnectionStatus.Pending)
+			{
+				m_owner.LogWarning("Approve() called on non-pending connection!");
+				return;
+			}
+			m_pendingStatus = PendingConnectionStatus.Approved;
+		}
+
+		public void Deny(string reason)
+		{
+			if (m_pendingStatus != PendingConnectionStatus.Pending)
+			{
+				m_owner.LogWarning("Deny() called on non-pending connection!");
+				return;
+			}
+			m_pendingStatus = PendingConnectionStatus.Denied;
+			m_pendingDenialReason = reason;
 		}
 
 		internal void Dispose()

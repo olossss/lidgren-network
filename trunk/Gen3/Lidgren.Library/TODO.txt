@@ -15,6 +15,11 @@ Missing features:
 * Connection statistics
 * Receipts
 * Local server discovery
+* Hail data
+* Connection approval
+
+
+
 
 
 

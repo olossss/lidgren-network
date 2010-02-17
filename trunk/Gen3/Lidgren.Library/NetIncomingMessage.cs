@@ -4,7 +4,7 @@ using System.Net;
 
 namespace Lidgren.Network
 {
-	public sealed partial class NetIncomingMessage
+	public partial class NetIncomingMessage
 	{
 		internal byte[] m_data;
 		internal int m_bitLength;

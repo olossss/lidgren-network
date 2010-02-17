@@ -10,8 +10,25 @@ namespace Lidgren.Network
 		internal string m_disconnectByeMessage;
 		internal bool m_connectionInitiator;
 		internal double m_connectInitationTime; // regardless of initiator
-		internal string m_hail;
+		internal byte[] m_localHailData;
+		internal byte[] m_remoteHailData;
 		internal NetConnectionStatus m_status;
+
+		/// <summary>
+		/// Gets the hail data (if any) that was sent from this host when connecting
+		/// </summary>
+		public byte[] LocalHailData
+		{
+			get { return m_localHailData; }
+		}
+
+		/// <summary>
+		/// Gets the hail data (if any) that was provided by the remote host
+		/// </summary>
+		public byte[] RemoteHailData
+		{
+			get { return m_remoteHailData; }
+		}
 
 		internal void SetStatus(NetConnectionStatus status, string reason)
 		{
@@ -66,12 +83,15 @@ namespace Lidgren.Network
 			NetOutgoingMessage om = m_owner.CreateMessage(len);
 			om.m_type = NetMessageType.LibraryConnect;
 			om.Write(m_owner.m_configuration.AppIdentifier);
-			//om.Write((byte)m_owner.m_macAddressBytes.Length);
-			//om.Write(m_owner.m_macAddressBytes);
-			if (m_hail == null)
-				m_hail = string.Empty;
-			om.Write(m_hail);
-
+			if (m_localHailData == null)
+			{
+				om.WriteVariableUInt32(0);
+			}
+			else
+			{
+				om.WriteVariableUInt32((uint)m_localHailData.Length);
+				om.Write(m_localHailData);
+			}
 			m_owner.LogVerbose("Sending Connect");
 			
 			// don´t use high prio, in case a disconnect message is in the queue too
@@ -138,6 +158,10 @@ namespace Lidgren.Network
 
 					if (m_status == NetConnectionStatus.Connecting)
 					{
+						// get remote hail data
+						m_remoteHailData = new byte[payloadBytesLength];
+						Buffer.BlockCopy(payload, 0, m_remoteHailData, 0, payloadBytesLength);
+
 						// excellent, handshake making progress; send connectionestablished
 						SetStatus(NetConnectionStatus.Connected, "Connected");
 

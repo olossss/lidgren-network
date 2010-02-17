@@ -7,6 +7,14 @@ using System.Diagnostics;
 
 namespace Lidgren.Network
 {
+	public enum NetWindowSize
+	{
+		Unknown = 0,
+		Size32 = 32,
+		Size64 = 64,
+		Size128 = 128
+	}
+
 	/// <summary>
 	/// Immutable after NetPeer has been initialized
 	/// </summary>
@@ -319,6 +327,26 @@ namespace Lidgren.Network
 		{
 			get { return m_pingFrequency; }
 			set { m_pingFrequency = value; }
+		}
+
+		public NetWindowSize WindowSize
+		{
+			get
+			{
+				switch (m_windowSize)
+				{
+					case 32: return NetWindowSize.Size32;
+					case 64: return NetWindowSize.Size64;
+					case 128: return NetWindowSize.Size128;
+					default: return NetWindowSize.Unknown;
+				}
+			}
+			set
+			{
+				if (m_isLocked)
+					throw new NetException(c_isLockedMessage);
+				m_windowSize = (int)value;
+			}
 		}
 	}
 }

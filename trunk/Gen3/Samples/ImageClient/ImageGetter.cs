@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using Lidgren.Network;
+using SamplesCommon;
 
 namespace ImageClient
 {
@@ -21,10 +22,11 @@ namespace ImageClient
 			InitializeComponent();
 
 			NetPeerConfiguration config = copyConfig.Clone();
+			config.WindowSize = NetWindowSize.Size128;
 
 			Client = new NetClient(config);
 			Client.Start();
-			Client.Connect(host, 14242);
+			Client.Connect(host, 14242, new byte[] { 6, 7, 8 }); // secret hail data :-)
 		}
 
 		public void Heartbeat()
@@ -38,7 +40,12 @@ namespace ImageClient
 					case NetIncomingMessageType.VerboseDebugMessage:
 					case NetIncomingMessageType.WarningMessage:
 					case NetIncomingMessageType.ErrorMessage:
-						SamplesCommon.NativeMethods.AppendText(richTextBox1, inc.ReadString());
+						NativeMethods.AppendText(richTextBox1, inc.ReadString());
+						break;
+					case NetIncomingMessageType.StatusChanged:
+						NetConnectionStatus status = (NetConnectionStatus)inc.ReadByte();
+						string reason = inc.ReadString();
+						NativeMethods.AppendText(richTextBox1, "New status: " + status + " (" + reason + ")");
 						break;
 					case NetIncomingMessageType.Data:
 						// image data, whee!

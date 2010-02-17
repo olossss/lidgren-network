@@ -22,8 +22,16 @@ namespace ImageServer
 			Application.SetCompatibleTextRenderingDefault(false);
 			MainForm = new Form1();
 
+			// create a configuration, use identifier "ImageTransfer" - same as client
 			NetPeerConfiguration config = new NetPeerConfiguration("ImageTransfer");
+			config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
+
+			// set a large window, since we're transferring large amounts of data at once
+			config.WindowSize = NetWindowSize.Size128;
+
+			// listen on port 14242
 			config.Port = 14242;
+
 			Server = new NetServer(config);
 
 			Application.Idle += new EventHandler(AppLoop);
@@ -35,7 +43,7 @@ namespace ImageServer
 			NetIncomingMessage inc;
 			while (NativeMethods.AppStillIdle)
 			{
-				// do stuff
+				// read any pending messages
 				while ((inc = Server.ReadMessage()) != null)
 				{
 					switch (inc.MessageType)
@@ -44,13 +52,29 @@ namespace ImageServer
 						case NetIncomingMessageType.VerboseDebugMessage:
 						case NetIncomingMessageType.WarningMessage:
 						case NetIncomingMessageType.ErrorMessage:
+							// just print any message
 							NativeMethods.AppendText(MainForm.richTextBox1, inc.ReadString());
+							break;
+						case NetIncomingMessageType.ConnectionApproval:
+
+							// Here we could check inc.SenderConnection.RemoteEndPoint, deny certain ip
+
+							// check hail data
+							byte[] remoteHail = inc.ReadBytes(3);
+							if (remoteHail[0] == 6 &&
+								remoteHail[1] == 7 &&
+								remoteHail[2] == 8)
+								inc.SenderConnection.Approve();
+							else
+								inc.SenderConnection.Deny("Bad hail data, go away!");
 							break;
 						case NetIncomingMessageType.StatusChanged:
 							NetConnectionStatus status = (NetConnectionStatus)inc.ReadByte();
 							if (status == NetConnectionStatus.Connected)
 							{
-								// buffer all packets!
+								//
+								// A client connected; send the entire image in chunks of 990 bytes
+								//
 								uint seg = 0;
 								int ptr = 0;
 								while (ptr < ImageData.Length)
