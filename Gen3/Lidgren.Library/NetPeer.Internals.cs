@@ -200,6 +200,9 @@ namespace Lidgren.Network
 			SendDelayedPackets();
 #endif
 
+			// connection approval
+			CheckPendingConnections();
+
 		// do connection heartbeats
 		RestartConnectionHeartbeat:
 			foreach (NetConnection conn in m_connections)
@@ -403,14 +406,19 @@ namespace Lidgren.Network
 					}
 
 					string appIdent;
-					string hail;
+					byte[] remoteHail = null;
 					try
 					{
 						NetIncomingMessage reader = new NetIncomingMessage();
 						reader.m_data = payload;
 						reader.m_bitLength = payloadLength * 8;
 						appIdent = reader.ReadString();
-						hail = reader.ReadString();
+						int hailLen = (int)reader.ReadVariableUInt32();
+						if (hailLen > 0 && hailLen < m_configuration.MaximumTransmissionUnit)
+						{
+							remoteHail = new byte[hailLen];
+							reader.ReadBytes(remoteHail, 0, hailLen);
+						}
 					}
 					catch (Exception ex)
 					{
@@ -433,26 +441,21 @@ namespace Lidgren.Network
 						return;
 					}
 
-					// TODO: connection approval, pass hail data
-
 					NetConnection conn = new NetConnection(this, senderEndPoint);
 					conn.m_connectionInitiator = false;
 					conn.m_receiveWindowBase = 1;
-					lock (m_connections)
-					{
-						m_connections.Add(conn);
-						m_connectionLookup[senderEndPoint] = conn;
-					}
-					conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
-
-					// send connection response
-					LogVerbose("Sending LibraryConnectResponse");
-					NetOutgoingMessage reply = CreateMessage(2);
-					reply.m_type = NetMessageType.LibraryConnectResponse;
-					conn.EnqueueOutgoingMessage(reply, NetMessagePriority.High);
-
+					conn.m_localHailData = null; // TODO: use some default hail data set in netpeer?
+					conn.m_remoteHailData = remoteHail;
 					conn.m_connectInitationTime = NetTime.Now;
 
+					if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
+					{
+						// do connection approval before accepting this connection
+						AddPendingConnection(conn);
+						break;
+					}
+
+					AcceptConnection(conn);
 					break;
 				case NetMessageType.LibraryConnectionEstablished:
 				case NetMessageType.LibraryConnectResponse:
@@ -486,6 +489,33 @@ namespace Lidgren.Network
 			}
 		}
 
+		private void AcceptConnection(NetConnection conn)
+		{
+			lock (m_connections)
+			{
+				m_connections.Add(conn);
+				m_connectionLookup[conn.m_remoteEndPoint] = conn;
+			}
+			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
+
+			// send connection response
+			LogVerbose("Sending LibraryConnectResponse");
+			NetOutgoingMessage reply = CreateMessage(3 + (conn.m_localHailData == null ? 0 : conn.m_localHailData.Length));
+			reply.m_type = NetMessageType.LibraryConnectResponse;
+			if (conn.m_localHailData == null)
+			{
+				reply.WriteVariableUInt32(0);
+			}
+			else
+			{
+				reply.WriteVariableUInt32((uint)conn.m_localHailData.Length);
+				reply.Write(conn.m_localHailData);
+			}
+			conn.EnqueueOutgoingMessage(reply, NetMessagePriority.High);
+
+			return;
+		}
+
 		internal void RemoveConnection(NetConnection conn)
 		{
 			conn.Dispose();
@@ -505,7 +535,6 @@ namespace Lidgren.Network
 
 		private void EnqueueUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)
 		{
-			msg.m_type = NetMessageType.UserUnreliable; // sortof not applicable
 			Interlocked.Increment(ref msg.m_inQueueCount);
 			lock (m_unsentUnconnectedMessage)
 			{

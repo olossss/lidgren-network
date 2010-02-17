@@ -5,7 +5,7 @@ using System.Net;
 
 namespace Lidgren.Network
 {
-	public sealed partial class NetIncomingMessage
+	public partial class NetIncomingMessage
 	{
 		private const string c_readOverflowError = "Trying to read past the buffer size - likely caused by mismatching Write/Reads, different size or order.";
 		

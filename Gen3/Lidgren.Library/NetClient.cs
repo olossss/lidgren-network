@@ -24,14 +24,6 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Connect to a server
-		/// </summary>
-		public override NetConnection Connect(IPEndPoint remoteEndPoint)
-		{
-			return base.Connect(remoteEndPoint);
-		}
-
-		/// <summary>
 		/// Disconnect from server
 		/// </summary>
 		/// <param name="byeMessage">reason for disconnect</param>

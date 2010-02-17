@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Lidgren.Network
 {
-	public sealed partial class NetIncomingMessage
+	public partial class NetIncomingMessage
 	{
 		/// <summary>
 		/// Ensures the buffer can hold this number of bits

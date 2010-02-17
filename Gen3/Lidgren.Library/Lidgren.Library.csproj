@@ -63,6 +63,7 @@
     <Compile Include="NetMessageType.cs" />
     <Compile Include="NetOutgoingMessage.cs" />
     <Compile Include="NetOutgoingMessage.Write.cs" />
+    <Compile Include="NetPeer.ConnectionApproval.cs" />
     <Compile Include="NetPeer.cs" />
     <Compile Include="NetPeer.Internals.cs" />
     <Compile Include="NetPeer.LatencySimulation.cs" />

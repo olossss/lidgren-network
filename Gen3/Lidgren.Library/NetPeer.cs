@@ -142,6 +142,7 @@ namespace Lidgren.Network
 		{
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
+			msg.m_type = NetMessageType.UserUnreliable; // sortof not applicable
 			EnqueueUnconnectedMessage(msg, recipient);
 		}
 
@@ -149,6 +150,7 @@ namespace Lidgren.Network
 		{
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
+			msg.m_type = NetMessageType.UserUnreliable; // sortof not applicable
 			foreach (IPEndPoint ipe in recipients)
 				EnqueueUnconnectedMessage(msg, ipe);
 		}
@@ -174,13 +176,21 @@ namespace Lidgren.Network
 		/// </summary>
 		public NetConnection Connect(string host, int port)
 		{
-			return Connect(new IPEndPoint(NetUtility.Resolve(host), port));
+			return Connect(new IPEndPoint(NetUtility.Resolve(host), port), null);
 		}
 
 		/// <summary>
 		/// Create a connection to a remote endpoint
 		/// </summary>
-		public virtual NetConnection Connect(IPEndPoint remoteEndPoint)
+		public NetConnection Connect(string host, int port, byte[] hailData)
+		{
+			return Connect(new IPEndPoint(NetUtility.Resolve(host), port), hailData);
+		}
+
+		/// <summary>
+		/// Create a connection to a remote endpoint
+		/// </summary>
+		public virtual NetConnection Connect(IPEndPoint remoteEndPoint, byte[] hailData)
 		{
 			if (m_status == NetPeerStatus.NotRunning)
 				throw new NetException("Must call Start() first");
@@ -189,6 +199,7 @@ namespace Lidgren.Network
 				throw new NetException("Already connected to that endpoint!");
 
 			NetConnection conn = new NetConnection(this, remoteEndPoint);
+			conn.m_localHailData = hailData;
 
 			// handle on network thread
 			conn.m_connectRequested = true;
