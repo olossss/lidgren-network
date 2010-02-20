@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 namespace Lidgren.Network
 {
 	//
 	// This partial file holds public netpeer methods accessible to the application
 	//
+	[DebuggerDisplay("Status={m_status}")]
 	public partial class NetPeer
 	{
 		private NetPeerStatus m_status;

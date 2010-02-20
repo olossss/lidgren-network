@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+using System.Diagnostics;
 
 namespace Lidgren.Network
 {
+	[DebuggerDisplay("RemoteEndPoint={m_remoteEndPoint} Status={m_status}")]
 	public partial class NetConnection
 	{
 		private NetPeer m_owner;

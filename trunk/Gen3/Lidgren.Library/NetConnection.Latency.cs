@@ -114,7 +114,7 @@ namespace Lidgren.Network
 			// calculate avg rtt 
 			m_currentAvgRoundtrip = (m_currentAvgRoundtrip * 0.75f) + (rtt * 0.25f);
 
-			m_owner.LogDebug("Found RTT: " + NetTime.ToReadable(rtt) + " new average: " + NetTime.ToReadable(m_currentAvgRoundtrip));
+			m_owner.LogVerbose("Found RTT: " + NetTime.ToReadable(rtt) + " new average: " + NetTime.ToReadable(m_currentAvgRoundtrip));
 		}
 	}
 }
