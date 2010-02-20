@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Diagnostics;
 
 namespace Lidgren.Network
 {
+	[DebuggerDisplay("{m_readPosition} of {m_bitLength} bits ({LengthBytes} bytes) read")]
 	public partial class NetIncomingMessage
 	{
 		internal byte[] m_data;
@@ -12,6 +14,14 @@ namespace Lidgren.Network
 		internal NetIncomingMessageType m_messageType;
 		internal IPEndPoint m_senderEndPoint;
 		internal NetConnection m_senderConnection;
+
+		/// <summary>
+		/// Gets the length of the data in bytes
+		/// </summary>
+		public int LengthBytes
+		{
+			get { return ((m_bitLength + 7) >> 3); }
+		}
 
 		/// <summary>
 		/// Type of data contained in this message

@@ -502,7 +502,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void WritePadBits()
 		{
-			m_bitLength = ((m_bitLength + 7) / 8) * 8;
+			m_bitLength = ((m_bitLength + 7) >> 3) * 8;
 			EnsureBufferSize(m_bitLength);
 		}
 

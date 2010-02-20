@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Lidgren.Network
 {
+	[DebuggerDisplay("LengthBytes={LengthBytes}")]
 	public sealed partial class NetOutgoingMessage
 	{
 		// reference count before message can be recycled
