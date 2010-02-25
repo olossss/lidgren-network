@@ -196,7 +196,7 @@ namespace Lidgren.Network
 			CheckPendingConnections();
 
 			double now = NetTime.Now;
-
+			
 			// do connection heartbeats
 			foreach (NetConnection conn in m_connections)
 			{
@@ -247,8 +247,14 @@ namespace Lidgren.Network
 			//
 			do
 			{
-				if (m_socket == null || m_socket.Available < 1)
+				if (m_socket == null)
 					return;
+
+				if (!m_socket.Poll(3000, SelectMode.SelectRead)) // wait up to 3 ms for data to arrive
+					return;
+
+				//if (m_socket == null || m_socket.Available < 1)
+				//	return;
 
 				int bytesReceived = 0;
 				try
@@ -424,7 +430,6 @@ namespace Lidgren.Network
 			conn.m_connectionInitiator = false;
 			conn.m_localHailData = null; // TODO: use some default hail data set in netpeer?
 			conn.m_remoteHailData = remoteHail;
-			conn.m_connectInitationTime = NetTime.Now;
 
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
 			{
@@ -465,7 +470,9 @@ namespace Lidgren.Network
 			reply.m_libType = NetMessageLibraryType.ConnectResponse;
 			if (conn.m_localHailData != null)
 				reply.Write(conn.m_localHailData);
-			conn.EnqueueOutgoingMessage(reply);
+
+			SendImmediately(conn, reply);
+			conn.m_connectInitationTime = NetTime.Now;
 
 			return;
 		}
@@ -505,6 +512,17 @@ namespace Lidgren.Network
 			else if (mtp >= NetMessageType.UserSequenced)
 				return NetDeliveryMethod.UnreliableSequenced;
 			return NetDeliveryMethod.Unreliable;
+		}
+
+		internal void SendImmediately(NetConnection conn, NetOutgoingMessage msg)
+		{
+#if DEBUG
+			if (msg.m_type != NetMessageType.Library)
+				throw new NetException("SendImmediately can only send library (non-reliable) messages");
+#endif
+			int len = msg.Encode(m_sendBuffer, 0, conn);
+			Interlocked.Decrement(ref msg.m_inQueueCount);
+			SendPacket(len, conn.m_remoteEndPoint);
 		}
 	}
 }
