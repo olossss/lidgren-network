@@ -34,6 +34,9 @@ namespace Lidgren.Network
 			m_items = new T[initialCapacity];
 		}
 
+		/// <summary>
+		/// Places an item last/tail of the queue
+		/// </summary>
 		public void Enqueue(T item)
 		{
 			if (m_size == m_items.Length)
@@ -43,6 +46,22 @@ namespace Lidgren.Network
 			{
 				int slot = (m_head + m_size) % m_items.Length;
 				m_items[slot] = item;
+				m_size++;
+			}
+		}
+
+		/// <summary>
+		/// Places an item first, at the head of the queue
+		/// </summary>
+		public void EnqueueFirst(T item)
+		{
+			if (m_size == m_items.Length)
+				SetCapacity(m_items.Length + 8);
+
+			lock (m_lock)
+			{
+				m_head = (m_head - 1) % m_items.Length;
+				m_items[m_head] = item;
 				m_size++;
 			}
 		}
@@ -81,6 +100,9 @@ namespace Lidgren.Network
 			}
 		}
 
+		/// <summary>
+		/// Gets an item from the head of the queue, or returns default(T) if empty
+		/// </summary>
 		public T TryDequeue()
 		{
 			if (m_size == 0)

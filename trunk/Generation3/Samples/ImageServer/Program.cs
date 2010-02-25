@@ -90,7 +90,7 @@ namespace ImageServer
 									om.Write(ImageData, ptr, l);
 									ptr += 990;
 
-									Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.Unreliable, 0);
+									Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
 								}
 
 								// all messages will be sent before disconnect so we can call it here
