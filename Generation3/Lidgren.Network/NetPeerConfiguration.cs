@@ -43,8 +43,8 @@ namespace Lidgren.Network
 		internal bool[] m_disabledTypes;
 		internal float m_pingFrequency;
 		internal float m_maxDelayedMessageDuration;
-		internal int m_runSleepMillis;
 		internal int m_throttleBytesPerSecond;
+		internal int m_throttlePeakDivider;
 
 		// bad network simulation
 		internal float m_loss;
@@ -71,8 +71,8 @@ namespace Lidgren.Network
 			m_defaultOutgoingMessageCapacity = 8;
 			m_pingFrequency = 3.0f;
 			m_maxDelayedMessageDuration = 0.25f;
-			m_runSleepMillis = 1;
-			m_throttleBytesPerSecond = 1024 * 128;
+			m_throttleBytesPerSecond = 1024 * 512;
+			m_throttlePeakDivider = 8;
 
 			m_loss = 0.0f;
 			m_minimumOneWayLatency = 0.0f;
@@ -332,20 +332,6 @@ namespace Lidgren.Network
 		{
 			get { return m_pingFrequency; }
 			set { m_pingFrequency = value; }
-		}
-
-		/// <summary>
-		/// Gets or sets the number of milliseconds the network thread should sleep between heartbeats
-		/// </summary>
-		public int NetworkThreadSleepLength
-		{
-			get { return m_runSleepMillis; }
-			set
-			{
-				if (m_isLocked)
-					throw new NetException(c_isLockedMessage);
-				m_runSleepMillis = value;
-			}
 		}
 
 		/// <summary>

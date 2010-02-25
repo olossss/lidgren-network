@@ -49,9 +49,7 @@ namespace Lidgren.Network
 			double now = NetTime.Now;
 			m_nextPing = now + 5.0f;
 			m_nextKeepAlive = now + 5.0f + m_owner.m_configuration.m_keepAliveDelay;
-
-			// "slow start"
-			m_throttleDebt = m_owner.m_configuration.m_throttleBytesPerSecond;
+			m_lastSentUnsentMessages = now;
 		}
 
 		internal ushort GetSendSequenceNumber(NetMessageType tp)
@@ -80,16 +78,15 @@ namespace Lidgren.Network
 				double frameLength = now - m_lastSentUnsentMessages;
 				if (m_throttleDebt > 0)
 					m_throttleDebt -= (float)(frameLength * throttle);
-				if (m_throttleDebt < 0)
-					m_throttleDebt = 0;
 				m_lastSentUnsentMessages = now;
 			}
 
-			if (m_throttleDebt < throttle)
+			float throttleThreshold = throttle / m_owner.m_configuration.m_throttlePeakDivider;
+			if (m_throttleDebt < throttleThreshold)
 			{
 				while (m_unsentMessages.Count > 0)
 				{
-					if (m_throttleDebt >= throttle)
+					if (m_throttleDebt >= throttleThreshold)
 						break;
 
 					NetOutgoingMessage msg = m_unsentMessages.TryDequeue();

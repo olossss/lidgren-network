@@ -128,8 +128,6 @@ namespace Lidgren.Network
 			//
 			// Network loop
 			//
-			m_runSleepInMilliseconds = m_configuration.m_runSleepMillis;
-
 			do
 			{
 				try
@@ -142,7 +140,7 @@ namespace Lidgren.Network
 				}
 
 				// wait here to give cpu to other threads/processes; also to collect messages for aggregate packet
-				Thread.Sleep(m_runSleepInMilliseconds);
+				//Thread.Sleep(m_runSleepInMilliseconds);
 			} while (m_status == NetPeerStatus.Running);
 
 			//
@@ -430,6 +428,7 @@ namespace Lidgren.Network
 			conn.m_connectionInitiator = false;
 			conn.m_localHailData = null; // TODO: use some default hail data set in netpeer?
 			conn.m_remoteHailData = remoteHail;
+			conn.m_connectInitationTime = NetTime.Now;
 
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
 			{
