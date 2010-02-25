@@ -1,0 +1,23 @@
+﻿
+Completed features:
+* Message coalescing
+* Peer statistics
+* Lag, loss and duplication simulation for testing
+* Hail data
+* Connection approval
+* Throttling
+
+Missing features:
+* Message fragmentation
+* Connection statistics
+* Receipts
+* Local server discovery
+* Peek methods in NetIncomingMessage
+* Recycle NetOutgoingMessage messages
+
+Bugs/need improvement:
+* Explicit ping/pong packets 
+
+
+
+
