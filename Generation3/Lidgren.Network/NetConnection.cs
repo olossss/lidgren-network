@@ -50,11 +50,9 @@ namespace Lidgren.Network
 			m_nextPing = now + 5.0f;
 			m_nextKeepAlive = now + 5.0f + m_owner.m_configuration.m_keepAliveDelay;
 			m_lastSentUnsentMessages = now;
-		}
+			m_lastSendRespondedTo = now;
 
-		internal ushort GetSendSequenceNumber(NetMessageType tp)
-		{
-			throw new NotImplementedException();
+			InitializeReliability();
 		}
 
 		// run on network thread
@@ -150,6 +148,14 @@ namespace Lidgren.Network
 
 				NetDeliveryMethod ndm = NetPeer.GetDeliveryMethod(mtp);
 
+				// reject sequenced
+				if (ndm == NetDeliveryMethod.UnreliableSequenced || ndm == NetDeliveryMethod.ReliableSequenced)
+				{
+					bool reject = ReceivedSequencedMessage(mtp, channelSequenceNumber);
+					if (reject)
+						return;
+				}
+
 				// release to application
 				NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, payloadLength);
 				im.m_deliveredMethod = ndm;
@@ -199,7 +205,7 @@ namespace Lidgren.Network
 					break;
 				case NetMessageLibraryType.Pong:
 					if (payloadLength > 0)
-						HandleIncomingPong(now, m_owner.m_receiveBuffer[ptr]);
+						HandleIncomingPong(m_owner.m_receiveBuffer[ptr]);
 					else
 						m_owner.LogWarning("Received malformed pong");
 					break;

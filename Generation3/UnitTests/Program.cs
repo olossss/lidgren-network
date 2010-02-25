@@ -12,8 +12,13 @@ namespace UnitTests
 		{
 			NetPeerConfiguration config = new NetPeerConfiguration("unittests");
 			NetPeer peer = new NetPeer(config);
+			peer.Start(); // needed for initialization
+
+			System.Threading.Thread.Sleep(25);
 
 			ReadWriteTests.Run(peer);
+
+			NetQueueTests.Run();
 
 			Console.ReadKey();
 		}

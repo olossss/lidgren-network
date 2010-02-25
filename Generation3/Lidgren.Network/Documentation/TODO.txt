@@ -8,15 +8,12 @@ Completed features:
 * Throttling
 
 Missing features:
+* Reliability(!)
 * Message fragmentation
 * Connection statistics
 * Receipts
 * Local server discovery
-* Peek methods in NetIncomingMessage
 * Recycle NetOutgoingMessage messages
-
-Bugs/need improvement:
-* Explicit ping/pong packets 
 
 
 

@@ -11,5 +11,5 @@ Improvements over last version of library:
 * Reduced CPU usage and lower latencies (in the <1 ms range, but still) due to better socket polling
 * All public members of NetPeer/NetConnection completely thread safe
 * Larger number of delivery channels
-
+* More exact roundtrip measurement
 

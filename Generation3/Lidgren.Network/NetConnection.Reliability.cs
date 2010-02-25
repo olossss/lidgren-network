@@ -18,14 +18,41 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 using System;
+using System.Collections.Generic;
 
 namespace Lidgren.Network
 {
 	public partial class NetConnection
 	{
-		private void StoreReliableMessage(NetOutgoingMessage msg)
+		private ushort[] m_nextSendSequenceNumber;
+
+		private List<NetOutgoingMessage> m_storedMessages; // naïve! replace by something better
+
+		private void InitializeReliability()
+		{
+			int num = ((int)NetMessageType.UserReliableOrdered + NetConstants.kNetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;
+			m_nextSendSequenceNumber = new ushort[num];
+			m_storedMessages = new List<NetOutgoingMessage>();
+		}
+
+		internal ushort GetSendSequenceNumber(NetMessageType tp)
+		{
+			m_owner.VerifyNetworkThread();
+			int slot = (int)tp - (int)NetMessageType.UserSequenced;
+			return m_nextSendSequenceNumber[slot]++;
+		}
+
+		// returns true if message should be rejected
+		internal bool ReceivedSequencedMessage(NetMessageType mtp, ushort seqNr)
 		{
 			throw new NotImplementedException();
+			// check seqNr vs m_lastReceivedSequenced - updating it or returning true (reject)
+		}
+
+		private void StoreReliableMessage(NetOutgoingMessage msg)
+		{
+			m_owner.VerifyNetworkThread();
+			m_storedMessages.Add(msg);
 		}
 	}
 }

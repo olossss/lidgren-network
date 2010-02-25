@@ -53,6 +53,7 @@
     <Compile Include="NetConnection.Latency.cs" />
     <Compile Include="NetConnection.Reliability.cs" />
     <Compile Include="NetConnectionStatus.cs" />
+    <Compile Include="NetConstants.cs" />
     <Compile Include="NetException.cs" />
     <Compile Include="NetIncomingMessage.cs" />
     <Compile Include="NetIncomingMessage.Peek.cs" />

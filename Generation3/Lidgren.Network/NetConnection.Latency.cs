@@ -42,13 +42,13 @@ namespace Lidgren.Network
 			if (!m_isPingInitialized)
 			{
 				m_isPingInitialized = true;
-				m_averageRoundtripTime = rtt;
+				m_averageRoundtripTime = Math.Max(0.005f, rtt - 0.005f); // TODO: find out why initial ping always overshoots
 				m_nextPing = NetTime.Now + m_owner.m_configuration.m_pingFrequency;
-				m_owner.LogDebug("Initialized rtt to: " + NetTime.ToReadable(rtt));
+				m_owner.LogDebug("Got " + NetTime.ToReadable(rtt) + "... Initialized rtt to: " + NetTime.ToReadable(m_averageRoundtripTime));
 			}
 			else
 			{
-				m_averageRoundtripTime = (m_averageRoundtripTime * 0.75f) + (rtt * 0.25f);
+				m_averageRoundtripTime = (m_averageRoundtripTime * 0.7f) + (rtt * 0.3f);
 				m_owner.LogDebug("Found rtt: " + NetTime.ToReadable(rtt) + ", new average: " + NetTime.ToReadable(m_averageRoundtripTime));
 			}
 		}
@@ -65,7 +65,7 @@ namespace Lidgren.Network
 			m_owner.SendImmediately(this, pong);
 		}
 
-		internal void HandleIncomingPong(double now, byte pingNumber)
+		internal void HandleIncomingPong(byte pingNumber)
 		{
 			// verify it´s the correct ping number
 			if (pingNumber != m_lastSentPingNumber)
@@ -73,6 +73,8 @@ namespace Lidgren.Network
 				m_owner.LogDebug("Received wrong pong number");
 				return;
 			}
+
+			double now = NetTime.Now; // need exact number
 
 			m_lastHeardFrom = now;
 			m_lastSendRespondedTo = m_lastPingSendTime;
@@ -120,7 +122,7 @@ namespace Lidgren.Network
 
 				m_owner.SendImmediately(this, ping);
 
-				m_lastPingSendTime = now;
+				m_lastPingSendTime = NetTime.Now; // need exact number
 				m_nextPing = now + m_owner.Configuration.m_pingFrequency;
 			}
 		}

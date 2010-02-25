@@ -45,10 +45,11 @@ namespace Lidgren.Network
 		Connect = 4,
 		ConnectResponse = 5,
 		ConnectionEstablished = 6,
-		Disconnect = 7,
-		Discovery = 8,
-		DiscoveryResponse = 9,
-		NatIntroduction = 10,
+		Acknowledge = 7,
+		Disconnect = 8,
+		Discovery = 9,
+		DiscoveryResponse = 10,
+		NatIntroduction = 11,
 	}
 
 	internal enum NetMessageType : byte
@@ -60,14 +61,14 @@ namespace Lidgren.Network
 		UserUnreliable = 2,
 
 		UserSequenced = 3,
-		// 4 to 35 = UserSequenced 0 to 31
+		// 3 to 34 = UserSequenced 0 to 31
 
-		UserReliableUnordered = 36,
+		UserReliableUnordered = 35,
 
-		UserReliableSequenced = 37,
-		// 37 to 69 = UserReliableSequenced 0 to 31
+		UserReliableSequenced = 36,
+		// 36 to 68 = UserReliableSequenced 0 to 31
 
-		UserReliableOrdered = 69,
-		// 69 to 100 = UserReliableOrdered 0 to 31
+		UserReliableOrdered = 68,
+		// 68 to 99 = UserReliableOrdered 0 to 31
 	}
 }

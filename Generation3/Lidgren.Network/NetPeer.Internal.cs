@@ -280,7 +280,7 @@ namespace Lidgren.Network
 				m_statistics.m_receivedPackets++;
 				m_statistics.m_receivedBytes += bytesReceived;
 
-				// renew time
+				// renew current time; we might have waited in Poll
 				now = NetTime.Now;
 
 				//LogVerbose("Received " + bytesReceived + " bytes");
@@ -294,8 +294,8 @@ namespace Lidgren.Network
 					sender.m_lastHeardFrom = now;
 
 				int ptr = 0;
-				NetMessageType mtp;
-				NetMessageLibraryType ltp = NetMessageLibraryType.Error;
+				NetMessageType msgType;
+				NetMessageLibraryType libType = NetMessageLibraryType.Error;
 
 				//
 				// parse packet into messages
@@ -303,15 +303,15 @@ namespace Lidgren.Network
 				while ((bytesReceived - ptr) >= NetPeer.kMinPacketHeaderSize)
 				{
 					// get NetMessageType
-					mtp = (NetMessageType)m_receiveBuffer[ptr++];
+					msgType = (NetMessageType)m_receiveBuffer[ptr++];
 
 					// get NetmessageLibraryType?
-					if (mtp == NetMessageType.Library)
-						ltp = (NetMessageLibraryType)m_receiveBuffer[ptr++];
+					if (msgType == NetMessageType.Library)
+						libType = (NetMessageLibraryType)m_receiveBuffer[ptr++];
 
 					// get sequence number?
 					ushort sequenceNumber;
-					if (mtp >= NetMessageType.UserSequenced)
+					if (msgType >= NetMessageType.UserSequenced)
 						sequenceNumber = (ushort)(m_receiveBuffer[ptr++] | (m_receiveBuffer[ptr++] << 8));
 					else
 						sequenceNumber = 0;
@@ -331,25 +331,25 @@ namespace Lidgren.Network
 					// handle incoming message
 					//
 
-					if (mtp == NetMessageType.Error)
+					if (msgType == NetMessageType.Error)
 					{
 						LogError("Malformed message; no message type!");
 						continue;
 					}
 
-					if (mtp == NetMessageType.Library)
+					if (msgType == NetMessageType.Library)
 					{
 						if (sender == null)
-							HandleUnconnectedLibraryMessage(ltp, ptr, payloadLength, ipsender);
+							HandleUnconnectedLibraryMessage(libType, ptr, payloadLength, ipsender);
 						else
-							sender.HandleLibraryMessage(now, ltp, ptr, payloadLength);
+							sender.HandleLibraryMessage(now, libType, ptr, payloadLength);
 					}
 					else
 					{
 						if (sender == null)
 							HandleUnconnectedUserMessage(ptr, payloadLength, ipsender);
 						else
-							sender.HandleUserMessage(now, mtp, sequenceNumber, ptr, payloadLength);
+							sender.HandleUserMessage(now, msgType, sequenceNumber, ptr, payloadLength);
 					}
 
 					ptr += payloadLength;
