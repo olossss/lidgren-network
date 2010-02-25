@@ -250,7 +250,7 @@ namespace Lidgren.Network
 			foreach (IPEndPoint ipe in recipients)
 				EnqueueUnconnectedMessage(msg, ipe);
 		}
-
+				
 		/// <summary>
 		/// Disconnects all active connections and closes the socket
 		/// </summary>

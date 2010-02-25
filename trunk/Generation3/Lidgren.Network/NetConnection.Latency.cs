@@ -43,12 +43,13 @@ namespace Lidgren.Network
 			{
 				m_isPingInitialized = true;
 				m_averageRoundtripTime = rtt;
-				m_nextPing = NetTime.Now + (m_owner.m_configuration.m_pingFrequency * 2);
+				m_nextPing = NetTime.Now + m_owner.m_configuration.m_pingFrequency;
+				m_owner.LogDebug("Initialized rtt to: " + NetTime.ToReadable(rtt));
 			}
 			else
 			{
 				m_averageRoundtripTime = (m_averageRoundtripTime * 0.75f) + (rtt * 0.25f);
-				m_owner.LogDebug("New average roundtrip time: " + m_averageRoundtripTime);
+				m_owner.LogDebug("Found rtt: " + NetTime.ToReadable(rtt) + ", new average: " + NetTime.ToReadable(m_averageRoundtripTime));
 			}
 		}
 
@@ -59,7 +60,9 @@ namespace Lidgren.Network
 			pong.m_type = NetMessageType.Library;
 			pong.m_libType = NetMessageLibraryType.Pong;
 			pong.Write(pingNumber);
-			EnqueueOutgoingMessage(pong);
+
+			// send immediately
+			m_owner.SendImmediately(this, pong);
 		}
 
 		internal void HandleIncomingPong(double now, byte pingNumber)
@@ -114,7 +117,8 @@ namespace Lidgren.Network
 				ping.m_type = NetMessageType.Library;
 				ping.m_libType = NetMessageLibraryType.Ping;
 				ping.Write(m_lastSentPingNumber);
-				EnqueueOutgoingMessage(ping);
+
+				m_owner.SendImmediately(this, ping);
 
 				m_lastPingSendTime = now;
 				m_nextPing = now + m_owner.Configuration.m_pingFrequency;

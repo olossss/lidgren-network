@@ -112,8 +112,7 @@ namespace Lidgren.Network
 			}
 			m_owner.LogVerbose("Sending Connect");
 
-			// don´t use high prio, in case a disconnect message is in the queue too
-			EnqueueOutgoingMessage(om);
+			m_owner.SendImmediately(this, om);
 
 			m_connectInitationTime = NetTime.Now;
 			SetStatus(NetConnectionStatus.Connecting, "Connecting");
