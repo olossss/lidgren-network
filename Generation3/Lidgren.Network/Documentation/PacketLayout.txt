@@ -1,0 +1,9 @@
+﻿
+PER MESSAGE:
+7 bits - NetMessageType
+1 bit - Is a message fragment?
+[8 bits NetMessageLibraryType, if NetMessageType == Library]
+[16 bits sequence number, if NetMessageType >= UserSequenced]
+8/16 bits - Payload length (variable size ushort)
+[x - Payload] if length > 0
+
