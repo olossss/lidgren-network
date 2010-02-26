@@ -40,7 +40,7 @@ namespace Lidgren.Network
 		internal float m_keepAliveDelay;
 		internal float m_connectionTimeOut;
 		internal int m_maximumConnections;
-		internal bool[] m_disabledTypes;
+		internal NetIncomingMessageType m_disabledTypes;
 		internal float m_pingFrequency;
 		internal float m_maxDelayedMessageDuration;
 		internal int m_throttleBytesPerSecond;
@@ -85,10 +85,7 @@ namespace Lidgren.Network
 			m_randomOneWayLatency = 0.0f;
 
 			// default disabled types
-			m_disabledTypes = new bool[Enum.GetNames(typeof(NetIncomingMessageType)).Length];
-			m_disabledTypes[(int)NetIncomingMessageType.ConnectionApproval] = true;
-			m_disabledTypes[(int)NetIncomingMessageType.UnconnectedData] = true;
-			m_disabledTypes[(int)NetIncomingMessageType.VerboseDebugMessage] = true;
+			m_disabledTypes = NetIncomingMessageType.ConnectionApproval | NetIncomingMessageType.UnconnectedData | NetIncomingMessageType.VerboseDebugMessage;
 
 			// reliability
 			m_resendRTTMultiplier = new float[]
@@ -199,7 +196,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void EnableMessageType(NetIncomingMessageType tp)
 		{
-			m_disabledTypes[(int)tp] = false;
+			m_disabledTypes &= (~tp);
 		}
 
 		/// <summary>
@@ -207,7 +204,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void DisableMessageType(NetIncomingMessageType tp)
 		{
-			m_disabledTypes[(int)tp] = true;
+			m_disabledTypes |= tp;
 		}
 
 		/// <summary>
@@ -215,7 +212,10 @@ namespace Lidgren.Network
 		/// </summary>
 		public void SetMessageTypeEnabled(NetIncomingMessageType tp, bool enabled)
 		{
-			m_disabledTypes[(int)tp] = !enabled;
+			if (enabled)
+				m_disabledTypes &= (~tp);
+			else
+				m_disabledTypes |= tp;
 		}
 
 		/// <summary>
@@ -223,7 +223,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public bool IsMessageTypeEnabled(NetIncomingMessageType tp)
 		{
-			return !m_disabledTypes[(int)tp];
+			return !((m_disabledTypes & tp) == tp);
 		}
 
 		/// <summary>

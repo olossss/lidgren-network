@@ -65,8 +65,8 @@ namespace SamplesCommon
 			{
 				NetConnection conn = Peer.Connections[0];
 				bdr.AppendLine("Connection 0:");
-
 				bdr.AppendLine("Average RTT: " + ((int)(conn.AverageRoundtripTime * 1000.0f)) + " ms");
+				bdr.Append(conn.Statistics.ToString());
 			}
 
 			StatisticsLabel.Text = bdr.ToString();

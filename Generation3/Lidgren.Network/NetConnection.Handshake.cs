@@ -180,7 +180,8 @@ namespace Lidgren.Network
 						NetOutgoingMessage ce = m_owner.CreateMessage(1);
 						ce.m_type = NetMessageType.Library;
 						ce.m_libType = NetMessageLibraryType.ConnectionEstablished;
-						EnqueueOutgoingMessage(ce);
+
+						m_owner.SendImmediately(this, ce);
 
 						// setup initial ping estimation
 						UpdateLatency((float)(NetTime.Now - m_connectInitationTime));

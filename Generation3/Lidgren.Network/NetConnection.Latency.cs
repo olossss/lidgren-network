@@ -43,7 +43,7 @@ namespace Lidgren.Network
 			{
 				m_isPingInitialized = true;
 				m_averageRoundtripTime = Math.Max(0.005f, rtt - 0.005f); // TODO: find out why initial ping always overshoots
-				m_nextPing = NetTime.Now + m_peerConfiguration.m_pingFrequency;
+				m_nextPing = NetTime.Now + m_peerConfiguration.m_pingFrequency / 2.0f;
 				m_owner.LogDebug("Got " + NetTime.ToReadable(rtt) + "... Initialized rtt to: " + NetTime.ToReadable(m_averageRoundtripTime));
 			}
 			else
@@ -59,7 +59,7 @@ namespace Lidgren.Network
 			NetOutgoingMessage pong = m_owner.CreateMessage(1);
 			pong.m_type = NetMessageType.Library;
 			pong.m_libType = NetMessageLibraryType.Pong;
-			pong.Write(pingNumber);
+			pong.Write((byte)pingNumber);
 
 			// send immediately
 			m_owner.SendImmediately(this, pong);
@@ -70,7 +70,7 @@ namespace Lidgren.Network
 			// verify it´s the correct ping number
 			if (pingNumber != m_lastSentPingNumber)
 			{
-				m_owner.LogDebug("Received wrong pong number");
+				m_owner.LogDebug("Received wrong pong number; got " + pingNumber + " expected " + m_lastSentPingNumber);
 				return;
 			}
 
@@ -119,7 +119,7 @@ namespace Lidgren.Network
 				NetOutgoingMessage ping = m_owner.CreateMessage(1);
 				ping.m_type = NetMessageType.Library;
 				ping.m_libType = NetMessageLibraryType.Ping;
-				ping.Write(m_lastSentPingNumber);
+				ping.Write((byte)m_lastSentPingNumber);
 
 				m_owner.SendImmediately(this, ping);
 
