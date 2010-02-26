@@ -39,15 +39,13 @@ namespace Lidgren.Network
 
 		internal void SendPacket(int numBytes, IPEndPoint target)
 		{
-			byte packetNumber = m_sendBuffer[0];
-
 			// simulate loss
 			float loss = m_configuration.m_loss;
 			if (loss > 0.0f)
 			{
 				if (NetRandom.Instance.Chance(m_configuration.m_loss))
 				{
-					LogVerbose("Sending packet #" + packetNumber + " (" + numBytes + " bytes) - SIMULATED LOST!");
+					LogVerbose("Sending packet " + numBytes + " bytes - SIMULATED LOST!");
 					return; // packet "lost"
 				}
 			}
@@ -58,7 +56,7 @@ namespace Lidgren.Network
 			if (m == 0.0f && r == 0.0f)
 			{
 				// no latency simulation
-				LogVerbose("Sending packet #" + packetNumber + " (" + numBytes + " bytes)");
+				LogVerbose("Sending packet " + numBytes + " bytes");
 				ActuallySendPacket(m_sendBuffer, numBytes, target);
 				return;
 			}
@@ -82,7 +80,7 @@ namespace Lidgren.Network
 				m_delayedPackets.Add(p);
 			}
 
-			LogVerbose("Sending packet #" + packetNumber + " (" + numBytes + " bytes) - Delayed " + NetTime.ToReadable(delay));
+			LogVerbose("Sending packet " + numBytes + " bytes - delayed " + NetTime.ToReadable(delay));
 		}
 
 		private void SendDelayedPackets()

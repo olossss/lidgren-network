@@ -70,11 +70,11 @@ namespace Lidgren.Network
 			m_port = 0;
 			m_receiveBufferSize = 131071;
 			m_sendBufferSize = 131071;
-			m_keepAliveDelay = 4.0f;
+			m_keepAliveDelay = 7.0f;
 			m_connectionTimeOut = 25;
 			m_maximumConnections = 8;
 			m_defaultOutgoingMessageCapacity = 8;
-			m_pingFrequency = 3.0f;
+			m_pingFrequency = 6.0f;
 			m_maxDelayedMessageDuration = 0.25f;
 			m_throttleBytesPerSecond = 1024 * 256;
 			m_throttlePeakDivider = 16;
