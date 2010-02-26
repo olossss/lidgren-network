@@ -15,7 +15,7 @@ Missing features:
 * Local server discovery
 * Recycle NetOutgoingMessage messages, 80% done need testing
 * Resending of lost handshake (connect/response/established) packets
-
+* AutoResetEvent on message received
 
 
 

@@ -132,7 +132,9 @@ namespace Lidgren.Network
 
 		internal void VerifyAndLock()
 		{
-			// TODO: verify configuration here
+			if (m_throttleBytesPerSecond < m_maximumTransmissionUnit)
+				m_throttleBytesPerSecond = m_maximumTransmissionUnit;
+
 			m_isLocked = true;
 		}
 
@@ -373,7 +375,12 @@ namespace Lidgren.Network
 		public int ThrottleBytesPerSecond
 		{
 			get { return m_throttleBytesPerSecond; }
-			set { m_throttleBytesPerSecond = value; }
+			set
+			{
+				m_throttleBytesPerSecond = value;
+				if (m_throttleBytesPerSecond < m_maximumTransmissionUnit)
+					throw new NetException("ThrottleBytesPerSecond can not be lower than MaximumTransmissionUnit");
+			}
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 
 namespace Lidgren.Network
 {
@@ -12,6 +13,8 @@ namespace Lidgren.Network
 		internal NetMessageType m_type;
 		internal NetMessageLibraryType m_libType;
 		internal ushort m_sequenceNumber;
+
+		internal IPEndPoint m_unconnectedRecipient;
 
 		internal double m_lastSentTime;
 		internal double m_nextResendTime;

@@ -28,7 +28,6 @@ namespace Lidgren.Network
 	public partial class NetPeer
 	{
 		private EndPoint m_senderRemote;
-		private int m_runSleepInMilliseconds = 1;
 		internal byte[] m_receiveBuffer;
 		internal byte[] m_sendBuffer;
 		internal Socket m_socket;
@@ -36,8 +35,13 @@ namespace Lidgren.Network
 		private int m_listenPort;
 
 		private NetQueue<NetIncomingMessage> m_releasedIncomingMessages;
-		private Queue<NetOutgoingMessage> m_unsentUnconnectedMessage;
-		private Queue<IPEndPoint> m_unsentUnconnectedRecipients;
+		private NetQueue<NetOutgoingMessage> m_unsentUnconnectedMessage;
+
+		private void InternalInitialize()
+		{
+			m_releasedIncomingMessages = new NetQueue<NetIncomingMessage>(16);
+			m_unsentUnconnectedMessage = new NetQueue<NetOutgoingMessage>(4);
+		}
 
 		// TODO: inline this method manually
 		internal void ReleaseMessage(NetIncomingMessage msg)
@@ -207,36 +211,34 @@ namespace Lidgren.Network
 			}
 
 			// send unconnected sends
-			if (m_unsentUnconnectedMessage.Count > 0)
+			NetOutgoingMessage um;
+			while ((um = m_unsentUnconnectedMessage.TryDequeue()) != null)
 			{
-				lock (m_unsentUnconnectedMessage)
+				IPEndPoint recipient = um.m_unconnectedRecipient;
+
+				//
+				// TODO: use throttling here
+				//
+
+				int ptr = um.Encode(m_sendBuffer, 0, null);
+
+				if (recipient.Address.Equals(IPAddress.Broadcast))
 				{
-					while (m_unsentUnconnectedMessage.Count > 0)
+					// send using broadcast
+					try
 					{
-						NetOutgoingMessage msg = m_unsentUnconnectedMessage.Dequeue();
-						IPEndPoint recipient = m_unsentUnconnectedRecipients.Dequeue();
-
-						int ptr = msg.Encode(m_sendBuffer, 0, null);
-
-						if (recipient.Address.Equals(IPAddress.Broadcast))
-						{
-							// send using broadcast
-							try
-							{
-								m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
-								SendPacket(ptr, recipient);
-							}
-							finally
-							{
-								m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, false);
-							}
-						}
-						else
-						{
-							// send normally
-							SendPacket(ptr, recipient);
-						}
+						m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
+						SendPacket(ptr, recipient);
 					}
+					finally
+					{
+						m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, false);
+					}
+				}
+				else
+				{
+					// send normally
+					SendPacket(ptr, recipient);
 				}
 			}
 
@@ -487,8 +489,11 @@ namespace Lidgren.Network
 		internal void RemoveConnection(NetConnection conn)
 		{
 			conn.Dispose();
-			m_connections.Remove(conn);
-			m_connectionLookup.Remove(conn.m_remoteEndPoint);
+			lock (m_connections)
+			{
+				m_connections.Remove(conn);
+				m_connectionLookup.Remove(conn.m_remoteEndPoint);
+			}
 		}
 
 		private void HandleServerFull(IPEndPoint connecter)
@@ -501,11 +506,8 @@ namespace Lidgren.Network
 		private void EnqueueUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)
 		{
 			Interlocked.Increment(ref msg.m_inQueueCount);
-			lock (m_unsentUnconnectedMessage)
-			{
-				m_unsentUnconnectedMessage.Enqueue(msg);
-				m_unsentUnconnectedRecipients.Enqueue(recipient);
-			}
+			msg.m_unconnectedRecipient = recipient;
+			m_unsentUnconnectedMessage.Enqueue(msg);
 		}
 
 		internal static NetDeliveryMethod GetDeliveryMethod(NetMessageType mtp)
