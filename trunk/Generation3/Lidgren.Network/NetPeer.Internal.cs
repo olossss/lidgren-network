@@ -248,7 +248,7 @@ namespace Lidgren.Network
 				if (m_socket == null)
 					return;
 
-				if (!m_socket.Poll(3000, SelectMode.SelectRead)) // wait up to 3 ms for data to arrive
+				if (!m_socket.Poll(1000, SelectMode.SelectRead)) // wait up to 1 ms for data to arrive
 					return;
 
 				//if (m_socket == null || m_socket.Available < 1)
@@ -303,6 +303,7 @@ namespace Lidgren.Network
 				while ((bytesReceived - ptr) >= NetPeer.kMinPacketHeaderSize)
 				{
 					// get NetMessageType
+
 					msgType = (NetMessageType)m_receiveBuffer[ptr++];
 
 					// get NetmessageLibraryType?
@@ -522,6 +523,8 @@ namespace Lidgren.Network
 			int len = msg.Encode(m_sendBuffer, 0, conn);
 			Interlocked.Decrement(ref msg.m_inQueueCount);
 			SendPacket(len, conn.m_remoteEndPoint);
+
+			Recycle(msg);
 		}
 	}
 }

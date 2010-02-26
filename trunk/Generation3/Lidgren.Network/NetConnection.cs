@@ -35,6 +35,7 @@ namespace Lidgren.Network
 		internal NetConnectionStatus m_status;
 		private double m_lastSentUnsentMessages;
 		private float m_throttleDebt;
+		private NetPeerConfiguration m_peerConfiguration;
 
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
@@ -42,13 +43,14 @@ namespace Lidgren.Network
 		internal NetConnection(NetPeer owner, IPEndPoint remoteEndPoint)
 		{
 			m_owner = owner;
+			m_peerConfiguration = m_owner.m_configuration;
 			m_remoteEndPoint = remoteEndPoint;
 			m_unsentMessages = new NetQueue<NetOutgoingMessage>(16);
 			m_status = NetConnectionStatus.None;
 
 			double now = NetTime.Now;
 			m_nextPing = now + 5.0f;
-			m_nextKeepAlive = now + 5.0f + m_owner.m_configuration.m_keepAliveDelay;
+			m_nextKeepAlive = now + 5.0f + m_peerConfiguration.m_keepAliveDelay;
 			m_lastSentUnsentMessages = now;
 			m_lastSendRespondedTo = now;
 
@@ -70,7 +72,7 @@ namespace Lidgren.Network
 			byte[] buffer = m_owner.m_sendBuffer;
 			int ptr = 0;
 
-			float throttle = m_owner.m_configuration.m_throttleBytesPerSecond;
+			float throttle = m_peerConfiguration.m_throttleBytesPerSecond;
 			if (throttle > 0)
 			{
 				double frameLength = now - m_lastSentUnsentMessages;
@@ -79,7 +81,9 @@ namespace Lidgren.Network
 				m_lastSentUnsentMessages = now;
 			}
 
-			float throttleThreshold = throttle / m_owner.m_configuration.m_throttlePeakDivider;
+			int mtu = m_peerConfiguration.MaximumTransmissionUnit;
+
+			float throttleThreshold = throttle / m_peerConfiguration.m_throttlePeakDivider;
 			if (m_throttleDebt < throttleThreshold)
 			{
 				while (m_unsentMessages.Count > 0)
@@ -92,9 +96,9 @@ namespace Lidgren.Network
 						continue;
 
 					int msgPayloadLength = msg.LengthBytes;
-					msg.m_sentTime = now;
+					msg.m_lastSentTime = now;
 
-					if (ptr > 0 && (ptr + NetPeer.kMaxPacketHeaderSize + msgPayloadLength) > m_owner.m_configuration.MaximumTransmissionUnit)
+					if (ptr > 0 && (ptr + NetPeer.kMaxPacketHeaderSize + msgPayloadLength) > mtu)
 					{
 						// send packet and start new packet
 						m_owner.SendPacket(ptr, m_remoteEndPoint);
@@ -111,11 +115,25 @@ namespace Lidgren.Network
 					if (msg.m_type >= NetMessageType.UserReliableUnordered)
 					{
 						// message is reliable, store for resend
-						StoreReliableMessage(msg);
+						StoreReliableMessage(now, msg);
 					}
 					else
 					{
 						Interlocked.Decrement(ref msg.m_inQueueCount);
+					}
+
+					// room to piggyback some acks?
+					if (m_acknowledgesToSend.Count > 0)
+					{
+						int payloadLeft = (mtu - ptr) - NetPeer.kMaxPacketHeaderSize;
+						if (payloadLeft > 9)
+						{
+							// yes, add them as a regular message
+							ptr = NetOutgoingMessage.EncodeAcksMessage(m_owner.m_sendBuffer, ptr, this, (payloadLeft - 3));
+
+							if (m_acknowledgesToSend.Count < 1)
+								m_nextForceAckTime = double.MaxValue;
+						}
 					}
 
 					if (msg.m_type == NetMessageType.Library && msg.m_libType == NetMessageLibraryType.Disconnect)
@@ -123,6 +141,9 @@ namespace Lidgren.Network
 						FinishDisconnect();
 						break;
 					}
+
+					if (msg.m_inQueueCount < 1)
+						m_owner.Recycle(msg);
 				}
 
 				if (ptr > 0)
@@ -139,31 +160,125 @@ namespace Lidgren.Network
 
 			try
 			{
-				if (!m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.Data))
+				if (!m_peerConfiguration.IsMessageTypeEnabled(NetIncomingMessageType.Data))
 					return;
-
-				//
-				// TODO: do reliabilility, sequence rejecting etc here using channelSequenceNumber
-				//
 
 				NetDeliveryMethod ndm = NetPeer.GetDeliveryMethod(mtp);
 
-				// reject sequenced
-				if (ndm == NetDeliveryMethod.UnreliableSequenced || ndm == NetDeliveryMethod.ReliableSequenced)
+				//
+				// Unreliable
+				//
+				if (ndm == NetDeliveryMethod.Unreliable)
 				{
-					bool reject = ReceivedSequencedMessage(mtp, channelSequenceNumber);
-					if (reject)
-						return;
+					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+					return;
 				}
 
-				// release to application
-				NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, payloadLength);
-				im.m_deliveredMethod = ndm;
-				im.m_senderConnection = this;
-				im.m_senderEndPoint = m_remoteEndPoint;
+				//
+				// UnreliableSequenced
+				//
+				if (ndm == NetDeliveryMethod.UnreliableSequenced)
+				{
+					bool reject = ReceivedSequencedMessage(mtp, channelSequenceNumber);
+					if (!reject)
+						AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+					return;
+				}
 
-				m_owner.LogVerbose("Releasing " + im);
-				m_owner.ReleaseMessage(im);
+				//
+				// Reliable delivery methods below
+				//
+
+				// queue ack
+				m_acknowledgesToSend.Enqueue((int)channelSequenceNumber | ((int)mtp << 16));
+				if (m_nextForceAckTime == double.MaxValue)
+					m_nextForceAckTime = now + m_peerConfiguration.m_maxAckDelayTime;
+
+				if (ndm == NetDeliveryMethod.ReliableSequenced)
+				{
+					bool reject = ReceivedSequencedMessage(mtp, channelSequenceNumber);
+					if (!reject)
+						AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+					return;
+				}
+
+				// relate to all received up to
+				int reliableSlot = (int)mtp - (int)NetMessageType.UserReliableUnordered;
+				ushort arut = m_allReliableReceivedUpTo[reliableSlot];
+				int diff = Relate(channelSequenceNumber, arut);
+
+				if (diff == 0 || diff > (ushort.MaxValue / 2))
+				{
+					// Reject duplicate
+					//m_statistics.CountDuplicateMessage(msg);
+					m_owner.LogVerbose("Rejecting duplicate reliable " + mtp + " " + channelSequenceNumber);
+					return;
+				}
+
+				if (diff == 1)
+				{
+					// Right on time
+					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+					PostAcceptReliableMessage(mtp, channelSequenceNumber, arut);
+					return;
+				}
+
+				//
+				// Early reliable message - we must check if it's already been received
+				//
+
+				/*
+				// get bools list we must check
+				bool[] recList = m_reliableReceived[relChanNr];
+				if (recList == null)
+				{
+					recList = new bool[NetConstants.NumSequenceNumbers];
+					m_reliableReceived[relChanNr] = recList;
+				}
+
+			if (recList[msg.m_sequenceNumber])
+			{
+				// Reject duplicate
+				m_statistics.CountDuplicateMessage(msg);
+				m_owner.LogVerbose("Rejecting(2) duplicate reliable " + msg, this);
+				return;
+			}
+
+			// It's an early reliable message
+			if (m_reliableReceived[relChanNr] == null)
+				m_reliableReceived[relChanNr] = new bool[NetConstants.NumSequenceNumbers];
+			m_reliableReceived[relChanNr][msg.m_sequenceNumber] = true;
+				*/
+
+				//
+				// It's not a duplicate; mark as received. Release if it's unordered, else withhold
+				//
+
+				if (ndm == NetDeliveryMethod.ReliableUnordered)
+				{
+					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+					return;
+				}
+
+				//
+				// Only ReliableOrdered left here; withhold it
+				//
+
+				/*
+
+			// Early ordered message; withhold
+			List<IncomingNetMessage> wmlist = m_withheldMessages[relChanNr];
+			if (wmlist == null)
+			{
+				wmlist = new List<IncomingNetMessage>();
+				m_withheldMessages[relChanNr] = wmlist;
+			}
+
+			m_owner.LogVerbose("Withholding " + msg + " (waiting for " + arut + ")", this);
+			wmlist.Add(msg);
+			return;
+
+				 */
 
 				return;
 			}
@@ -177,6 +292,19 @@ namespace Lidgren.Network
 				return;
 #endif
 			}
+		}
+
+		private void AcceptMessage(NetMessageType mtp, ushort seqNr, int ptr, int payloadLength)
+		{
+			// release to application
+			NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, payloadLength);
+			im.m_messageType = mtp;
+			im.m_sequenceNumber = seqNr;
+			im.m_senderConnection = this;
+			im.m_senderEndPoint = m_remoteEndPoint;
+
+			m_owner.LogVerbose("Releasing " + im);
+			m_owner.ReleaseMessage(im);
 		}
 
 		internal void HandleLibraryMessage(double now, NetMessageLibraryType libType, int ptr, int payloadLength)
@@ -208,6 +336,9 @@ namespace Lidgren.Network
 						HandleIncomingPong(m_owner.m_receiveBuffer[ptr]);
 					else
 						m_owner.LogWarning("Received malformed pong");
+					break;
+				case NetMessageLibraryType.Acknowledge:
+					HandleIncomingAcks(ptr, payloadLength);
 					break;
 				default:
 					throw new NotImplementedException();
@@ -246,7 +377,7 @@ namespace Lidgren.Network
 
 		public void Approve()
 		{
-			if (!m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
+			if (!m_peerConfiguration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
 				m_owner.LogError("Approve() called but ConnectionApproval is not enabled in NetPeerConfiguration!");
 
 			if (m_pendingStatus != PendingConnectionStatus.Pending)
@@ -259,7 +390,7 @@ namespace Lidgren.Network
 
 		public void Deny(string reason)
 		{
-			if (!m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
+			if (!m_peerConfiguration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
 				m_owner.LogError("Deny() called but ConnectionApproval is not enabled in NetPeerConfiguration!");
 
 			if (m_pendingStatus != PendingConnectionStatus.Pending)

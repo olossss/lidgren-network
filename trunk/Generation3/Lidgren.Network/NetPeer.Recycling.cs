@@ -76,8 +76,11 @@ namespace Lidgren.Network
 		/// </summary>
 		public NetOutgoingMessage CreateMessage(int initialCapacity)
 		{
-			// TODO: return from recycled pool (and call Reset)
-			NetOutgoingMessage retval = new NetOutgoingMessage();
+			NetOutgoingMessage retval = m_outgoingMessagesPool.TryDequeue();
+			if (retval == null)
+				retval = new NetOutgoingMessage();
+			else
+				retval.Reset();
 
 			byte[] storage = GetStorage(m_configuration.DefaultOutgoingMessageCapacity);
 			retval.m_data = storage;
@@ -105,29 +108,23 @@ namespace Lidgren.Network
 					m_storagePool.Add(msg.m_data);
 			}
 
+			msg.m_data = null;
 			m_incomingMessagesPool.Enqueue(msg);
 		}
 
 		/// <summary>
-		/// Recycles the for reuse
+		/// Recycle the message to the library for reuse
 		/// </summary>
-		private void Recycle(NetOutgoingMessage msg)
+		internal void Recycle(NetOutgoingMessage msg)
 		{
-			// msg may still exist in NetConnection.m_packetList if they're reliable
-			if (msg.m_type < NetMessageType.UserReliableUnordered)
+			lock (m_storagePool)
 			{
-				// unreliable; safe to recycle now
-				lock (m_storagePool)
-				{
-					if (!m_storagePool.Contains(msg.m_data))
-						m_storagePool.Add(msg.m_data);
-				}
-
-				// TODO: recycle NetOutgoingMessage object?
-				return;
+				if (!m_storagePool.Contains(msg.m_data))
+					m_storagePool.Add(msg.m_data);
 			}
 
-			// TODO: check m_inQueueCount and possibly recycle?
+			msg.m_data = null;
+			m_outgoingMessagesPool.Enqueue(msg);
 		}
 
 		/// <summary>
@@ -161,7 +158,7 @@ namespace Lidgren.Network
 			else
 				retval.Reset();
 
-			retval.m_messageType = tp;
+			retval.m_incomingType = tp;
 			retval.m_senderConnection = null;
 			retval.m_senderEndPoint = null;
 
@@ -190,7 +187,7 @@ namespace Lidgren.Network
 			Buffer.BlockCopy(copyFrom, offset, retval.m_data, 0, copyLength);
 
 			retval.m_bitLength = copyLength * 8;
-			retval.m_messageType = tp;
+			retval.m_incomingType = tp;
 			retval.m_senderConnection = null;
 			retval.m_senderEndPoint = null;
 
