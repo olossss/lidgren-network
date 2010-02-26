@@ -29,9 +29,10 @@ namespace Lidgren.Network
 	{
 		internal byte[] m_data;
 		internal int m_bitLength;
-		internal NetDeliveryMethod m_deliveredMethod;
+		internal NetMessageType m_messageType; // NetDeliveryMethod and sequence channel can be derived from this
+		internal ushort m_sequenceNumber;
 
-		internal NetIncomingMessageType m_messageType;
+		internal NetIncomingMessageType m_incomingType;
 		internal IPEndPoint m_senderEndPoint;
 		internal NetConnection m_senderConnection;
 
@@ -46,12 +47,23 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Gets the NetDeliveryMethod used by this message 
 		/// </summary>
-		public NetDeliveryMethod DeliveryMethod { get { return m_deliveredMethod; } }
+		public NetDeliveryMethod DeliveryMethod
+		{
+			get { return NetPeer.GetDeliveryMethod(m_messageType); }
+		}
+
+		/// <summary>
+		/// Gets which sequence channel this message was sent in
+		/// </summary>
+		public int SequenceChannel
+		{
+			get { return (int)m_messageType - (int)NetPeer.GetDeliveryMethod(m_messageType); }
+		}
 
 		/// <summary>
 		/// Type of data contained in this message
 		/// </summary>
-		public NetIncomingMessageType MessageType { get { return m_messageType; } }
+		public NetIncomingMessageType MessageType { get { return m_incomingType; } }
 
 		/// <summary>
 		/// IPEndPoint of sender, if any
@@ -81,7 +93,7 @@ namespace Lidgren.Network
 
 		public override string ToString()
 		{
-			return "[NetIncomingMessage " + m_messageType + ", " + m_bitLength + " bits]";
+			return "[NetIncomingMessage " + m_incomingType + ", " + m_bitLength + " bits]";
 		}
 	}
 }

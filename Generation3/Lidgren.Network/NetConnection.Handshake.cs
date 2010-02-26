@@ -57,7 +57,7 @@ namespace Lidgren.Network
 			if (reason == null)
 				reason = string.Empty;
 
-			if (m_owner.m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.StatusChanged))
+			if (m_peerConfiguration.IsMessageTypeEnabled(NetIncomingMessageType.StatusChanged))
 			{
 				NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 4 + reason.Length + (reason.Length > 126 ? 2 : 1));
 				info.m_senderConnection = this;
@@ -100,7 +100,7 @@ namespace Lidgren.Network
 			NetOutgoingMessage om = m_owner.CreateMessage(len);
 			om.m_type = NetMessageType.Library;
 			om.m_libType = NetMessageLibraryType.Connect;
-			om.Write(m_owner.m_configuration.AppIdentifier);
+			om.Write(m_peerConfiguration.AppIdentifier);
 			if (m_localHailData == null)
 			{
 				om.WriteVariableUInt32(0);

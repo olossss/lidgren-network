@@ -43,7 +43,7 @@ namespace Lidgren.Network
 			{
 				m_isPingInitialized = true;
 				m_averageRoundtripTime = Math.Max(0.005f, rtt - 0.005f); // TODO: find out why initial ping always overshoots
-				m_nextPing = NetTime.Now + m_owner.m_configuration.m_pingFrequency;
+				m_nextPing = NetTime.Now + m_peerConfiguration.m_pingFrequency;
 				m_owner.LogDebug("Got " + NetTime.ToReadable(rtt) + "... Initialized rtt to: " + NetTime.ToReadable(m_averageRoundtripTime));
 			}
 			else
@@ -79,7 +79,7 @@ namespace Lidgren.Network
 			m_lastHeardFrom = now;
 			m_lastSendRespondedTo = m_lastPingSendTime;
 
-			m_nextKeepAlive = now + m_owner.m_configuration.m_keepAliveDelay;
+			m_nextKeepAlive = now + m_peerConfiguration.m_keepAliveDelay;
 
 			UpdateLatency((float)(now - m_lastPingSendTime));
 		}
@@ -90,7 +90,7 @@ namespace Lidgren.Network
 			if (m_status == NetConnectionStatus.Disconnected || m_status == NetConnectionStatus.None)
 				return;
 
-			if (now > m_nextKeepAlive)
+			if (now > m_nextKeepAlive || now > m_nextForceAckTime)
 			{
 				// send keepalive message
 				m_owner.LogVerbose("Sending keepalive");
@@ -100,11 +100,12 @@ namespace Lidgren.Network
 				keepalive.m_libType = NetMessageLibraryType.KeepAlive;
 				EnqueueOutgoingMessage(keepalive);
 
-				m_nextKeepAlive = now + m_owner.m_configuration.KeepAliveDelay;
+				m_nextKeepAlive = now + m_peerConfiguration.KeepAliveDelay;
+				m_nextForceAckTime = double.MaxValue;
 			}
 
 			// timeout
-			if (now > m_lastSendRespondedTo + m_owner.m_configuration.m_connectionTimeOut)
+			if (now > m_lastSendRespondedTo + m_peerConfiguration.m_connectionTimeOut)
 				Disconnect("Timed out");
 
 			// ping time?
