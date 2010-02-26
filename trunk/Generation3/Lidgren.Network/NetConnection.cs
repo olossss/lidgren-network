@@ -56,7 +56,7 @@ namespace Lidgren.Network
 
 			double now = NetTime.Now;
 			m_nextPing = now + 5.0f;
-			m_nextKeepAlive = now + 5.0f + m_peerConfiguration.m_keepAliveDelay;
+			m_nextKeepAlive = now + 6.0f + m_peerConfiguration.m_keepAliveDelay;
 			m_lastSentUnsentMessages = now;
 			m_lastSendRespondedTo = now;
 			m_statistics = new NetConnectionStatistics(this);
