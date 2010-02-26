@@ -41,6 +41,8 @@ namespace Lidgren.Network
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
 
+		public object Tag;
+
 		/// <summary>
 		/// Statistics for this particular connection
 		/// </summary>

@@ -54,9 +54,7 @@ namespace Lidgren.Network
 			get
 			{
 				lock (m_connections)
-				{
 					return new List<NetConnection>(m_connections);
-				}
 			}
 		}
 
@@ -82,15 +80,6 @@ namespace Lidgren.Network
 		public NetPeerConfiguration Configuration { get { return m_configuration; } }
 
 		/// <summary>
-		/// Gets or sets the amount of time in milliseconds the network thread should sleep; recommended values 1 or 0
-		/// </summary>
-		public int NetworkThreadSleepTime
-		{
-			get { return m_runSleepInMilliseconds; }
-			set { m_runSleepInMilliseconds = value; }
-		}
-
-		/// <summary>
 		/// Gets the port number this NetPeer is listening and sending on
 		/// </summary>
 		public int Port { get { return m_listenPort; } }
@@ -108,12 +97,8 @@ namespace Lidgren.Network
 			m_connectionLookup = new Dictionary<IPEndPoint, NetConnection>();
 			m_senderRemote = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
 			m_statistics = new NetPeerStatistics(this);
-			m_runSleepInMilliseconds = 1;
 
-			// NetPeer.Internal stuff
-			m_releasedIncomingMessages = new NetQueue<NetIncomingMessage>(16);
-			m_unsentUnconnectedMessage = new Queue<NetOutgoingMessage>();
-			m_unsentUnconnectedRecipients = new Queue<IPEndPoint>();
+			InternalInitialize();
 		}
 
 		/// <summary>
@@ -132,7 +117,6 @@ namespace Lidgren.Network
 
 			m_releasedIncomingMessages.Clear();
 			m_unsentUnconnectedMessage.Clear();
-			m_unsentUnconnectedRecipients.Clear();
 
 			m_configuration.VerifyAndLock();
 
