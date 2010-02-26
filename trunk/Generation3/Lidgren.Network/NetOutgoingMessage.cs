@@ -29,6 +29,7 @@ namespace Lidgren.Network
 
 		internal void Reset()
 		{
+			m_bitLength = 0;
 			m_type = NetMessageType.Error;
 			m_inQueueCount = 0;
 			m_numResends = 0;

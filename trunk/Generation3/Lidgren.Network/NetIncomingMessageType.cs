@@ -26,14 +26,15 @@ namespace Lidgren.Network
 	/// </summary>
 	public enum NetIncomingMessageType
 	{
-		StatusChanged,			// Data (string)
-		UnconnectedData,		// Data					Based on data received
-		ConnectionApproval,		// Data
-		Data,					// Data					Based on data received
-		Receipt,				// Data
-		VerboseDebugMessage,	// Data (string)
-		DebugMessage,			// Data (string)
-		WarningMessage,			// Data (string)
-		ErrorMessage,			// Data (string)
+		Error = 0,
+		StatusChanged = 1 << 0,			// Data (string)
+		UnconnectedData = 1 << 1,		// Data					Based on data received
+		ConnectionApproval = 1 << 2,	// Data
+		Data = 1 << 3,					// Data					Based on data received
+		Receipt = 1 << 4,				// Data
+		VerboseDebugMessage = 1 << 5,	// Data (string)
+		DebugMessage = 1 << 6,			// Data (string)
+		WarningMessage = 1 << 7,		// Data (string)
+		ErrorMessage = 1 << 8,			// Data (string)
 	}
 }

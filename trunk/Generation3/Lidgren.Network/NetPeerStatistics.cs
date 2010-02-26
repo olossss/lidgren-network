@@ -44,6 +44,9 @@ namespace Lidgren.Network
 		{
 			m_sentPackets = 0;
 			m_receivedPackets = 0;
+			m_sentBytes = 0;
+			m_receivedBytes = 0;
+			m_bytesAllocated = 0;
 		}
 
 		/// <summary>

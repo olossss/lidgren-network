@@ -36,9 +36,15 @@ namespace Lidgren.Network
 		private double m_lastSentUnsentMessages;
 		private float m_throttleDebt;
 		private NetPeerConfiguration m_peerConfiguration;
+		internal NetConnectionStatistics m_statistics;
 
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
+
+		/// <summary>
+		/// Statistics for this particular connection
+		/// </summary>
+		public NetConnectionStatistics Statistics { get { return m_statistics; } }
 
 		internal NetConnection(NetPeer owner, IPEndPoint remoteEndPoint)
 		{
@@ -53,6 +59,7 @@ namespace Lidgren.Network
 			m_nextKeepAlive = now + 5.0f + m_peerConfiguration.m_keepAliveDelay;
 			m_lastSentUnsentMessages = now;
 			m_lastSendRespondedTo = now;
+			m_statistics = new NetConnectionStatistics(this);
 
 			InitializeReliability();
 		}
@@ -102,6 +109,8 @@ namespace Lidgren.Network
 					{
 						// send packet and start new packet
 						m_owner.SendPacket(ptr, m_remoteEndPoint);
+						m_statistics.m_sentPackets++;
+						m_statistics.m_sentBytes += ptr;
 						m_throttleDebt += ptr;
 						ptr = 0;
 					}
@@ -149,6 +158,8 @@ namespace Lidgren.Network
 				if (ptr > 0)
 				{
 					m_owner.SendPacket(ptr, m_remoteEndPoint);
+					m_statistics.m_sentPackets++;
+					m_statistics.m_sentBytes += ptr;
 					m_throttleDebt += ptr;
 				}
 			}

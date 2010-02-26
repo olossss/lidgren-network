@@ -13,6 +13,7 @@ namespace UnitTests
 		{
 			NetOutgoingMessage msg = peer.CreateMessage();
 
+			msg.Write(false);
 			msg.Write(-3, 6);
 			msg.Write(42);
 			msg.Write("duke of earl");
@@ -35,10 +36,15 @@ namespace UnitTests
 
 			StringBuilder bdr = new StringBuilder();
 
+			bdr.Append(inc.ReadBoolean());
 			bdr.Append(inc.ReadInt32(6));
 			bdr.Append(inc.ReadInt32());
 			bdr.Append(inc.ReadString());
 			bdr.Append(inc.ReadByte());
+
+			if (inc.PeekUInt16() != (ushort)44)
+				throw new NetException("Read/write failure");
+
 			bdr.Append(inc.ReadUInt16());
 			bdr.Append(inc.ReadBoolean());
 			
@@ -49,10 +55,10 @@ namespace UnitTests
 			bdr.Append(inc.ReadVariableInt32());
 			bdr.Append(inc.ReadVariableUInt32());
 
-			if (bdr.ToString().Equals("-342duke of earl4344True4546-4748"))
+			if (bdr.ToString().Equals("False-342duke of earl4344True4546-4748"))
 				Console.WriteLine("Read/write tests OK");
 			else
-				throw new Exception("Read/write tests FAILED!");
+				throw new NetException("Read/write tests FAILED!");
 		}
 	}
 }

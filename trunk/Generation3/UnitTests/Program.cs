@@ -14,11 +14,15 @@ namespace UnitTests
 			NetPeer peer = new NetPeer(config);
 			peer.Start(); // needed for initialization
 
-			System.Threading.Thread.Sleep(25);
+			System.Threading.Thread.Sleep(50);
 
 			ReadWriteTests.Run(peer);
 
 			NetQueueTests.Run();
+
+			MiscTests.Run(peer);
+
+			peer.Shutdown("bye");
 
 			Console.ReadKey();
 		}

@@ -63,6 +63,8 @@ namespace Lidgren.Network
 			//
 			VerifyNetworkThread();
 
+			InitializeRecycling();
+
 			System.Net.NetworkInformation.PhysicalAddress pa = NetUtility.GetMacAddress();
 			if (pa != null)
 			{
@@ -73,9 +75,7 @@ namespace Lidgren.Network
 			{
 				LogWarning("Failed to get Mac address");
 			}
-
-			InitializeRecycling();
-
+			
 			LogDebug("Network thread started");
 
 			lock (m_initializeLock)
@@ -291,7 +291,11 @@ namespace Lidgren.Network
 				m_connectionLookup.TryGetValue(ipsender, out sender);
 
 				if (sender != null)
+				{
 					sender.m_lastHeardFrom = now;
+					sender.m_statistics.m_receivedPackets++;
+					sender.m_statistics.m_receivedBytes += bytesReceived;
+				}
 
 				int ptr = 0;
 				NetMessageType msgType;
@@ -337,6 +341,9 @@ namespace Lidgren.Network
 						LogError("Malformed message; no message type!");
 						continue;
 					}
+
+					if (libType == NetMessageLibraryType.Ping)
+						Console.WriteLine("x");
 
 					if (msgType == NetMessageType.Library)
 					{
