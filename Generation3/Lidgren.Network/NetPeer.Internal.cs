@@ -50,6 +50,7 @@ namespace Lidgren.Network
 		{
 			m_releasedIncomingMessages = new NetQueue<NetIncomingMessage>(16);
 			m_unsentUnconnectedMessage = new NetQueue<NetOutgoingMessage>(4);
+			m_messageReceivedEvent = new AutoResetEvent(false);
 		}
 
 		// TODO: inline this method manually
