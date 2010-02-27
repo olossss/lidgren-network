@@ -33,9 +33,18 @@ namespace Lidgren.Network
 		internal Socket m_socket;
 		internal byte[] m_macAddressBytes;
 		private int m_listenPort;
+		private AutoResetEvent m_messageReceivedEvent;
 
 		private NetQueue<NetIncomingMessage> m_releasedIncomingMessages;
 		private NetQueue<NetOutgoingMessage> m_unsentUnconnectedMessage;
+
+		/// <summary>
+		/// Signalling event which can be waited on to determine when a message is queued for reading.
+		/// Note that there is no guarantee that after the event is signaled the blocked thread will 
+		/// find the message in the queue. Other user created threads could be preempted and dequeue 
+		/// the message before the waiting thread wakes up.
+		/// </summary>
+		public AutoResetEvent MessageReceivedEvent { get { return m_messageReceivedEvent; } }
 
 		private void InternalInitialize()
 		{
@@ -47,6 +56,7 @@ namespace Lidgren.Network
 		internal void ReleaseMessage(NetIncomingMessage msg)
 		{
 			m_releasedIncomingMessages.Enqueue(msg);
+			m_messageReceivedEvent.Set();
 		}
 
 		[System.Diagnostics.Conditional("DEBUG")]
@@ -107,7 +117,7 @@ namespace Lidgren.Network
 
 					m_listenPort = boundEp.Port;
 
-					m_uniqueIdentifier = NetUtility.GetMacAddress().GetHashCode() ^ boundEp.GetHashCode();
+					m_uniqueIdentifier = (long)NetUtility.GetMacAddress().GetHashCode() | (((long)boundEp.GetHashCode()) << 32);
 
 					m_receiveBuffer = new byte[m_configuration.ReceiveBufferSize];
 					m_sendBuffer = new byte[m_configuration.SendBufferSize];
