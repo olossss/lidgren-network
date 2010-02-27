@@ -55,7 +55,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public void EnqueueFirst(T item)
 		{
-			if (m_size == m_items.Length)
+			if (m_size >= m_items.Length)
 				SetCapacity(m_items.Length + 8);
 
 			lock (m_lock)

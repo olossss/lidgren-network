@@ -92,7 +92,7 @@ namespace Lidgren.Network
 
 			int mtu = m_peerConfiguration.MaximumTransmissionUnit;
 
-			float throttleThreshold = throttle / m_peerConfiguration.m_throttlePeakDivider;
+			float throttleThreshold = m_peerConfiguration.m_throttlePeakBytes;
 			if (m_throttleDebt < throttleThreshold)
 			{
 				while (m_unsentMessages.Count > 0)

@@ -127,6 +127,10 @@ namespace Lidgren.Network
 						// found!
 						list.RemoveAt(a);
 
+						System.Diagnostics.Debug.Assert(om.m_lastSentTime != 0);
+
+						m_lastSendRespondedTo = om.m_lastSentTime;
+
 						om.m_inQueueCount--;
 						if (om.m_inQueueCount < 1)
 							m_owner.Recycle(om);

@@ -44,7 +44,7 @@ namespace Lidgren.Network
 		internal float m_pingFrequency;
 		internal float m_maxDelayedMessageDuration;
 		internal int m_throttleBytesPerSecond;
-		internal int m_throttlePeakDivider;
+		internal int m_throttlePeakBytes;
 
 		// reliability
 		internal float[] m_resendRTTMultiplier;
@@ -77,7 +77,7 @@ namespace Lidgren.Network
 			m_pingFrequency = 6.0f;
 			m_maxDelayedMessageDuration = 0.25f;
 			m_throttleBytesPerSecond = 1024 * 256;
-			m_throttlePeakDivider = 16;
+			m_throttlePeakBytes = 8192;
 			m_maxAckDelayTime = 0.01f;
 
 			m_loss = 0.0f;
@@ -380,6 +380,20 @@ namespace Lidgren.Network
 				m_throttleBytesPerSecond = value;
 				if (m_throttleBytesPerSecond < m_maximumTransmissionUnit)
 					throw new NetException("ThrottleBytesPerSecond can not be lower than MaximumTransmissionUnit");
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the peak number of bytes sent before throttling kicks in
+		/// </summary>
+		public int ThrottlePeakBytes
+		{
+			get { return m_throttlePeakBytes; }
+			set
+			{
+				m_throttlePeakBytes = value;
+				if (m_throttlePeakBytes < m_maximumTransmissionUnit)
+					throw new NetException("ThrottlePeakBytes can not be lower than MaximumTransmissionUnit");
 			}
 		}
 	}

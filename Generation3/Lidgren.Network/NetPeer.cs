@@ -36,7 +36,7 @@ namespace Lidgren.Network
 
 		private NetPeerStatus m_status;
 		private object m_initializeLock = new object();
-		private int m_uniqueIdentifier;
+		private long m_uniqueIdentifier;
 
 		internal NetPeerConfiguration m_configuration;
 		private NetPeerStatistics m_statistics;
@@ -87,7 +87,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Gets a semi-unique identifier based on Mac address and ip/port. Note! Not available until Start has been called!
 		/// </summary>
-		public int UniqueIdentifier { get { return m_uniqueIdentifier; } }
+		public long UniqueIdentifier { get { return m_uniqueIdentifier; } }
 
 		public NetPeer(NetPeerConfiguration configuration)
 		{
