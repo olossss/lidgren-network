@@ -220,7 +220,7 @@ namespace Lidgren.Network
 				ushort arut = m_allReliableReceivedUpTo[reliableSlot];
 				int diff = Relate(channelSequenceNumber, arut);
 
-				if (diff == 0 || diff > (ushort.MaxValue / 2))
+				if (diff > (ushort.MaxValue / 2))
 				{
 					// Reject duplicate
 					//m_statistics.CountDuplicateMessage(msg);
@@ -228,7 +228,7 @@ namespace Lidgren.Network
 					return;
 				}
 
-				if (diff == 1)
+				if (diff == 0)
 				{
 					// Right on time
 					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
