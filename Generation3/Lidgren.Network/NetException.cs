@@ -19,6 +19,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
 using System.Runtime.Serialization;
+using System.Diagnostics;
 
 namespace Lidgren.Network
 {
@@ -43,6 +44,26 @@ namespace Lidgren.Network
 		private NetException(SerializationInfo info, StreamingContext context)
 			: base(info, context)
 		{
+		}
+
+		/// <summary>
+		/// Throws an exception, in DEBUG only, if first parameter is false
+		/// </summary>
+		[Conditional("DEBUG")]
+		public static void Assert(bool isOk, string message)
+		{
+			if (!isOk)
+				throw new NetException(message);
+		}
+
+		/// <summary>
+		/// Throws an exception, in DEBUG only, if first parameter is false
+		/// </summary>
+		[Conditional("DEBUG")]
+		public static void Assert(bool isOk)
+		{
+			if (!isOk)
+				throw new NetException();
 		}
 	}
 }

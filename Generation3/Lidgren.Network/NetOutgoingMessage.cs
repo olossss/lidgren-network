@@ -34,9 +34,9 @@ namespace Lidgren.Network
 
 		internal IPEndPoint m_unconnectedRecipient;
 
-		internal double m_lastSentTime;
-		internal double m_nextResendTime;
-		internal int m_numResends;
+		internal double m_lastSentTime; // when was this message sent last?
+		internal double m_nextResendTime; // when to resend this message the next time
+		internal int m_numSends; // the number of times this message has been sent/resent
 
 		/// <summary>
 		/// Returns true if this message has been passed to SendMessage() already
@@ -50,10 +50,13 @@ namespace Lidgren.Network
 
 		internal void Reset()
 		{
+			if (m_inQueueCount != 0)
+				throw new NetException("Ouch! Resetting NetOutgoingMessage still in some queue!");
+
 			m_bitLength = 0;
 			m_type = NetMessageType.Error;
 			m_inQueueCount = 0;
-			m_numResends = 0;
+			m_numSends = 0;
 		}
 
 		internal static int EncodeAcksMessage(byte[] buffer, int ptr, NetConnection conn, int maxBytesPayload)
@@ -101,14 +104,15 @@ namespace Lidgren.Network
 			{
 				if (conn == null)
 					throw new NetException("Trying to encode NetMessageType " + m_type + " to unconnected endpoint!");
-				m_sequenceNumber = conn.GetSendSequenceNumber(m_type);
+				if (m_numSends == 0)
+					m_sequenceNumber = conn.GetSendSequenceNumber(m_type);
 				buffer[ptr++] = (byte)m_sequenceNumber;
 				buffer[ptr++] = (byte)(m_sequenceNumber >> 8);
 			}
 
 			// payload length
 			int msgPayloadLength = LengthBytes;
-			System.Diagnostics.Debug.Assert(msgPayloadLength < 32768);
+			NetException.Assert(msgPayloadLength < 32768);
 			if (msgPayloadLength < 127)
 			{
 				buffer[ptr++] = (byte)msgPayloadLength;
@@ -126,7 +130,14 @@ namespace Lidgren.Network
 				ptr += msgPayloadLength;
 			}
 
+			m_numSends++;
+
 			return ptr;
+		}
+
+		public override string ToString()
+		{
+			return "[NetOutgoingMessage " + m_type + (m_type == NetMessageType.Library ? "|" + m_libType : "") + " #" + m_sequenceNumber + " sent " + m_numSends + " times]";
 		}
 	}
 }

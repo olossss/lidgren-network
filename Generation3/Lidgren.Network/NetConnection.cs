@@ -31,7 +31,7 @@ namespace Lidgren.Network
 		private NetPeer m_owner;
 		internal IPEndPoint m_remoteEndPoint;
 		internal double m_lastHeardFrom;
-		private NetQueue<NetOutgoingMessage> m_unsentMessages;
+		internal NetQueue<NetOutgoingMessage> m_unsentMessages;
 		internal NetConnectionStatus m_status;
 		private double m_lastSentUnsentMessages;
 		private float m_throttleDebt;
@@ -77,6 +77,24 @@ namespace Lidgren.Network
 			// keepalive
 			KeepAliveHeartbeat(now);
 
+			// queue resends
+			// TODO: only do this every x millisecond
+			for (int i = 0; i < m_storedMessages.Length; i++)
+			{
+				if (m_storedMessagesNotEmpty.Get(i))
+				{
+					foreach (NetOutgoingMessage om in m_storedMessages[i])
+					{
+						if (now >= om.m_nextResendTime)
+						{
+							Resend(now, om);
+							break; // need to break out here; collection may have been modified
+						}
+					}
+				}
+			}
+
+
 			// send unsent messages; high priority first
 			byte[] buffer = m_owner.m_sendBuffer;
 			int ptr = 0;
@@ -95,6 +113,9 @@ namespace Lidgren.Network
 			float throttleThreshold = m_peerConfiguration.m_throttlePeakBytes;
 			if (m_throttleDebt < throttleThreshold)
 			{
+				//
+				// Send new unsent messages
+				//
 				while (m_unsentMessages.Count > 0)
 				{
 					if (m_throttleDebt >= throttleThreshold)
@@ -103,6 +124,7 @@ namespace Lidgren.Network
 					NetOutgoingMessage msg = m_unsentMessages.TryDequeue();
 					if (msg == null)
 						continue;
+					Interlocked.Decrement(ref msg.m_inQueueCount);
 
 					int msgPayloadLength = msg.LengthBytes;
 					msg.m_lastSentTime = now;
@@ -123,14 +145,10 @@ namespace Lidgren.Network
 
 					ptr = msg.Encode(buffer, ptr, this);
 
-					if (msg.m_type >= NetMessageType.UserReliableUnordered)
+					if (msg.m_type >= NetMessageType.UserReliableUnordered && msg.m_numSends == 1)
 					{
-						// message is reliable, store for resend
+						// message is sent for the first time, and is reliable, store for resend
 						StoreReliableMessage(now, msg);
-					}
-					else
-					{
-						Interlocked.Decrement(ref msg.m_inQueueCount);
 					}
 
 					// room to piggyback some acks?
@@ -371,7 +389,6 @@ namespace Lidgren.Network
 		internal void EnqueueOutgoingMessage(NetOutgoingMessage msg)
 		{
 			m_unsentMessages.Enqueue(msg);
-
 			Interlocked.Increment(ref msg.m_inQueueCount);
 		}
 
@@ -383,6 +400,20 @@ namespace Lidgren.Network
 
 			m_owner.LogVerbose("Disconnect requested for " + this);
 			m_disconnectByeMessage = byeMessage;
+
+			// loosen up throttling
+			m_throttleDebt = -m_owner.m_configuration.m_throttlePeakBytes;
+
+			// shorten resend times
+			for (int i = 0; i < m_storedMessages.Length; i++)
+			{
+				List<NetOutgoingMessage> list = m_storedMessages[i];
+				if (list != null)
+				{
+					foreach (NetOutgoingMessage om in list)
+						om.m_nextResendTime = (om.m_nextResendTime * 0.8) - 0.05;
+				}
+			}
 
 			NetOutgoingMessage bye = m_owner.CreateLibraryMessage(NetMessageLibraryType.Disconnect, byeMessage);
 			EnqueueOutgoingMessage(bye);
