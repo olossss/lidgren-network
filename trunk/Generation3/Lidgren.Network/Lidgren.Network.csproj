@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Documentation\Improvements.txt" />
+    <Compile Include="NetBitVector.cs" />
     <Compile Include="NetConnectionStatistics.cs" />
     <Compile Include="NetBitWriter.cs" />
     <Compile Include="NetClient.cs" />

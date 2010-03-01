@@ -19,6 +19,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Lidgren.Network
 {
@@ -27,7 +28,9 @@ namespace Lidgren.Network
 		private ushort[] m_nextSendSequenceNumber;
 		private ushort[] m_lastReceivedSequenced;
 
-		private List<NetOutgoingMessage>[] m_storedMessages; // naïve! replace by something better?
+		internal List<NetOutgoingMessage>[] m_storedMessages; // naïve! replace by something better?
+		internal NetBitVector m_storedMessagesNotEmpty;
+	
 		private ushort[] m_allReliableReceivedUpTo;
 		private List<NetIncomingMessage>[] m_withheldMessages;
 		internal Queue<int> m_acknowledgesToSend;
@@ -40,7 +43,9 @@ namespace Lidgren.Network
 			int num = ((int)NetMessageType.UserReliableOrdered + NetConstants.kNetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;
 			m_nextSendSequenceNumber = new ushort[num];
 			m_lastReceivedSequenced = new ushort[num];
+			
 			m_storedMessages = new List<NetOutgoingMessage>[NetConstants.kNumReliableChannels];
+			m_storedMessagesNotEmpty = new NetBitVector(NetConstants.kNumReliableChannels);
 
 			m_reliableReceived = new bool[NetConstants.kNumSequenceNumbers][]; // TODO: exchange for bit vector
 			m_allReliableReceivedUpTo = new ushort[NetConstants.kNumReliableChannels];
@@ -73,15 +78,10 @@ namespace Lidgren.Network
 			return false;
 		}
 
+		// called the FIRST time a reliable message is sent
 		private void StoreReliableMessage(double now, NetOutgoingMessage msg)
 		{
 			m_owner.VerifyNetworkThread();
-
-			int numResends = msg.m_numResends;
-
-			float[] baseTimes = m_peerConfiguration.m_resendBaseTime;
-			if (numResends >= baseTimes.Length)
-				return; // no more resends!
 
 			int reliableSlot = (int)msg.m_type - (int)NetMessageType.UserReliableUnordered;
 
@@ -92,10 +92,43 @@ namespace Lidgren.Network
 				m_storedMessages[reliableSlot] = list;
 			}
 			list.Add(msg);
+			Interlocked.Increment(ref msg.m_inQueueCount);
+
+			if (list.Count == 1)
+				m_storedMessagesNotEmpty.Set(reliableSlot, true);
+
+			// schedule next resend
+			int numSends = msg.m_numSends;
+			float[] baseTimes = m_peerConfiguration.m_resendBaseTime;
+			float[] multiplers = m_peerConfiguration.m_resendRTTMultiplier;
+			msg.m_nextResendTime = now + baseTimes[numSends] + (m_averageRoundtripTime * multiplers[numSends]);
+		}
+
+		private void Resend(double now, NetOutgoingMessage msg)
+		{
+			m_owner.VerifyNetworkThread();
+
+			int numSends = msg.m_numSends;
+			float[] baseTimes = m_peerConfiguration.m_resendBaseTime;
+			if (numSends >= baseTimes.Length)
+			{
+				// no more resends! We failed!
+				int reliableSlot = (int)msg.m_type - (int)NetMessageType.UserReliableUnordered;
+				List<NetOutgoingMessage> list = m_storedMessages[reliableSlot];
+				list.Remove(msg);
+				return; // no more resends!
+			}
+
+			m_owner.LogVerbose("Resending " + msg);
+
+			m_unsentMessages.EnqueueFirst(msg);
+			Interlocked.Increment(ref msg.m_inQueueCount);
+
+			msg.m_lastSentTime = now;
 
 			// schedule next resend
 			float[] multiplers = m_peerConfiguration.m_resendRTTMultiplier;
-			msg.m_nextResendTime = now + baseTimes[numResends] + (m_averageRoundtripTime * multiplers[numResends]);
+			msg.m_nextResendTime = now + baseTimes[numSends] + (m_averageRoundtripTime * multiplers[numSends]);
 		}
 
 		private void HandleIncomingAcks(int ptr, int payloadLength)
@@ -126,12 +159,12 @@ namespace Lidgren.Network
 					{
 						// found!
 						list.RemoveAt(a);
+						Interlocked.Decrement(ref om.m_inQueueCount);
 
-						System.Diagnostics.Debug.Assert(om.m_lastSentTime != 0);
+						NetException.Assert(om.m_lastSentTime != 0);
 
 						m_lastSendRespondedTo = om.m_lastSentTime;
 
-						om.m_inQueueCount--;
 						if (om.m_inQueueCount < 1)
 							m_owner.Recycle(om);
 

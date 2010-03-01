@@ -117,6 +117,30 @@ namespace Lidgren.Network
 		/// </summary>
 		internal void Recycle(NetOutgoingMessage msg)
 		{
+#if DEBUG
+			lock (m_connections)
+			{
+				foreach (NetConnection conn in m_connections)
+				{
+					if (conn.m_unsentMessages.Contains(msg))
+						throw new NetException("Ouch! Recycling unsent message!");
+
+					for(int i=0;i<conn.m_storedMessages.Length;i++)
+					{
+						List<NetOutgoingMessage> list = conn.m_storedMessages[i];
+						if (list != null && list.Count > 0)
+						{
+							foreach (NetOutgoingMessage om in conn.m_storedMessages[i])
+							{
+								if (om == msg)
+									throw new NetException("Ouch! Recycling stored message!");
+							}
+						}
+					}
+				}
+			}
+#endif
+
 			lock (m_storagePool)
 			{
 				if (!m_storagePool.Contains(msg.m_data))

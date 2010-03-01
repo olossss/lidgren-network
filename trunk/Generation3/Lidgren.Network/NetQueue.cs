@@ -60,7 +60,9 @@ namespace Lidgren.Network
 
 			lock (m_lock)
 			{
-				m_head = (m_head - 1) % m_items.Length;
+				m_head--;
+				if (m_head < 0)
+					m_head = m_items.Length - 1;
 				m_items[m_head] = item;
 				m_size++;
 			}

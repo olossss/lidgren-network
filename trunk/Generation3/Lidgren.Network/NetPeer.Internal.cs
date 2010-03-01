@@ -118,7 +118,9 @@ namespace Lidgren.Network
 
 					m_listenPort = boundEp.Port;
 
-					m_uniqueIdentifier = (long)NetUtility.GetMacAddress().GetHashCode() | (((long)boundEp.GetHashCode()) << 32);
+					ulong one = (ulong)NetUtility.GetMacAddress().GetHashCode();
+					ulong two = (ulong)((ulong)boundEp.GetHashCode() << 32);
+					m_uniqueIdentifier = (long)(one | two);
 
 					m_receiveBuffer = new byte[m_configuration.ReceiveBufferSize];
 					m_sendBuffer = new byte[m_configuration.SendBufferSize];
@@ -355,9 +357,6 @@ namespace Lidgren.Network
 						continue;
 					}
 
-					if (libType == NetMessageLibraryType.Ping)
-						Console.WriteLine("x");
-
 					if (msgType == NetMessageType.Library)
 					{
 						if (sender == null)
@@ -516,9 +515,9 @@ namespace Lidgren.Network
 
 		private void EnqueueUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)
 		{
-			Interlocked.Increment(ref msg.m_inQueueCount);
 			msg.m_unconnectedRecipient = recipient;
 			m_unsentUnconnectedMessage.Enqueue(msg);
+			Interlocked.Increment(ref msg.m_inQueueCount);
 		}
 
 		internal static NetDeliveryMethod GetDeliveryMethod(NetMessageType mtp)
@@ -540,8 +539,13 @@ namespace Lidgren.Network
 			if (msg.m_type != NetMessageType.Library)
 				throw new NetException("SendImmediately can only send library (non-reliable) messages");
 #endif
+			msg.m_inQueueCount = 1;
 			int len = msg.Encode(m_sendBuffer, 0, conn);
 			Interlocked.Decrement(ref msg.m_inQueueCount);
+
+			if (msg.m_inQueueCount > 0)
+				Console.WriteLine("x");
+
 			SendPacket(len, conn.m_remoteEndPoint);
 
 			Recycle(msg);

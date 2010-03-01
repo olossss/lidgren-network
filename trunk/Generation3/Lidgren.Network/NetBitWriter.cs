@@ -34,7 +34,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public static byte ReadByte(byte[] fromBuffer, int numberOfBits, int readBitOffset)
 		{
-			Debug.Assert(((numberOfBits > 0) && (numberOfBits < 9)), "Read() can only read between 1 and 8 bits");
+			NetException.Assert(((numberOfBits > 0) && (numberOfBits < 9)), "Read() can only read between 1 and 8 bits");
 
 			int bytePtr = readBitOffset >> 3;
 			int startReadAtIndex = readBitOffset - (bytePtr * 8); // (readBitOffset % 8);
@@ -101,7 +101,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public static void WriteByte(byte source, int numberOfBits, byte[] destination, int destBitOffset)
 		{
-			Debug.Assert(((numberOfBits >= 1) && (numberOfBits <= 8)), "Must write between 1 and 8 bits!");
+			NetException.Assert(((numberOfBits >= 1) && (numberOfBits <= 8)), "Must write between 1 and 8 bits!");
 
 			// mask out unwanted bits in the source
 			byte isrc = (byte)((uint)source & ((~(uint)0) >> (8 - numberOfBits)));
@@ -176,7 +176,7 @@ namespace Lidgren.Network
 #if UNSAFE
 		public static unsafe uint ReadUInt32(byte[] fromBuffer, int numberOfBits, int readBitOffset)
 		{
-			Debug.Assert(((numberOfBits > 0) && (numberOfBits <= 32)), "ReadUInt32() can only read between 1 and 32 bits");
+			NetException.Assert(((numberOfBits > 0) && (numberOfBits <= 32)), "ReadUInt32() can only read between 1 and 32 bits");
 
 			if (numberOfBits == 32 && ((readBitOffset % 8) == 0))
 			{
@@ -188,7 +188,7 @@ namespace Lidgren.Network
 #else
 		public static uint ReadUInt32(byte[] fromBuffer, int numberOfBits, int readBitOffset)
 		{
-			Debug.Assert(((numberOfBits > 0) && (numberOfBits <= 32)), "ReadUInt32() can only read between 1 and 32 bits");
+			NetException.Assert(((numberOfBits > 0) && (numberOfBits <= 32)), "ReadUInt32() can only read between 1 and 32 bits");
 #endif
 			uint returnValue;
 			if (numberOfBits <= 8)
