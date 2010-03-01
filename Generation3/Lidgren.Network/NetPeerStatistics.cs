@@ -80,6 +80,7 @@ namespace Lidgren.Network
 			bdr.AppendLine(m_peer.ConnectionsCount.ToString() + " connections");
 			bdr.AppendLine("Sent " + m_sentBytes + " bytes in " + m_sentPackets + " packets");
 			bdr.AppendLine("Received " + m_receivedBytes + " bytes in " + m_receivedPackets + " packets");
+			bdr.AppendLine("Allocated " + m_bytesAllocated + " bytes");
 			return bdr.ToString();
 		}
 	}

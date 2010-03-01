@@ -39,6 +39,15 @@ namespace Lidgren.Network
 		/// </summary>
 		public void Enqueue(T item)
 		{
+#if DEBUG
+			if (typeof(T) == typeof(NetOutgoingMessage))
+			{
+				NetOutgoingMessage om = item as NetOutgoingMessage;
+				if (om != null)
+					if (om.m_type == NetMessageType.Error)
+						throw new NetException("Enqueuing error message!");
+			}
+#endif
 			if (m_size == m_items.Length)
 				SetCapacity(m_items.Length + 8);
 

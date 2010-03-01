@@ -98,7 +98,8 @@ namespace Lidgren.Network
 				4.0f,
 				4.0f,
 				4.0f,
-				4.0f
+				4.0f,
+				6.0f
 			};
 
 			m_resendBaseTime = new float[]
@@ -111,7 +112,8 @@ namespace Lidgren.Network
 				3.0f, // 1.5 delay
 				5.0f, // 2.0 delay
 				7.5f, // 2.5 delay
-				12.5f // 5.0 delay, obi wan you're my last hope
+				12.5f, // 5.0 delay, obi wan you're my last hope
+				17.5f // 5.0 delay, and yet another one
 			};
 
 			// Maximum transmission unit

@@ -80,11 +80,11 @@ namespace DurableClient
 
 					if (now > m_nextSendReliableOrdered)
 					{
-						NetOutgoingMessage om = Client.CreateMessage();
+						NetOutgoingMessage om = Client.CreateMessage(5);
 						om.Write((uint)m_reliableOrderedNr);
 						m_reliableOrderedNr++;
 						Client.SendMessage(om, NetDeliveryMethod.ReliableOrdered);
-						m_nextSendReliableOrdered = now + NetRandom.Instance.NextFloat() + 0.1f;
+						m_nextSendReliableOrdered = now + (NetRandom.Instance.NextFloat() * 0.1f) + 0.05f;
 					}
 
 					if (now > m_nextSendSequenced)
@@ -93,7 +93,7 @@ namespace DurableClient
 						om.Write((uint)m_sequencedNr);
 						m_sequencedNr++;
 						Client.SendMessage(om, NetDeliveryMethod.UnreliableSequenced);
-						m_nextSendSequenced = now + NetRandom.Instance.NextFloat() + 0.1f;
+						m_nextSendSequenced = now + (NetRandom.Instance.NextFloat() * 0.1f) + 0.05f;
 					}
 
 					if (now > m_lastLabelUpdate + kLabelUpdateFrequency)

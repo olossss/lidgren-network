@@ -44,12 +44,12 @@ namespace Lidgren.Network
 				m_isPingInitialized = true;
 				m_averageRoundtripTime = Math.Max(0.005f, rtt - 0.005f); // TODO: find out why initial ping always overshoots
 				m_nextPing = NetTime.Now + m_peerConfiguration.m_pingFrequency / 2.0f;
-				m_owner.LogDebug("Got " + NetTime.ToReadable(rtt) + "... Initialized rtt to: " + NetTime.ToReadable(m_averageRoundtripTime));
+				m_owner.LogDebug("Initialized average roundtrip time to: " + NetTime.ToReadable(m_averageRoundtripTime));
 			}
 			else
 			{
 				m_averageRoundtripTime = (m_averageRoundtripTime * 0.7f) + (rtt * 0.3f);
-				m_owner.LogDebug("Found rtt: " + NetTime.ToReadable(rtt) + ", new average: " + NetTime.ToReadable(m_averageRoundtripTime));
+				m_owner.LogVerbose("Found rtt: " + NetTime.ToReadable(rtt) + ", new average: " + NetTime.ToReadable(m_averageRoundtripTime));
 			}
 		}
 
