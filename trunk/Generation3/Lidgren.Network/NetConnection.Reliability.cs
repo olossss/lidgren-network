@@ -91,8 +91,8 @@ namespace Lidgren.Network
 				list = new List<NetOutgoingMessage>();
 				m_storedMessages[reliableSlot] = list;
 			}
-			list.Add(msg);
 			Interlocked.Increment(ref msg.m_inQueueCount);
+			list.Add(msg);
 
 			if (list.Count == 1)
 				m_storedMessagesNotEmpty.Set(reliableSlot, true);
@@ -116,13 +116,14 @@ namespace Lidgren.Network
 				int reliableSlot = (int)msg.m_type - (int)NetMessageType.UserReliableUnordered;
 				List<NetOutgoingMessage> list = m_storedMessages[reliableSlot];
 				list.Remove(msg);
+				m_owner.LogWarning("Failed to deliver reliable message " + msg);
 				return; // no more resends!
 			}
 
 			m_owner.LogVerbose("Resending " + msg);
 
-			m_unsentMessages.EnqueueFirst(msg);
 			Interlocked.Increment(ref msg.m_inQueueCount);
+			m_unsentMessages.EnqueueFirst(msg);
 
 			msg.m_lastSentTime = now;
 
@@ -133,6 +134,8 @@ namespace Lidgren.Network
 
 		private void HandleIncomingAcks(int ptr, int payloadLength)
 		{
+			m_owner.VerifyNetworkThread();
+
 			int numAcks = payloadLength / 3;
 			if (numAcks * 3 != payloadLength)
 				m_owner.LogWarning("Malformed ack message; payload length is " + payloadLength);

@@ -386,10 +386,11 @@ namespace Lidgren.Network
 			EnqueueOutgoingMessage(msg);
 		}
 
+		// called by user and network thread
 		internal void EnqueueOutgoingMessage(NetOutgoingMessage msg)
 		{
-			m_unsentMessages.Enqueue(msg);
 			Interlocked.Increment(ref msg.m_inQueueCount);
+			m_unsentMessages.Enqueue(msg);
 		}
 
 		public void Disconnect(string byeMessage)
@@ -405,6 +406,7 @@ namespace Lidgren.Network
 			m_throttleDebt = -m_owner.m_configuration.m_throttlePeakBytes;
 
 			// shorten resend times
+			// TODO: make stored messages access thread safe
 			for (int i = 0; i < m_storedMessages.Length; i++)
 			{
 				List<NetOutgoingMessage> list = m_storedMessages[i];

@@ -513,11 +513,12 @@ namespace Lidgren.Network
 			EnqueueUnconnectedMessage(reply, connecter);
 		}
 
+		// called by user and network thread
 		private void EnqueueUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)
 		{
 			msg.m_unconnectedRecipient = recipient;
-			m_unsentUnconnectedMessage.Enqueue(msg);
 			Interlocked.Increment(ref msg.m_inQueueCount);
+			m_unsentUnconnectedMessage.Enqueue(msg);
 		}
 
 		internal static NetDeliveryMethod GetDeliveryMethod(NetMessageType mtp)

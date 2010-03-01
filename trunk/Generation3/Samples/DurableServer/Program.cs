@@ -88,6 +88,7 @@ namespace DurableServer
 							}
 							break;
 					}
+					Server.Recycle(msg);
 				}
 				Thread.Sleep(1);
 
@@ -109,6 +110,7 @@ namespace DurableServer
 			else
 			{
 				StringBuilder bdr = new StringBuilder();
+				bdr.Append(Server.Statistics.ToString());
 				bdr.Append(Server.Connections[0].Statistics.ToString());
 				bdr.AppendLine("RECEIVED Reliable ordered: " + m_reliableOrderedCorrect + " received; " + m_reliableOrderedErrors + " errors");
 				bdr.AppendLine("RECEIVED Sequenced: " + m_sequencedCorrect + " received; " + m_sequencedErrors + " errors");

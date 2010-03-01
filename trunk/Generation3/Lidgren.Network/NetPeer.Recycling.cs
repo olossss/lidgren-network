@@ -117,6 +117,8 @@ namespace Lidgren.Network
 		/// </summary>
 		internal void Recycle(NetOutgoingMessage msg)
 		{
+			VerifyNetworkThread();
+
 #if DEBUG
 			lock (m_connections)
 			{
