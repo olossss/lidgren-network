@@ -235,8 +235,7 @@ namespace Lidgren.Network
 
 				// relate to all received up to
 				int reliableSlot = (int)mtp - (int)NetMessageType.UserReliableUnordered;
-				ushort arut = m_allReliableReceivedUpTo[reliableSlot];
-				int diff = Relate(channelSequenceNumber, arut);
+				int diff = Relate(channelSequenceNumber, m_nextExpectedReliableSequence[reliableSlot]);
 
 				if (diff > (ushort.MaxValue / 2))
 				{
@@ -250,7 +249,8 @@ namespace Lidgren.Network
 				{
 					// Expected sequence number
 					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
-					PostAcceptReliableMessage(mtp, channelSequenceNumber, arut);
+				
+					ExpectedReliableSequenceArrived(reliableSlot);
 					return;
 				}
 
@@ -277,9 +277,9 @@ namespace Lidgren.Network
 				}
 
 				// It's an early reliable message
-				if (m_reliableReceived[reliableSlot] == null)
-					m_reliableReceived[reliableSlot] = new NetBitVector(NetConstants.kNumSequenceNumbers);
-				m_reliableReceived[reliableSlot][channelSequenceNumber] = true;
+				recList[channelSequenceNumber] = true;
+
+				m_owner.LogVerbose("Received early reliable message: " + channelSequenceNumber);
 
 				//
 				// It's not a duplicate; mark as received. Release if it's unordered, else withhold
@@ -295,21 +295,27 @@ namespace Lidgren.Network
 				// Only ReliableOrdered left here; withhold it
 				//
 
-				/*
+				// Early ordered message; withhold
+				const int orderedSlotsStart = ((int)NetMessageType.UserReliableOrdered - (int)NetMessageType.UserReliableUnordered);
+				int orderedSlot = reliableSlot - orderedSlotsStart;
 
-			// Early ordered message; withhold
-			List<IncomingNetMessage> wmlist = m_withheldMessages[relChanNr];
-			if (wmlist == null)
-			{
-				wmlist = new List<IncomingNetMessage>();
-				m_withheldMessages[relChanNr] = wmlist;
-			}
+				List<NetIncomingMessage> wmList = m_withheldMessages[orderedSlot];
+				if (wmList == null)
+				{
+					wmList = new List<NetIncomingMessage>();
+					m_withheldMessages[orderedSlot] = wmList;
+				}
 
-			m_owner.LogVerbose("Withholding " + msg + " (waiting for " + arut + ")", this);
-			wmlist.Add(msg);
-			return;
+				// create message
+				NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, payloadLength);
+				im.m_messageType = mtp;
+				im.m_sequenceNumber = channelSequenceNumber;
+				im.m_senderConnection = this;
+				im.m_senderEndPoint = m_remoteEndPoint;
 
-				 */
+				m_owner.LogVerbose("Withholding " + im + " (waiting for " + m_nextExpectedReliableSequence[reliableSlot] + ")");
+				
+				wmList.Add(im);
 
 				return;
 			}
