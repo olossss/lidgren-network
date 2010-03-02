@@ -241,7 +241,7 @@ namespace Lidgren.Network
 					try
 					{
 						m_socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
-						SendPacket(ptr, recipient);
+						SendPacket(ptr, recipient, 1);
 					}
 					finally
 					{
@@ -251,7 +251,7 @@ namespace Lidgren.Network
 				else
 				{
 					// send normally
-					SendPacket(ptr, recipient);
+					SendPacket(ptr, recipient, 1);
 				}
 			}
 
@@ -292,9 +292,6 @@ namespace Lidgren.Network
 				if (bytesReceived < 1)
 					return;
 
-				m_statistics.m_receivedPackets++;
-				m_statistics.m_receivedBytes += bytesReceived;
-
 				// renew current time; we might have waited in Poll
 				now = NetTime.Now;
 
@@ -305,13 +302,6 @@ namespace Lidgren.Network
 				NetConnection sender = null;
 				m_connectionLookup.TryGetValue(ipsender, out sender);
 
-				if (sender != null)
-				{
-					sender.m_lastHeardFrom = now;
-					sender.m_statistics.m_receivedPackets++;
-					sender.m_statistics.m_receivedBytes += bytesReceived;
-				}
-
 				int ptr = 0;
 				NetMessageType msgType;
 				NetMessageLibraryType libType = NetMessageLibraryType.Error;
@@ -319,6 +309,7 @@ namespace Lidgren.Network
 				//
 				// parse packet into messages
 				//
+				int numMessagesReceived = 0;
 				while ((bytesReceived - ptr) >= NetPeer.kMinPacketHeaderSize)
 				{
 					// get NetMessageType
@@ -357,6 +348,8 @@ namespace Lidgren.Network
 						continue;
 					}
 
+					numMessagesReceived++;
+
 					if (msgType == NetMessageType.Library)
 					{
 						if (sender == null)
@@ -374,6 +367,16 @@ namespace Lidgren.Network
 
 					ptr += payloadLength;
 				}
+
+				m_statistics.PacketReceived(bytesReceived, numMessagesReceived);
+
+				if (sender != null)
+				{
+					sender.m_lastHeardFrom = now;
+					sender.m_statistics.PacketReceived(bytesReceived, numMessagesReceived);
+				}
+
+
 
 				if (ptr < bytesReceived)
 				{
@@ -547,7 +550,7 @@ namespace Lidgren.Network
 			if (msg.m_inQueueCount > 0)
 				Console.WriteLine("x");
 
-			SendPacket(len, conn.m_remoteEndPoint);
+			SendPacket(len, conn.m_remoteEndPoint, 1);
 
 			Recycle(msg);
 		}

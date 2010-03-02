@@ -28,7 +28,7 @@ namespace Lidgren.Network
 		// Connection keepalive and latency calculation
 		//
 		private bool m_isPingInitialized;
-		private float m_averageRoundtripTime = 0.05f;
+		internal float m_averageRoundtripTime = 0.05f;
 		private byte m_lastSentPingNumber;
 		private double m_lastPingSendTime;
 		private double m_nextPing;

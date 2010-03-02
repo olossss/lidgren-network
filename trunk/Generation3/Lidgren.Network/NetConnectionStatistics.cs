@@ -19,6 +19,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 
 namespace Lidgren.Network
 {
@@ -28,6 +29,9 @@ namespace Lidgren.Network
 
 		internal int m_sentPackets;
 		internal int m_receivedPackets;
+
+		internal int m_sentMessages;
+		internal int m_receivedMessages;
 
 		internal int m_sentBytes;
 		internal int m_receivedBytes;
@@ -66,11 +70,26 @@ namespace Lidgren.Network
 		/// </summary>
 		public int ReceivedBytes { get { return m_receivedBytes; } }
 
+		internal void PacketSent(int numBytes, int numMessages)
+		{
+			m_sentPackets++;
+			m_sentBytes += numBytes;
+			m_sentMessages += numMessages;
+		}
+
+		internal void PacketReceived(int numBytes, int numMessages)
+		{
+			m_receivedPackets++;
+			m_receivedBytes += numBytes;
+			m_receivedMessages += numMessages;
+		}
+
 		public override string ToString()
 		{
 			StringBuilder bdr = new StringBuilder();
-			bdr.AppendLine("Sent " + m_sentBytes + " bytes in " + m_sentPackets + " packets");
-			bdr.AppendLine("Received " + m_receivedBytes + " bytes in " + m_receivedPackets + " packets");
+			bdr.AppendLine("Average roundtrip time: " + NetTime.ToReadable(m_connection.m_averageRoundtripTime));
+			bdr.AppendLine("Sent " + m_sentBytes + " bytes in " + m_sentMessages + " messages in " + m_sentPackets + " packets");
+			bdr.AppendLine("Received " + m_receivedBytes + " bytes in " + m_receivedMessages + " messages in " + m_receivedPackets + " packets");
 			return bdr.ToString();
 		}
 	}
