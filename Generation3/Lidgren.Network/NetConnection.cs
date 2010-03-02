@@ -116,6 +116,7 @@ namespace Lidgren.Network
 				//
 				// Send new unsent messages
 				//
+				int numIncludedMessages = 0;
 				while (m_unsentMessages.Count > 0)
 				{
 					if (m_throttleDebt >= throttleThreshold)
@@ -132,9 +133,9 @@ namespace Lidgren.Network
 					if (ptr > 0 && (ptr + NetPeer.kMaxPacketHeaderSize + msgPayloadLength) > mtu)
 					{
 						// send packet and start new packet
-						m_owner.SendPacket(ptr, m_remoteEndPoint);
-						m_statistics.m_sentPackets++;
-						m_statistics.m_sentBytes += ptr;
+						m_owner.SendPacket(ptr, m_remoteEndPoint, numIncludedMessages);
+						m_statistics.PacketSent(ptr, numIncludedMessages);
+						numIncludedMessages = 0;
 						m_throttleDebt += ptr;
 						ptr = 0;
 					}
@@ -144,6 +145,7 @@ namespace Lidgren.Network
 					//
 
 					ptr = msg.Encode(buffer, ptr, this);
+					numIncludedMessages++;
 
 					if (msg.m_type >= NetMessageType.UserReliableUnordered && msg.m_numSends == 1)
 					{
@@ -177,9 +179,9 @@ namespace Lidgren.Network
 
 				if (ptr > 0)
 				{
-					m_owner.SendPacket(ptr, m_remoteEndPoint);
-					m_statistics.m_sentPackets++;
-					m_statistics.m_sentBytes += ptr;
+					m_owner.SendPacket(ptr, m_remoteEndPoint, numIncludedMessages);
+					m_statistics.PacketSent(ptr, numIncludedMessages);
+					numIncludedMessages = 0;
 					m_throttleDebt += ptr;
 				}
 			}

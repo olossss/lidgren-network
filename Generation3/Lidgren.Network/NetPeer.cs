@@ -75,7 +75,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Returns the configuration of the netpeer
+		/// Gets the configuration of the netpeer
 		/// </summary>
 		public NetPeerConfiguration Configuration { get { return m_configuration; } }
 
@@ -216,6 +216,19 @@ namespace Lidgren.Network
 
 			foreach (NetConnection conn in recipients)
 				conn.EnqueueOutgoingMessage(msg);
+		}
+
+		public void SendUnconnectedMessage(NetOutgoingMessage msg, string host, int port)
+		{
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+
+			IPAddress adr = NetUtility.Resolve(host);
+			if (adr == null)
+				throw new NetException("Failed to resolve " + host);
+
+			msg.m_type = NetMessageType.UserUnreliable; // sortof not applicable
+			EnqueueUnconnectedMessage(msg, new IPEndPoint(adr, port));
 		}
 
 		public void SendUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)

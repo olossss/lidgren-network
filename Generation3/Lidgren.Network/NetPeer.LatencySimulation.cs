@@ -37,7 +37,7 @@ namespace Lidgren.Network
 			public IPEndPoint Target;
 		}
 
-		internal void SendPacket(int numBytes, IPEndPoint target)
+		internal void SendPacket(int numBytes, IPEndPoint target, int numMessages)
 		{
 			// simulate loss
 			float loss = m_configuration.m_loss;
@@ -50,6 +50,8 @@ namespace Lidgren.Network
 				}
 			}
 
+			m_statistics.PacketSent(numBytes, numMessages);
+			
 			// simulate latency
 			float m = m_configuration.m_minimumOneWayLatency;
 			float r = m_configuration.m_randomOneWayLatency;
@@ -110,12 +112,6 @@ namespace Lidgren.Network
 				int bytesSent = m_socket.SendTo(data, 0, numBytes, SocketFlags.None, target);
 				if (numBytes != bytesSent)
 					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
-
-				if (bytesSent >= 0)
-				{
-					m_statistics.m_sentPackets++;
-					m_statistics.m_sentBytes += bytesSent;
-				}
 			}
 			catch (Exception ex)
 			{
@@ -134,12 +130,6 @@ namespace Lidgren.Network
 				int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
 				if (numBytes != bytesSent)
 					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
-
-				if (bytesSent >= 0)
-				{
-					m_statistics.m_sentPackets++;
-					m_statistics.m_sentBytes += bytesSent;
-				}
 			}
 			catch (Exception ex)
 			{

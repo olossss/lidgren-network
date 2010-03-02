@@ -19,6 +19,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
 using System.Text;
+using System.Diagnostics;
 
 namespace Lidgren.Network
 {
@@ -28,6 +29,9 @@ namespace Lidgren.Network
 
 		internal int m_sentPackets;
 		internal int m_receivedPackets;
+
+		internal int m_sentMessages;
+		internal int m_receivedMessages;
 
 		internal int m_sentBytes;
 		internal int m_receivedBytes;
@@ -44,8 +48,13 @@ namespace Lidgren.Network
 		{
 			m_sentPackets = 0;
 			m_receivedPackets = 0;
+
+			m_sentMessages = 0;
+			m_receivedMessages = 0;
+
 			m_sentBytes = 0;
 			m_receivedBytes = 0;
+
 			m_bytesAllocated = 0;
 		}
 
@@ -58,6 +67,16 @@ namespace Lidgren.Network
 		/// Gets the number of received packets since the NetPeer was initialized
 		/// </summary>
 		public int ReceivedPackets { get { return m_receivedPackets; } }
+
+		/// <summary>
+		/// Gets the number of sent messages since the NetPeer was initialized
+		/// </summary>
+		public int SentMessages { get { return m_sentMessages; } }
+
+		/// <summary>
+		/// Gets the number of received messages since the NetPeer was initialized
+		/// </summary>
+		public int ReceivedMessages { get { return m_receivedMessages; } }
 
 		/// <summary>
 		/// Gets the number of sent bytes since the NetPeer was initialized
@@ -74,12 +93,28 @@ namespace Lidgren.Network
 		/// </summary>
 		public long BytesAllocated { get { return m_bytesAllocated; } }
 
+		[Conditional("DEBUG")]
+		internal void PacketSent(int numBytes, int numMessages)
+		{
+			m_sentPackets++;
+			m_sentBytes += numBytes;
+			m_sentMessages += numMessages;
+		}
+
+		[Conditional("DEBUG")]
+		internal void PacketReceived(int numBytes, int numMessages)
+		{
+			m_receivedPackets++;
+			m_receivedBytes += numBytes;
+			m_receivedMessages += numMessages;
+		}
+		
 		public override string ToString()
 		{
 			StringBuilder bdr = new StringBuilder();
 			bdr.AppendLine(m_peer.ConnectionsCount.ToString() + " connections");
-			bdr.AppendLine("Sent " + m_sentBytes + " bytes in " + m_sentPackets + " packets");
-			bdr.AppendLine("Received " + m_receivedBytes + " bytes in " + m_receivedPackets + " packets");
+			bdr.AppendLine("Sent " + m_sentBytes + " bytes in " + m_sentMessages + " messages in " + m_sentPackets + " packets");
+			bdr.AppendLine("Received " + m_receivedBytes + " bytes in " + m_receivedMessages + " messages in " + m_receivedPackets + " packets");
 			bdr.AppendLine("Allocated " + m_bytesAllocated + " bytes");
 			return bdr.ToString();
 		}

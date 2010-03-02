@@ -8,14 +8,11 @@ Completed features:
 * Throttling
 
 Missing features:
-* Reliability 75% done
 * Message fragmentation 10% done
 * Connection statistics 50% done
 * Receipts 25% done, need design
 * Local server discovery
-* Recycle NetOutgoingMessage messages, 80% done need testing
 * Resending of lost handshake (connect/response/established) packets
-* AutoResetEvent on message received
 * Clock synchronization to detect jitter per packet
 
 
