@@ -30,25 +30,25 @@ namespace Lidgren.Network
 
 		internal List<NetOutgoingMessage>[] m_storedMessages; // naïve! replace by something better?
 		internal NetBitVector m_storedMessagesNotEmpty;
-	
-		private ushort[] m_allReliableReceivedUpTo;
+
+		private ushort[] m_nextExpectedReliableSequence;
 		private List<NetIncomingMessage>[] m_withheldMessages;
 		internal Queue<int> m_acknowledgesToSend;
 		internal double m_nextForceAckTime;
 
 		private NetBitVector[] m_reliableReceived;
-		
+
 		private void InitializeReliability()
 		{
 			int num = ((int)NetMessageType.UserReliableOrdered + NetConstants.kNetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;
 			m_nextSendSequenceNumber = new ushort[num];
 			m_lastReceivedSequenced = new ushort[num];
-			
+
 			m_storedMessages = new List<NetOutgoingMessage>[NetConstants.kNumReliableChannels];
 			m_storedMessagesNotEmpty = new NetBitVector(NetConstants.kNumReliableChannels);
 
 			m_reliableReceived = new NetBitVector[NetConstants.kNumSequenceNumbers];
-			m_allReliableReceivedUpTo = new ushort[NetConstants.kNumReliableChannels];
+			m_nextExpectedReliableSequence = new ushort[NetConstants.kNumReliableChannels];
 			m_withheldMessages = new List<NetIncomingMessage>[NetConstants.kNetChannelsPerDeliveryMethod]; // only for ReliableOrdered
 			m_acknowledgesToSend = new Queue<int>();
 		}
@@ -69,7 +69,7 @@ namespace Lidgren.Network
 		internal bool ReceivedSequencedMessage(NetMessageType mtp, ushort seqNr)
 		{
 			int slot = (int)mtp - (int)NetMessageType.UserSequenced;
-	
+
 			int diff = Relate(seqNr, m_lastReceivedSequenced[slot]);
 
 			if (diff > (ushort.MaxValue / 2))
@@ -155,7 +155,7 @@ namespace Lidgren.Network
 					continue;
 
 				// find message
-				for(int a=0;a<list.Count;a++)
+				for (int a = 0; a < list.Count; a++)
 				{
 					NetOutgoingMessage om = list[a];
 					if (om.m_sequenceNumber == seqNr)
@@ -177,58 +177,72 @@ namespace Lidgren.Network
 
 				// TODO: receipt handling
 
-				// TODO: recycle if queuecount is < 1
+				// TODO: recycle if queuecount is < 1?
 
 			}
 		}
 
-		private void PostAcceptReliableMessage(NetMessageType mtp, ushort sequenceNumber, ushort arut)
+		private void ExpectedReliableSequenceArrived(int reliableSlot)
 		{
-			int reliableSlot = (int)mtp - (int)NetMessageType.UserReliableUnordered;
+			NetBitVector received = m_reliableReceived[reliableSlot];
 
-			// step forward until next AllReliableReceivedUpTo (arut)
-			bool nextArutAlreadyReceived = false;
-			do
+			int nextExpected = m_nextExpectedReliableSequence[reliableSlot];
+
+			if (received == null)
 			{
-				if (m_reliableReceived[reliableSlot] == null)
-					m_reliableReceived[reliableSlot] = new NetBitVector(NetConstants.kNumSequenceNumbers);
-				m_reliableReceived[reliableSlot][arut] = false;
-				arut++; // will wrap automatically
+				nextExpected = (nextExpected + 1) % NetConstants.kNumSequenceNumbers;
+				m_nextExpectedReliableSequence[reliableSlot] = (ushort)nextExpected;
+				return;
+			}
 
-				nextArutAlreadyReceived = m_reliableReceived[reliableSlot][arut];
-				if (nextArutAlreadyReceived)
+			received[(nextExpected + (NetConstants.kNumSequenceNumbers / 2)) % NetConstants.kNumSequenceNumbers] = false; // reset for next pass
+			nextExpected = (nextExpected + 1) % NetConstants.kNumSequenceNumbers;
+
+			while (received[nextExpected] == true)
+			{
+				// it seems we've already received the next expected reliable sequence number
+
+				// ordered?
+				const int orderedSlotsStart = ((int)NetMessageType.UserReliableOrdered - (int)NetMessageType.UserReliableUnordered);
+				if (reliableSlot >= orderedSlotsStart)
 				{
-					// ordered?
-					if (mtp >= NetMessageType.UserReliableOrdered)
-					{
-						// this should be a withheld message
-						int wmlidx = (int)mtp - (int)NetMessageType.UserReliableOrdered;
-						bool foundWithheld = false;
+					// ... then we should have a withheld message waiting
 
-						foreach (NetIncomingMessage wm in m_withheldMessages[wmlidx])
+					// this should be a withheld message
+					int orderedSlot = reliableSlot - orderedSlotsStart;
+					bool foundWithheld = false;
+
+					List<NetIncomingMessage> withheldList = m_withheldMessages[orderedSlot];
+					if (withheldList != null)
+					{
+						foreach (NetIncomingMessage wm in withheldList)
 						{
 							int wmSeqChan = wm.SequenceChannel;
 
-							if (wmlidx == wmSeqChan && wm.m_sequenceNumber == arut)
+							if (orderedSlot == wmSeqChan && wm.m_sequenceNumber == nextExpected)
 							{
 								// Found withheld message due for delivery
 								m_owner.LogVerbose("Releasing withheld message " + wm);
-								
+
 								// AcceptMessage
 								m_owner.ReleaseMessage(wm);
 
 								foundWithheld = true;
-								m_withheldMessages[wmlidx].Remove(wm);
+								withheldList.Remove(wm);
 								break;
 							}
 						}
-						if (!foundWithheld)
-							throw new NetException("Failed to find withheld message!");
 					}
+					if (!foundWithheld)
+						throw new NetException("Failed to find withheld message!");
 				}
-			} while (nextArutAlreadyReceived);
 
-			m_allReliableReceivedUpTo[reliableSlot] = arut;
+				// advance next expected
+				received[(nextExpected + (NetConstants.kNumSequenceNumbers / 2)) % NetConstants.kNumSequenceNumbers] = false; // reset for next pass
+				nextExpected = (nextExpected + 1) % NetConstants.kNumSequenceNumbers;
+			}
+
+			m_nextExpectedReliableSequence[reliableSlot] = (ushort)nextExpected;
 		}
 	}
 }

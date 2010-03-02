@@ -93,7 +93,7 @@ namespace Lidgren.Network
 
 		public override string ToString()
 		{
-			return "[NetIncomingMessage " + m_incomingType + ", " + m_bitLength + " bits]";
+			return "[NetIncomingMessage " + m_incomingType + ", " + m_messageType + "|" + m_sequenceNumber + ", " + m_bitLength + " bits]";
 		}
 	}
 }
