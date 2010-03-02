@@ -76,7 +76,7 @@ namespace Lidgren.Network
 			m_defaultOutgoingMessageCapacity = 8;
 			m_pingFrequency = 6.0f;
 			m_maxDelayedMessageDuration = 0.25f;
-			m_throttleBytesPerSecond = 1024 * 256;
+			m_throttleBytesPerSecond = 1024 * 512;
 			m_throttlePeakBytes = 8192;
 			m_maxAckDelayTime = 0.01f;
 

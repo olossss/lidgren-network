@@ -33,6 +33,12 @@ namespace Lidgren.Network
 				m_data[idx] &= (uint)(~(1 << bitNr));
 		}
 
+		public bool this [int index]
+		{
+			get { return Get(index); }
+			set { Set(index, value); }
+		}
+
 		public void Clear()
 		{
 			m_data.Initialize();

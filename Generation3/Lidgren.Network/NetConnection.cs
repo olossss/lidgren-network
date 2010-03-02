@@ -240,7 +240,7 @@ namespace Lidgren.Network
 
 				if (diff > (ushort.MaxValue / 2))
 				{
-					// Reject duplicate
+					// Reject out-of-window
 					//m_statistics.CountDuplicateMessage(msg);
 					m_owner.LogVerbose("Rejecting duplicate reliable " + mtp + " " + channelSequenceNumber);
 					return;
@@ -248,7 +248,7 @@ namespace Lidgren.Network
 
 				if (diff == 0)
 				{
-					// Right on time
+					// Expected sequence number
 					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
 					PostAcceptReliableMessage(mtp, channelSequenceNumber, arut);
 					return;
@@ -257,29 +257,29 @@ namespace Lidgren.Network
 				//
 				// Early reliable message - we must check if it's already been received
 				//
+				// DeliveryMethod is ReliableUnordered or ReliableOrdered here
+				//
 
-				/*
 				// get bools list we must check
-				bool[] recList = m_reliableReceived[relChanNr];
+				NetBitVector recList = m_reliableReceived[reliableSlot];
 				if (recList == null)
 				{
-					recList = new bool[NetConstants.NumSequenceNumbers];
-					m_reliableReceived[relChanNr] = recList;
+					recList = new NetBitVector(NetConstants.kNumSequenceNumbers);
+					m_reliableReceived[reliableSlot] = recList;
 				}
 
-			if (recList[msg.m_sequenceNumber])
-			{
-				// Reject duplicate
-				m_statistics.CountDuplicateMessage(msg);
-				m_owner.LogVerbose("Rejecting(2) duplicate reliable " + msg, this);
-				return;
-			}
+				if (recList[channelSequenceNumber])
+				{
+					// Reject duplicate
+					//m_statistics.CountDuplicateMessage(msg);
+					m_owner.LogDebug("Rejecting duplicate reliable " + ndm.ToString() + channelSequenceNumber.ToString());
+					return;
+				}
 
-			// It's an early reliable message
-			if (m_reliableReceived[relChanNr] == null)
-				m_reliableReceived[relChanNr] = new bool[NetConstants.NumSequenceNumbers];
-			m_reliableReceived[relChanNr][msg.m_sequenceNumber] = true;
-				*/
+				// It's an early reliable message
+				if (m_reliableReceived[reliableSlot] == null)
+					m_reliableReceived[reliableSlot] = new NetBitVector(NetConstants.kNumSequenceNumbers);
+				m_reliableReceived[reliableSlot][channelSequenceNumber] = true;
 
 				//
 				// It's not a duplicate; mark as received. Release if it's unordered, else withhold
