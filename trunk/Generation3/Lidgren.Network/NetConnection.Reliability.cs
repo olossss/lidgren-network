@@ -36,7 +36,7 @@ namespace Lidgren.Network
 		internal Queue<int> m_acknowledgesToSend;
 		internal double m_nextForceAckTime;
 
-		private bool[][] m_reliableReceived;
+		private NetBitVector[] m_reliableReceived;
 		
 		private void InitializeReliability()
 		{
@@ -47,7 +47,7 @@ namespace Lidgren.Network
 			m_storedMessages = new List<NetOutgoingMessage>[NetConstants.kNumReliableChannels];
 			m_storedMessagesNotEmpty = new NetBitVector(NetConstants.kNumReliableChannels);
 
-			m_reliableReceived = new bool[NetConstants.kNumSequenceNumbers][]; // TODO: exchange for bit vector
+			m_reliableReceived = new NetBitVector[NetConstants.kNumSequenceNumbers];
 			m_allReliableReceivedUpTo = new ushort[NetConstants.kNumReliableChannels];
 			m_withheldMessages = new List<NetIncomingMessage>[NetConstants.kNetChannelsPerDeliveryMethod]; // only for ReliableOrdered
 			m_acknowledgesToSend = new Queue<int>();
@@ -191,7 +191,7 @@ namespace Lidgren.Network
 			do
 			{
 				if (m_reliableReceived[reliableSlot] == null)
-					m_reliableReceived[reliableSlot] = new bool[NetConstants.kNumSequenceNumbers];
+					m_reliableReceived[reliableSlot] = new NetBitVector(NetConstants.kNumSequenceNumbers);
 				m_reliableReceived[reliableSlot][arut] = false;
 				arut++; // will wrap automatically
 
