@@ -60,7 +60,7 @@ namespace Lidgren.Network
 			{
 				NetIncomingMessage info = m_owner.CreateIncomingMessage(NetIncomingMessageType.StatusChanged, 4 + reason.Length + (reason.Length > 126 ? 2 : 1));
 				info.m_senderConnection = this;
-				info.m_senderEndPoint = m_remoteEndPoint;
+				info.m_senderEndpoint = m_remoteEndpoint;
 				info.Write((byte)m_status);
 				info.Write(reason);
 				m_owner.ReleaseMessage(info);
@@ -84,7 +84,7 @@ namespace Lidgren.Network
 					// just send connect, regardless of who was previous initiator
 					break;
 				case NetConnectionStatus.Disconnected:
-					throw new Exception("This connection is Disconnected; spent. A new one should have been created");
+					throw new NetException("This connection is Disconnected; spent. A new one should have been created");
 
 				case NetConnectionStatus.Disconnecting:
 					// let disconnect finish first
@@ -169,6 +169,7 @@ namespace Lidgren.Network
 					if (m_status == NetConnectionStatus.Connecting)
 					{
 						// get remote hail data
+						m_owner.m_statistics.m_bytesAllocated += payloadBytesLength;
 						m_remoteHailData = new byte[payloadBytesLength];
 						Buffer.BlockCopy(m_owner.m_receiveBuffer, ptr, m_remoteHailData, 0, payloadBytesLength);
 

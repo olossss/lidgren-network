@@ -38,13 +38,13 @@ namespace Lidgren.Network
 		internal int m_defaultOutgoingMessageCapacity;
 		internal int m_maximumTransmissionUnit;
 		internal float m_keepAliveDelay;
-		internal float m_connectionTimeOut;
+		internal float m_connectionTimeout;
 		internal int m_maximumConnections;
 		internal NetIncomingMessageType m_disabledTypes;
 		internal float m_pingFrequency;
-		internal float m_maxDelayedMessageDuration;
 		internal int m_throttleBytesPerSecond;
 		internal int m_throttlePeakBytes;
+		internal byte[] m_defaultLocalHailData;
 
 		// reliability
 		internal float[] m_resendRTTMultiplier;
@@ -71,11 +71,10 @@ namespace Lidgren.Network
 			m_receiveBufferSize = 131071;
 			m_sendBufferSize = 131071;
 			m_keepAliveDelay = 7.0f;
-			m_connectionTimeOut = 25;
+			m_connectionTimeout = 25;
 			m_maximumConnections = 8;
 			m_defaultOutgoingMessageCapacity = 8;
 			m_pingFrequency = 6.0f;
-			m_maxDelayedMessageDuration = 0.25f;
 			m_throttleBytesPerSecond = 1024 * 512;
 			m_throttlePeakBytes = 8192;
 			m_maxAckDelayTime = 0.01f;
@@ -83,6 +82,7 @@ namespace Lidgren.Network
 			m_loss = 0.0f;
 			m_minimumOneWayLatency = 0.0f;
 			m_randomOneWayLatency = 0.0f;
+			m_duplicates = 0.0f;
 
 			// default disabled types
 			m_disabledTypes = NetIncomingMessageType.ConnectionApproval | NetIncomingMessageType.UnconnectedData | NetIncomingMessageType.VerboseDebugMessage;
@@ -90,7 +90,7 @@ namespace Lidgren.Network
 			// reliability
 			m_resendRTTMultiplier = new float[]
 			{
-				1.0f,
+				1.1f,
 				2.25f,
 				3.5f,
 				4.0f,
@@ -105,14 +105,14 @@ namespace Lidgren.Network
 			m_resendBaseTime = new float[]
 			{
 				0.025f, // just processing time + ack delay wait time
-				0.045f, // just processing time + ack delay wait time
+				0.05f, // just processing time + ack delay wait time
 				0.2f, // 0.16 delay since last resend
 				0.5f, // 0.3 delay 
 				1.5f, // 1.0 delay
 				3.0f, // 1.5 delay
 				5.0f, // 2.0 delay
 				7.5f, // 2.5 delay
-				12.5f, // 5.0 delay, obi wan you're my last hope
+				12.5f, // 5.0 delay, obi wan you're my only hope
 				17.5f // 5.0 delay, and yet another one
 			};
 
@@ -342,24 +342,15 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Gets or sets the number of seconds of non-response before disconnecting because of time out. Cannot be changed once NetPeer is initialized.
 		/// </summary>
-		public float ConnectionTimeOut
+		public float ConnectionTimeout
 		{
-			get { return m_connectionTimeOut; }
+			get { return m_connectionTimeout; }
 			set
 			{
 				if (m_isLocked)
 					throw new NetException(c_isLockedMessage);
-				m_connectionTimeOut = value;
+				m_connectionTimeout = value;
 			}
-		}
-
-		/// <summary>
-		/// Gets or sets the maximum number of seconds to wait before forcing send of NetMessagePriority.Delayed messages
-		/// </summary>
-		public float MaxDelayedMessageDuration
-		{
-			get { return m_maxDelayedMessageDuration; }
-			set { m_maxDelayedMessageDuration = value; }
 		}
 
 		/// <summary>
@@ -396,6 +387,20 @@ namespace Lidgren.Network
 				m_throttlePeakBytes = value;
 				if (m_throttlePeakBytes < m_maximumTransmissionUnit)
 					throw new NetException("ThrottlePeakBytes can not be lower than MaximumTransmissionUnit");
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the local hail data sent to all remote connections unless overridden, per connection, in approval stage. Cannot be changed once NetPeer is initialized.
+		/// </summary>
+		public byte[] DefaultLocalHailData
+		{
+			get { return m_defaultLocalHailData; }
+			set
+			{
+				if (m_isLocked)
+					throw new NetException(c_isLockedMessage);
+				m_defaultLocalHailData = value;
 			}
 		}
 	}

@@ -182,18 +182,17 @@ namespace Lidgren.Network
 						m_socket.Shutdown(SocketShutdown.Receive);
 						m_socket.Close(2); // 2 seconds timeout
 					}
+					if (m_messageReceivedEvent != null)
+						m_messageReceivedEvent.Close();
 				}
 				finally
 				{
 					m_socket = null;
+					m_messageReceivedEvent = null;
 					m_status = NetPeerStatus.NotRunning;
 					LogDebug("Shutdown complete");
 				}
 			}
-
-			//
-			// TODO: make sure everything is DE-initialized (release etc)
-			//
 
 			return;
 		}
@@ -388,7 +387,7 @@ namespace Lidgren.Network
 			// heartbeat done
 		}
 
-		private void HandleUnconnectedLibraryMessage(NetMessageLibraryType libType, int ptr, int payloadLength, IPEndPoint senderEndPoint)
+		private void HandleUnconnectedLibraryMessage(NetMessageLibraryType libType, int ptr, int payloadLength, IPEndPoint senderEndpoint)
 		{
 			VerifyNetworkThread();
 
@@ -429,27 +428,27 @@ namespace Lidgren.Network
 			catch (Exception ex)
 			{
 				// malformed connect packet
-				LogWarning("Malformed connect packet from " + senderEndPoint + " - " + ex.ToString());
+				LogWarning("Malformed connect packet from " + senderEndpoint + " - " + ex.ToString());
 				return;
 			}
 
 			if (appIdent.Equals(m_configuration.AppIdentifier) == false)
 			{
 				// wrong app ident
-				LogWarning("Connect received with wrong appidentifier (need '" + m_configuration.AppIdentifier + "' found '" + appIdent + "') from " + senderEndPoint);
+				LogWarning("Connect received with wrong appidentifier (need '" + m_configuration.AppIdentifier + "' found '" + appIdent + "') from " + senderEndpoint);
 				return;
 			}
 
 			// ok, someone wants to connect to us, and we're accepting connections!
 			if (m_connections.Count >= m_configuration.MaximumConnections)
 			{
-				HandleServerFull(senderEndPoint);
+				HandleServerFull(senderEndpoint);
 				return;
 			}
 
-			NetConnection conn = new NetConnection(this, senderEndPoint);
+			NetConnection conn = new NetConnection(this, senderEndpoint);
 			conn.m_connectionInitiator = false;
-			conn.m_localHailData = null; // TODO: use some default hail data set in netpeer?
+			conn.m_localHailData = m_configuration.m_defaultLocalHailData;
 			conn.m_remoteHailData = remoteHail;
 			conn.m_connectInitationTime = NetTime.Now;
 
@@ -464,14 +463,14 @@ namespace Lidgren.Network
 			return;
 		}
 
-		private void HandleUnconnectedUserMessage(int ptr, int payloadLength, IPEndPoint senderEndPoint)
+		private void HandleUnconnectedUserMessage(int ptr, int payloadLength, IPEndPoint senderEndpoint)
 		{
 			VerifyNetworkThread();
 
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData))
 			{
 				NetIncomingMessage ium = CreateIncomingMessage(NetIncomingMessageType.UnconnectedData, m_receiveBuffer, ptr, payloadLength);
-				ium.m_senderEndPoint = senderEndPoint;
+				ium.m_senderEndpoint = senderEndpoint;
 				ReleaseMessage(ium);
 			}
 		}
@@ -481,7 +480,7 @@ namespace Lidgren.Network
 			lock (m_connections)
 			{
 				m_connections.Add(conn);
-				m_connectionLookup[conn.m_remoteEndPoint] = conn;
+				m_connectionLookup[conn.m_remoteEndpoint] = conn;
 			}
 			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
 
@@ -505,7 +504,7 @@ namespace Lidgren.Network
 			lock (m_connections)
 			{
 				m_connections.Remove(conn);
-				m_connectionLookup.Remove(conn.m_remoteEndPoint);
+				m_connectionLookup.Remove(conn.m_remoteEndpoint);
 			}
 		}
 
@@ -550,7 +549,7 @@ namespace Lidgren.Network
 			if (msg.m_inQueueCount > 0)
 				Console.WriteLine("x");
 
-			SendPacket(len, conn.m_remoteEndPoint, 1);
+			SendPacket(len, conn.m_remoteEndpoint, 1);
 
 			Recycle(msg);
 		}

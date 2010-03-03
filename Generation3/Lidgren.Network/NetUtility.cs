@@ -163,11 +163,11 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Returns true if the IPEndPoint supplied is on the same subnet as this host
 		/// </summary>
-		public static bool IsLocal(IPEndPoint endPoint)
+		public static bool IsLocal(IPEndPoint endpoint)
 		{
-			if (endPoint == null)
+			if (endpoint == null)
 				return false;
-			return IsLocal(endPoint.Address);
+			return IsLocal(endpoint.Address);
 		}
 
 		/// <summary>

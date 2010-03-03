@@ -397,7 +397,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Reads a stored IPv4 endpoint description
 		/// </summary>
-		public IPEndPoint ReadIPEndPoint()
+		public IPEndPoint ReadIPEndpoint()
 		{
 			uint address = ReadUInt32();
 			int port = (int)ReadUInt16();

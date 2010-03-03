@@ -40,16 +40,16 @@ namespace Lidgren.Network
 
 		private void InitializeReliability()
 		{
-			int num = ((int)NetMessageType.UserReliableOrdered + NetConstants.kNetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;
+			int num = ((int)NetMessageType.UserReliableOrdered + NetConstants.NetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;
 			m_nextSendSequenceNumber = new ushort[num];
 			m_lastReceivedSequenced = new ushort[num];
 
-			m_storedMessages = new List<NetOutgoingMessage>[NetConstants.kNumReliableChannels];
-			m_storedMessagesNotEmpty = new NetBitVector(NetConstants.kNumReliableChannels);
+			m_storedMessages = new List<NetOutgoingMessage>[NetConstants.NumReliableChannels];
+			m_storedMessagesNotEmpty = new NetBitVector(NetConstants.NumReliableChannels);
 
-			m_reliableReceived = new NetBitVector[NetConstants.kNumSequenceNumbers];
-			m_nextExpectedReliableSequence = new ushort[NetConstants.kNumReliableChannels];
-			m_withheldMessages = new List<NetIncomingMessage>[NetConstants.kNetChannelsPerDeliveryMethod]; // only for ReliableOrdered
+			m_reliableReceived = new NetBitVector[NetConstants.NumSequenceNumbers];
+			m_nextExpectedReliableSequence = new ushort[NetConstants.NumReliableChannels];
+			m_withheldMessages = new List<NetIncomingMessage>[NetConstants.NetChannelsPerDeliveryMethod]; // only for ReliableOrdered
 			m_acknowledgesToSend = new Queue<int>();
 		}
 
@@ -60,9 +60,9 @@ namespace Lidgren.Network
 			return m_nextSendSequenceNumber[slot]++;
 		}
 
-		internal int Relate(ushort seqNr, ushort lastReceived)
+		internal static int Relate(ushort seqNr, ushort lastReceived)
 		{
-			return (seqNr < lastReceived ? (seqNr + NetConstants.kNumSequenceNumbers) - lastReceived : seqNr - lastReceived);
+			return (seqNr < lastReceived ? (seqNr + NetConstants.NumSequenceNumbers) - lastReceived : seqNr - lastReceived);
 		}
 
 		// returns true if message should be rejected
@@ -72,8 +72,11 @@ namespace Lidgren.Network
 
 			int diff = Relate(seqNr, m_lastReceivedSequenced[slot]);
 
+			if (diff == 0)
+				return true; // reject; already received
 			if (diff > (ushort.MaxValue / 2))
 				return true; // reject; out of window
+
 			m_lastReceivedSequenced[slot] = seqNr;
 			return false;
 		}
@@ -176,9 +179,6 @@ namespace Lidgren.Network
 				}
 
 				// TODO: receipt handling
-
-				// TODO: recycle if queuecount is < 1?
-
 			}
 		}
 
@@ -190,13 +190,13 @@ namespace Lidgren.Network
 
 			if (received == null)
 			{
-				nextExpected = (nextExpected + 1) % NetConstants.kNumSequenceNumbers;
+				nextExpected = (nextExpected + 1) % NetConstants.NumSequenceNumbers;
 				m_nextExpectedReliableSequence[reliableSlot] = (ushort)nextExpected;
 				return;
 			}
 
-			received[(nextExpected + (NetConstants.kNumSequenceNumbers / 2)) % NetConstants.kNumSequenceNumbers] = false; // reset for next pass
-			nextExpected = (nextExpected + 1) % NetConstants.kNumSequenceNumbers;
+			received[(nextExpected + (NetConstants.NumSequenceNumbers / 2)) % NetConstants.NumSequenceNumbers] = false; // reset for next pass
+			nextExpected = (nextExpected + 1) % NetConstants.NumSequenceNumbers;
 
 			while (received[nextExpected] == true)
 			{
@@ -238,8 +238,8 @@ namespace Lidgren.Network
 				}
 
 				// advance next expected
-				received[(nextExpected + (NetConstants.kNumSequenceNumbers / 2)) % NetConstants.kNumSequenceNumbers] = false; // reset for next pass
-				nextExpected = (nextExpected + 1) % NetConstants.kNumSequenceNumbers;
+				received[(nextExpected + (NetConstants.NumSequenceNumbers / 2)) % NetConstants.NumSequenceNumbers] = false; // reset for next pass
+				nextExpected = (nextExpected + 1) % NetConstants.NumSequenceNumbers;
 			}
 
 			m_nextExpectedReliableSequence[reliableSlot] = (ushort)nextExpected;

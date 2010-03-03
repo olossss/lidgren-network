@@ -105,7 +105,7 @@ namespace Lidgren.Network
 			}
 
 			// timeout
-			if (now > m_lastSendRespondedTo + m_peerConfiguration.m_connectionTimeOut)
+			if (now > m_lastSendRespondedTo + m_peerConfiguration.m_connectionTimeout)
 				Disconnect("Timed out");
 
 			// ping time?

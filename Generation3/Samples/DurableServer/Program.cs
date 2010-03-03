@@ -23,7 +23,6 @@ namespace DurableServer
 
 			NetPeerConfiguration config = new NetPeerConfiguration("durable");
 			config.Port = 14242;
-			config.SimulatedLoss = 0.05f;
 			Server = new NetServer(config);
 			Server.Start();
 
@@ -61,6 +60,11 @@ namespace DurableServer
 						case NetIncomingMessageType.WarningMessage:
 						case NetIncomingMessageType.Error:
 							Display(msg.ReadString());
+							break;
+						case NetIncomingMessageType.StatusChanged:
+							NetConnectionStatus status = (NetConnectionStatus)msg.ReadByte();
+							string reason = msg.ReadString();
+							Display("New status: " + status + " (" + reason + ")");
 							break;
 						case NetIncomingMessageType.Data:
 							uint nr = msg.ReadUInt32();

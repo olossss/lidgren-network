@@ -24,7 +24,6 @@ namespace DurableClient
 			MainForm = new Form1();
 
 			NetPeerConfiguration config = new NetPeerConfiguration("durable");
-			config.SimulatedLoss = 0.05f;
 			Client = new NetClient(config);
 			Client.Start();
 
@@ -62,9 +61,13 @@ namespace DurableClient
 							Display(msg.ReadString());
 							break;
 						case NetIncomingMessageType.Data:
+							Display("Received data?!");
 							break;
 						case NetIncomingMessageType.StatusChanged:
 							NetConnectionStatus status = (NetConnectionStatus)msg.ReadByte();
+							string reason = msg.ReadString();
+							Display("New status: " + status + " (" + reason + ")");
+
 							if (status == NetConnectionStatus.Connected)
 							{
 								// go

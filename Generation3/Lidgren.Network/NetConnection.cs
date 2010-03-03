@@ -25,11 +25,11 @@ using System.Threading;
 
 namespace Lidgren.Network
 {
-	[DebuggerDisplay("RemoteEndPoint={m_remoteEndPoint} Status={m_status}")]
+	[DebuggerDisplay("RemoteEndpoint={m_remoteEndpoint} Status={m_status}")]
 	public partial class NetConnection
 	{
 		private NetPeer m_owner;
-		internal IPEndPoint m_remoteEndPoint;
+		internal IPEndPoint m_remoteEndpoint;
 		internal double m_lastHeardFrom;
 		internal NetQueue<NetOutgoingMessage> m_unsentMessages;
 		internal NetConnectionStatus m_status;
@@ -37,22 +37,23 @@ namespace Lidgren.Network
 		private float m_throttleDebt;
 		private NetPeerConfiguration m_peerConfiguration;
 		internal NetConnectionStatistics m_statistics;
+		private int m_lesserHeartbeats;
 
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
 
-		public object Tag;
+		public object Tag { get; set; }
 
 		/// <summary>
 		/// Statistics for this particular connection
 		/// </summary>
 		public NetConnectionStatistics Statistics { get { return m_statistics; } }
 
-		internal NetConnection(NetPeer owner, IPEndPoint remoteEndPoint)
+		internal NetConnection(NetPeer owner, IPEndPoint remoteEndpoint)
 		{
 			m_owner = owner;
 			m_peerConfiguration = m_owner.m_configuration;
-			m_remoteEndPoint = remoteEndPoint;
+			m_remoteEndpoint = remoteEndpoint;
 			m_unsentMessages = new NetQueue<NetOutgoingMessage>(16);
 			m_status = NetConnectionStatus.None;
 
@@ -71,29 +72,37 @@ namespace Lidgren.Network
 		{
 			m_owner.VerifyNetworkThread();
 
-			if (m_connectRequested)
-				SendConnect();
+			m_lesserHeartbeats++;
 
-			// keepalive
-			KeepAliveHeartbeat(now);
-
-			// queue resends
-			// TODO: only do this every x millisecond
-			for (int i = 0; i < m_storedMessages.Length; i++)
+			if (m_lesserHeartbeats >= 2)
 			{
-				if (m_storedMessagesNotEmpty.Get(i))
+				//
+				// Do greater heartbeat every third heartbeat
+				//
+				m_lesserHeartbeats = 0;
+
+				// keepalive, timeout and ping stuff
+				KeepAliveHeartbeat(now);
+
+				if (m_connectRequested)
+					SendConnect();
+
+				// queue resends
+				for (int i = 0; i < m_storedMessages.Length; i++)
 				{
-					foreach (NetOutgoingMessage om in m_storedMessages[i])
+					if (m_storedMessagesNotEmpty.Get(i))
 					{
-						if (now >= om.m_nextResendTime)
+						foreach (NetOutgoingMessage om in m_storedMessages[i])
 						{
-							Resend(now, om);
-							break; // need to break out here; collection may have been modified
+							if (now >= om.m_nextResendTime)
+							{
+								Resend(now, om);
+								break; // need to break out here; collection may have been modified
+							}
 						}
 					}
 				}
 			}
-
 
 			// send unsent messages; high priority first
 			byte[] buffer = m_owner.m_sendBuffer;
@@ -133,7 +142,7 @@ namespace Lidgren.Network
 					if (ptr > 0 && (ptr + NetPeer.kMaxPacketHeaderSize + msgPayloadLength) > mtu)
 					{
 						// send packet and start new packet
-						m_owner.SendPacket(ptr, m_remoteEndPoint, numIncludedMessages);
+						m_owner.SendPacket(ptr, m_remoteEndpoint, numIncludedMessages);
 						m_statistics.PacketSent(ptr, numIncludedMessages);
 						numIncludedMessages = 0;
 						m_throttleDebt += ptr;
@@ -179,7 +188,7 @@ namespace Lidgren.Network
 
 				if (ptr > 0)
 				{
-					m_owner.SendPacket(ptr, m_remoteEndPoint, numIncludedMessages);
+					m_owner.SendPacket(ptr, m_remoteEndpoint, numIncludedMessages);
 					m_statistics.PacketSent(ptr, numIncludedMessages);
 					numIncludedMessages = 0;
 					m_throttleDebt += ptr;
@@ -266,7 +275,7 @@ namespace Lidgren.Network
 				NetBitVector recList = m_reliableReceived[reliableSlot];
 				if (recList == null)
 				{
-					recList = new NetBitVector(NetConstants.kNumSequenceNumbers);
+					recList = new NetBitVector(NetConstants.NumSequenceNumbers);
 					m_reliableReceived[reliableSlot] = recList;
 				}
 
@@ -274,7 +283,7 @@ namespace Lidgren.Network
 				{
 					// Reject duplicate
 					//m_statistics.CountDuplicateMessage(msg);
-					m_owner.LogDebug("Rejecting duplicate reliable " + ndm.ToString() + channelSequenceNumber.ToString());
+					m_owner.LogVerbose("Rejecting duplicate reliable " + ndm.ToString() + channelSequenceNumber.ToString());
 					return;
 				}
 
@@ -313,7 +322,7 @@ namespace Lidgren.Network
 				im.m_messageType = mtp;
 				im.m_sequenceNumber = channelSequenceNumber;
 				im.m_senderConnection = this;
-				im.m_senderEndPoint = m_remoteEndPoint;
+				im.m_senderEndpoint = m_remoteEndpoint;
 
 				m_owner.LogVerbose("Withholding " + im + " (waiting for " + m_nextExpectedReliableSequence[reliableSlot] + ")");
 				
@@ -340,7 +349,7 @@ namespace Lidgren.Network
 			im.m_messageType = mtp;
 			im.m_sequenceNumber = seqNr;
 			im.m_senderConnection = this;
-			im.m_senderEndPoint = m_remoteEndPoint;
+			im.m_senderEndpoint = m_remoteEndpoint;
 
 			m_owner.LogVerbose("Releasing " + im);
 			m_owner.ReleaseMessage(im);
@@ -464,7 +473,7 @@ namespace Lidgren.Network
 
 		public override string ToString()
 		{
-			return "[NetConnection to " + m_remoteEndPoint + "]";
+			return "[NetConnection to " + m_remoteEndpoint + "]";
 		}
 	}
 }
