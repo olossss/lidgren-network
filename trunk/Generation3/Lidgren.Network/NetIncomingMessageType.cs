@@ -18,14 +18,17 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Lidgren.Network
 {
 	/// <summary>
 	/// Type of incoming message
 	/// </summary>
+	[SuppressMessage("Microsoft.Design", "CA1027:MarkEnumsWithFlags")]
 	public enum NetIncomingMessageType
 	{
+		// library note: values are power-of-two, but they are not flags - it's a convenience for NetPeerConfiguration.DisabledMessageTypes
 		Error = 0,
 		StatusChanged = 1 << 0,			// Data (string)
 		UnconnectedData = 1 << 1,		// Data					Based on data received

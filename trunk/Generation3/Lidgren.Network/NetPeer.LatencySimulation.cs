@@ -108,7 +108,6 @@ namespace Lidgren.Network
 		{
 			try
 			{
-				// TODO: Use SendToAsync()?
 				int bytesSent = m_socket.SendTo(data, 0, numBytes, SocketFlags.None, target);
 				if (numBytes != bytesSent)
 					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");
@@ -122,11 +121,10 @@ namespace Lidgren.Network
 		//
 		// Release - just send the packet straight away
 		//
-		internal void SendPacket(int numBytes, IPEndPoint target)
+		internal void SendPacket(int numBytes, IPEndPoint target, int numMessages)
 		{
 			try
 			{
-				// TODO: Use SendToAsync()?
 				int bytesSent = m_socket.SendTo(m_sendBuffer, 0, numBytes, SocketFlags.None, target);
 				if (numBytes != bytesSent)
 					LogWarning("Failed to send the full " + numBytes + "; only " + bytesSent + " bytes sent in packet!");

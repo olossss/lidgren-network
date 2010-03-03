@@ -39,11 +39,11 @@ namespace Lidgren.Network
 		private long m_uniqueIdentifier;
 
 		internal NetPeerConfiguration m_configuration;
-		private NetPeerStatistics m_statistics;
+		internal NetPeerStatistics m_statistics;
 		private Thread m_networkThread;
 		private string m_shutdownReason;
 
-		protected List<NetConnection> m_connections;
+		internal List<NetConnection> m_connections;
 		private Dictionary<IPEndPoint, NetConnection> m_connectionLookup;
 
 		/// <summary>
@@ -160,15 +160,15 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Create a connection to a remote endpoint
 		/// </summary>
-		public virtual NetConnection Connect(IPEndPoint remoteEndPoint, byte[] hailData)
+		public virtual NetConnection Connect(IPEndPoint remoteEndpoint, byte[] hailData)
 		{
 			if (m_status == NetPeerStatus.NotRunning)
 				throw new NetException("Must call Start() first");
 
-			if (m_connectionLookup.ContainsKey(remoteEndPoint))
+			if (m_connectionLookup.ContainsKey(remoteEndpoint))
 				throw new NetException("Already connected to that endpoint!");
 
-			NetConnection conn = new NetConnection(this, remoteEndPoint);
+			NetConnection conn = new NetConnection(this, remoteEndpoint);
 			conn.m_localHailData = hailData;
 
 			// handle on network thread
@@ -178,7 +178,7 @@ namespace Lidgren.Network
 			lock (m_connections)
 			{
 				m_connections.Add(conn);
-				m_connectionLookup[remoteEndPoint] = conn;
+				m_connectionLookup[remoteEndpoint] = conn;
 			}
 
 			return conn;

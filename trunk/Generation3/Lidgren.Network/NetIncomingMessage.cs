@@ -33,7 +33,7 @@ namespace Lidgren.Network
 		internal ushort m_sequenceNumber;
 
 		internal NetIncomingMessageType m_incomingType;
-		internal IPEndPoint m_senderEndPoint;
+		internal IPEndPoint m_senderEndpoint;
 		internal NetConnection m_senderConnection;
 
 		/// <summary>
@@ -68,7 +68,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// IPEndPoint of sender, if any
 		/// </summary>
-		public IPEndPoint SenderEndPoint { get { return m_senderEndPoint; } }
+		public IPEndPoint SenderEndpoint { get { return m_senderEndpoint; } }
 
 		/// <summary>
 		/// NetConnection of sender, if any

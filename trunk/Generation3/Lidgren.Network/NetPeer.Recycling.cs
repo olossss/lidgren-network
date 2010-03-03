@@ -45,8 +45,6 @@ namespace Lidgren.Network
 
 			lock (m_storagePool)
 			{
-				int cnt = m_storagePool.Count;
-
 				// search from end to start
 				for (int i = m_storagePool.Count - 1; i >= 0; i--)
 				{
@@ -82,7 +80,7 @@ namespace Lidgren.Network
 			else
 				retval.Reset();
 
-			byte[] storage = GetStorage(m_configuration.DefaultOutgoingMessageCapacity);
+			byte[] storage = GetStorage(initialCapacity);
 			retval.m_data = storage;
 
 			return retval;
@@ -186,7 +184,7 @@ namespace Lidgren.Network
 
 			retval.m_incomingType = tp;
 			retval.m_senderConnection = null;
-			retval.m_senderEndPoint = null;
+			retval.m_senderEndpoint = null;
 
 			if (requiredCapacity > 0)
 			{
@@ -215,7 +213,7 @@ namespace Lidgren.Network
 			retval.m_bitLength = copyLength * 8;
 			retval.m_incomingType = tp;
 			retval.m_senderConnection = null;
-			retval.m_senderEndPoint = null;
+			retval.m_senderEndpoint = null;
 
 			return retval;
 		}

@@ -145,48 +145,43 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Generates a random int over the range 0 to upperBound-1, and not including upperBound.
 		/// </summary>
-		/// <param name="upperBound"></param>
-		/// <returns></returns>
-		public override int Next(int upperBound)
+		public override int Next(int maxValue)
 		{
-			if (upperBound < 0)
-				throw new ArgumentOutOfRangeException("upperBound", upperBound, "upperBound must be >=0");
+			if (maxValue < 0)
+				throw new ArgumentOutOfRangeException("maxValue", maxValue, "maxValue must be >=0");
 
 			uint t = (m_x ^ (m_x << 11));
 			m_x = m_y; m_y = m_z; m_z = m_w;
 
 			// The explicit int cast before the first multiplication gives better performance.
 			// See comments in NextDouble.
-			return (int)((c_realUnitInt * (int)(0x7FFFFFFF & (m_w = (m_w ^ (m_w >> 19)) ^ (t ^ (t >> 8))))) * upperBound);
+			return (int)((c_realUnitInt * (int)(0x7FFFFFFF & (m_w = (m_w ^ (m_w >> 19)) ^ (t ^ (t >> 8))))) * maxValue);
 		}
 
 		/// <summary>
-		/// Generates a random int over the range lowerBound to upperBound-1, and not including upperBound.
-		/// upperBound must be >= lowerBound. lowerBound may be negative.
+		/// Generates a random int over the range minValue to maxValue-1, and not including maxValue.
+		/// maxValue must be >= minValue. minValue may be negative.
 		/// </summary>
-		/// <param name="lowerBound"></param>
-		/// <param name="upperBound"></param>
-		/// <returns></returns>
-		public override int Next(int lowerBound, int upperBound)
+		public override int Next(int minValue, int maxValue)
 		{
-			if (lowerBound > upperBound)
-				throw new ArgumentOutOfRangeException("upperBound", upperBound, "upperBound must be >=lowerBound");
+			if (minValue > maxValue)
+				throw new ArgumentOutOfRangeException("maxValue", maxValue, "maxValue must be >=minValue");
 
 			uint t = (m_x ^ (m_x << 11));
 			m_x = m_y; m_y = m_z; m_z = m_w;
 
 			// The explicit int cast before the first multiplication gives better performance.
 			// See comments in NextDouble.
-			int range = upperBound - lowerBound;
+			int range = maxValue - minValue;
 			if (range < 0)
 			{	// If range is <0 then an overflow has occured and must resort to using long integer arithmetic instead (slower).
 				// We also must use all 32 bits of precision, instead of the normal 31, which again is slower.	
-				return lowerBound + (int)((c_realUnitUint * (double)(m_w = (m_w ^ (m_w >> 19)) ^ (t ^ (t >> 8)))) * (double)((long)upperBound - (long)lowerBound));
+				return minValue + (int)((c_realUnitUint * (double)(m_w = (m_w ^ (m_w >> 19)) ^ (t ^ (t >> 8)))) * (double)((long)maxValue - (long)minValue));
 			}
 
 			// 31 bits of precision will suffice if range<=int.MaxValue. This allows us to cast to an int anf gain
 			// a little more performance.
-			return lowerBound + (int)((c_realUnitInt * (double)(int)(0x7FFFFFFF & (m_w = (m_w ^ (m_w >> 19)) ^ (t ^ (t >> 8))))) * (double)range);
+			return minValue + (int)((c_realUnitInt * (double)(int)(0x7FFFFFFF & (m_w = (m_w ^ (m_w >> 19)) ^ (t ^ (t >> 8))))) * (double)range);
 		}
 
 		/// <summary>

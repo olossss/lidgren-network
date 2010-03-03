@@ -16,6 +16,8 @@ namespace UnitTests
 
 			System.Threading.Thread.Sleep(50);
 
+			Console.WriteLine("MAC is " + NetUtility.GetMacAddress());
+
 			ReadWriteTests.Run(peer);
 
 			NetQueueTests.Run();

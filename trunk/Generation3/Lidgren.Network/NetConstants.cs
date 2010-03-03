@@ -22,18 +22,18 @@ namespace Lidgren.Network
 {
 	public static class NetConstants
 	{
-		public const int kNetChannelsPerDeliveryMethod = 32;
+		public const int NetChannelsPerDeliveryMethod = 32;
 
-		public const int kNumSequenceNumbers = ushort.MaxValue + 1; // 0 is a valid sequence number
+		public const int NumSequenceNumbers = ushort.MaxValue + 1; // 0 is a valid sequence number
 
 		/// <summary>
 		/// Number of channels which needs a sequence number to work
 		/// </summary>
-		public const int kNumSequencedChannels = ((int)NetMessageType.UserReliableOrdered + NetConstants.kNetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;
+		public const int NumSequencedChannels = ((int)NetMessageType.UserReliableOrdered + NetConstants.NetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;
 
 		/// <summary>
 		/// Number of reliable channels
 		/// </summary>
-		public const int kNumReliableChannels = ((int)NetMessageType.UserReliableOrdered + NetConstants.kNetChannelsPerDeliveryMethod) - (int)NetMessageType.UserReliableUnordered;
+		public const int NumReliableChannels = ((int)NetMessageType.UserReliableOrdered + NetConstants.NetChannelsPerDeliveryMethod) - (int)NetMessageType.UserReliableUnordered;
 	}
 }

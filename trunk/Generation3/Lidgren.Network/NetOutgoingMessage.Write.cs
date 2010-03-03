@@ -491,10 +491,10 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Writes an IPv4 endpoint description
 		/// </summary>
-		public void Write(IPEndPoint endPoint)
+		public void Write(IPEndPoint endpoint)
 		{
-			Write(BitConverter.ToUInt32(endPoint.Address.GetAddressBytes(), 0));
-			Write((ushort)endPoint.Port);
+			Write(BitConverter.ToUInt32(endpoint.Address.GetAddressBytes(), 0));
+			Write((ushort)endpoint.Port);
 		}
 
 		/// <summary>
