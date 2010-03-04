@@ -75,6 +75,7 @@ namespace ImageServer
 							NativeMethods.AppendText(MainForm.richTextBox1, "New status: " + status + " (" + inc.ReadString() + ")");
 							if (status == NetConnectionStatus.Connected)
 							{
+								/*
 								//
 								// A client connected; send the entire image in chunks of 990 bytes
 								//
@@ -92,6 +93,11 @@ namespace ImageServer
 
 									Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
 								}
+								*/
+
+								NetOutgoingMessage om = Server.CreateMessage(ImageData.Length);
+								om.Write(ImageData);
+								Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
 
 								// all messages will be sent before disconnect so we can call it here
 								inc.SenderConnection.Disconnect("Bye bye now");

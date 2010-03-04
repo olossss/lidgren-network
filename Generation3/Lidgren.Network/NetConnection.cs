@@ -38,6 +38,7 @@ namespace Lidgren.Network
 		private NetPeerConfiguration m_peerConfiguration;
 		internal NetConnectionStatistics m_statistics;
 		private int m_lesserHeartbeats;
+		private int m_nextFragmentGroupId;
 
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
@@ -196,15 +197,12 @@ namespace Lidgren.Network
 			}
 		}
 
-		internal void HandleUserMessage(double now, NetMessageType mtp, ushort channelSequenceNumber, int ptr, int payloadLength)
+		internal void HandleUserMessage(double now, NetMessageType mtp, bool isFragment, ushort channelSequenceNumber, int ptr, int payloadLength)
 		{
 			m_owner.VerifyNetworkThread();
 
 			try
 			{
-				if (!m_peerConfiguration.IsMessageTypeEnabled(NetIncomingMessageType.Data))
-					return;
-
 				NetDeliveryMethod ndm = NetPeer.GetDeliveryMethod(mtp);
 
 				//
@@ -212,7 +210,7 @@ namespace Lidgren.Network
 				//
 				if (ndm == NetDeliveryMethod.Unreliable)
 				{
-					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
 					return;
 				}
 
@@ -223,7 +221,7 @@ namespace Lidgren.Network
 				{
 					bool reject = ReceivedSequencedMessage(mtp, channelSequenceNumber);
 					if (!reject)
-						AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+						AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
 					return;
 				}
 
@@ -240,7 +238,7 @@ namespace Lidgren.Network
 				{
 					bool reject = ReceivedSequencedMessage(mtp, channelSequenceNumber);
 					if (!reject)
-						AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+						AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
 					return;
 				}
 
@@ -259,7 +257,7 @@ namespace Lidgren.Network
 				if (diff == 0)
 				{
 					// Expected sequence number
-					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
 				
 					ExpectedReliableSequenceArrived(reliableSlot);
 					return;
@@ -298,7 +296,7 @@ namespace Lidgren.Network
 
 				if (ndm == NetDeliveryMethod.ReliableUnordered)
 				{
-					AcceptMessage(mtp, channelSequenceNumber, ptr, payloadLength);
+					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
 					return;
 				}
 
@@ -342,10 +340,21 @@ namespace Lidgren.Network
 			}
 		}
 
-		private void AcceptMessage(NetMessageType mtp, ushort seqNr, int ptr, int payloadLength)
+		private void AcceptMessage(NetMessageType mtp, bool isFragment, ushort seqNr, int ptr, int payloadLength)
 		{
+			byte[] buffer = m_owner.m_receiveBuffer;
+
+			if (isFragment)
+			{
+				int fragmentGroup = buffer[ptr++] | (buffer[ptr++] << 8);
+				int fragmentTotalCount = buffer[ptr++] | (buffer[ptr++] << 8);
+				int fragmentNr = buffer[ptr++] | (buffer[ptr++] << 8);
+
+				throw new NotImplementedException();
+			}
+
 			// release to application
-			NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, payloadLength);
+			NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, buffer, ptr, payloadLength);
 			im.m_messageType = mtp;
 			im.m_sequenceNumber = seqNr;
 			im.m_senderConnection = this;
@@ -395,19 +404,56 @@ namespace Lidgren.Network
 			return;
 		}
 
-		public void SendMessage(NetOutgoingMessage msg, NetDeliveryMethod channel)
+		public void SendMessage(NetOutgoingMessage msg, NetDeliveryMethod method)
 		{
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
-			msg.m_type = (NetMessageType)channel;
+			msg.m_type = (NetMessageType)method;
+			EnqueueOutgoingMessage(msg);
+		}
+
+		public void SendMessage(NetOutgoingMessage msg, NetDeliveryMethod method, int sequenceChannel)
+		{
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+			msg.m_type = (NetMessageType)((int)method + sequenceChannel);
 			EnqueueOutgoingMessage(msg);
 		}
 
 		// called by user and network thread
 		internal void EnqueueOutgoingMessage(NetOutgoingMessage msg)
 		{
-			Interlocked.Increment(ref msg.m_inQueueCount);
-			m_unsentMessages.Enqueue(msg);
+			int msgLen = msg.LengthBytes;
+			int mtu = m_owner.m_configuration.m_maximumTransmissionUnit;
+
+			if (msgLen <= mtu)
+			{
+				Interlocked.Increment(ref msg.m_inQueueCount);
+				m_unsentMessages.Enqueue(msg);
+				return;
+			}
+
+			mtu -= NetConstants.FragmentHeaderSize; // size of fragmentation info
+
+			// message must be fragmented
+			int fgi = Interlocked.Increment(ref m_nextFragmentGroupId);
+
+			int numFragments = (msgLen + mtu - 1) / mtu;
+
+			for(int i=0;i<numFragments;i++)
+			{
+				int flen = (i == numFragments - 1 ? (msgLen - (mtu * (numFragments - 1))) : mtu);
+
+				NetOutgoingMessage fm = m_owner.CreateMessage(flen);
+				fm.m_fragmentGroupId = fgi;
+				fm.m_fragmentNumber = i;
+				fm.m_fragmentTotalCount = numFragments;
+
+				fm.Write(msg.m_data, mtu * i, flen);
+				fm.m_type = msg.m_type;
+				Interlocked.Increment(ref fm.m_inQueueCount);
+				m_unsentMessages.Enqueue(fm);
+			}
 		}
 
 		public void Disconnect(string byeMessage)
@@ -423,14 +469,20 @@ namespace Lidgren.Network
 			m_throttleDebt = -m_owner.m_configuration.m_throttlePeakBytes;
 
 			// shorten resend times
-			// TODO: make stored messages access thread safe
 			for (int i = 0; i < m_storedMessages.Length; i++)
 			{
 				List<NetOutgoingMessage> list = m_storedMessages[i];
 				if (list != null)
 				{
-					foreach (NetOutgoingMessage om in list)
-						om.m_nextResendTime = (om.m_nextResendTime * 0.8) - 0.05;
+					try
+					{
+						foreach (NetOutgoingMessage om in list)
+							om.m_nextResendTime = (om.m_nextResendTime * 0.8) - 0.05;
+					}
+					catch (InvalidOperationException)
+					{
+						// ok, collection was modified, never mind then
+					}
 				}
 			}
 

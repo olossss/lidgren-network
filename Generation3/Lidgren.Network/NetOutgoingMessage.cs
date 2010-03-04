@@ -38,6 +38,10 @@ namespace Lidgren.Network
 		internal double m_nextResendTime; // when to resend this message the next time
 		internal int m_numSends; // the number of times this message has been sent/resent
 
+		internal int m_fragmentGroupId;
+		internal int m_fragmentNumber;
+		internal int m_fragmentTotalCount;
+
 		/// <summary>
 		/// Returns true if this message has been passed to SendMessage() already
 		/// </summary>
@@ -57,6 +61,7 @@ namespace Lidgren.Network
 			m_type = NetMessageType.Error;
 			m_inQueueCount = 0;
 			m_numSends = 0;
+			m_fragmentGroupId = -1;
 		}
 
 		internal static int EncodeAcksMessage(byte[] buffer, int ptr, NetConnection conn, int maxBytesPayload)
@@ -94,7 +99,7 @@ namespace Lidgren.Network
 		internal int Encode(byte[] buffer, int ptr, NetConnection conn)
 		{
 			// message type
-			buffer[ptr++] = (byte)m_type;
+			buffer[ptr++] = (byte)((int)m_type | (m_fragmentGroupId == -1 ? 0 : 128));
 
 			if (m_type == NetMessageType.Library)
 				buffer[ptr++] =(byte)m_libType;
@@ -121,6 +126,17 @@ namespace Lidgren.Network
 			{
 				buffer[ptr++] = (byte)((msgPayloadLength & 127) | 128);
 				buffer[ptr++] = (byte)(msgPayloadLength >> 7);
+			}
+
+			// fragmentation info
+			if (m_fragmentGroupId != -1)
+			{
+				buffer[ptr++] = (byte)m_fragmentGroupId;
+				buffer[ptr++] = (byte)(m_fragmentGroupId >> 8);
+				buffer[ptr++] = (byte)m_fragmentTotalCount;
+				buffer[ptr++] = (byte)(m_fragmentTotalCount >> 8);
+				buffer[ptr++] = (byte)m_fragmentNumber;
+				buffer[ptr++] = (byte)(m_fragmentNumber >> 8);
 			}
 
 			// payload

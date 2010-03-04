@@ -11,7 +11,7 @@ namespace Lidgren.Network
 		private const int c_overAllocateAmount = 4;
 
 		internal byte[] m_data;
-		private int m_bitLength;
+		internal int m_bitLength;
 
 		/// <summary>
 		/// Returns the internal data buffer, don't modify
