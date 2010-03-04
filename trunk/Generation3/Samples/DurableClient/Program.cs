@@ -37,10 +37,10 @@ namespace DurableClient
 		}
 
 		private static double m_nextSendReliableOrdered;
-		private static uint m_reliableOrderedNr = 0;
+		private static uint[] m_reliableOrderedNr = new uint[3];
 
 		private static double m_nextSendSequenced;
-		private static uint m_sequencedNr = 0;
+		private static uint[] m_sequencedNr = new uint[3];
 
 		private static double m_lastLabelUpdate;
 		private const double kLabelUpdateFrequency = 0.25;
@@ -81,21 +81,28 @@ namespace DurableClient
 				{
 					double now = NetTime.Now;
 
+					int r = NetRandom.Instance.Next(3);
 					if (now > m_nextSendReliableOrdered)
 					{
 						NetOutgoingMessage om = Client.CreateMessage(5);
-						om.Write((uint)m_reliableOrderedNr);
-						m_reliableOrderedNr++;
-						Client.SendMessage(om, NetDeliveryMethod.ReliableOrdered);
+
+						uint rv = m_reliableOrderedNr[r];
+						m_reliableOrderedNr[r]++;
+
+						om.Write(rv);
+
+						Client.SendMessage(om, NetDeliveryMethod.ReliableOrdered, r);
 						m_nextSendReliableOrdered = now + (NetRandom.Instance.NextFloat() * 0.01f) + 0.005f;
 					}
 
 					if (now > m_nextSendSequenced)
 					{
 						NetOutgoingMessage om = Client.CreateMessage();
-						om.Write((uint)m_sequencedNr);
-						m_sequencedNr++;
-						Client.SendMessage(om, NetDeliveryMethod.UnreliableSequenced);
+
+						uint v = m_sequencedNr[r];
+						m_sequencedNr[r]++;
+						om.Write(v);
+						Client.SendMessage(om, NetDeliveryMethod.UnreliableSequenced, r);
 						m_nextSendSequenced = now + (NetRandom.Instance.NextFloat() * 0.01f) + 0.005f;
 					}
 
@@ -119,8 +126,8 @@ namespace DurableClient
 				bdr.Append(Client.Statistics.ToString());
 				bdr.Append(conn.Statistics.ToString());
 
-				bdr.AppendLine("SENT Reliable ordered: " + m_reliableOrderedNr);
-				bdr.AppendLine("SENT Sequenced: " + m_sequencedNr);
+				bdr.AppendLine("SENT Reliable ordered: " + m_reliableOrderedNr[0] + ", " + m_reliableOrderedNr[1] + ", " + m_reliableOrderedNr[2]);
+				bdr.AppendLine("SENT Sequenced: " + m_sequencedNr[0] + ", " + m_sequencedNr[1] + ", " + m_sequencedNr[2]);
 				MainForm.label1.Text = bdr.ToString();
 			}
 		}

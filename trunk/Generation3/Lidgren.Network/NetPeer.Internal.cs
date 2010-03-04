@@ -312,8 +312,9 @@ namespace Lidgren.Network
 				while ((bytesReceived - ptr) >= NetPeer.kMinPacketHeaderSize)
 				{
 					// get NetMessageType
-
-					msgType = (NetMessageType)m_receiveBuffer[ptr++];
+					byte top = m_receiveBuffer[ptr++];
+					bool isFragment = (top & 128) == 128;
+					msgType = (NetMessageType)(top & 127);
 
 					// get NetmessageLibraryType?
 					if (msgType == NetMessageType.Library)
@@ -359,10 +360,19 @@ namespace Lidgren.Network
 					else
 					{
 						if (sender == null)
-							HandleUnconnectedUserMessage(ptr, payloadLength, ipsender);
+						{
+							if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData))
+								HandleUnconnectedUserMessage(ptr, payloadLength, ipsender);
+						}
 						else
-							sender.HandleUserMessage(now, msgType, sequenceNumber, ptr, payloadLength);
+						{
+							if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.Data))
+								sender.HandleUserMessage(now, msgType, isFragment, sequenceNumber, ptr, payloadLength);
+						}
 					}
+
+					if (isFragment)
+						ptr += NetConstants.FragmentHeaderSize;
 
 					ptr += payloadLength;
 				}
@@ -467,12 +477,9 @@ namespace Lidgren.Network
 		{
 			VerifyNetworkThread();
 
-			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData))
-			{
-				NetIncomingMessage ium = CreateIncomingMessage(NetIncomingMessageType.UnconnectedData, m_receiveBuffer, ptr, payloadLength);
-				ium.m_senderEndpoint = senderEndpoint;
-				ReleaseMessage(ium);
-			}
+			NetIncomingMessage ium = CreateIncomingMessage(NetIncomingMessageType.UnconnectedData, m_receiveBuffer, ptr, payloadLength);
+			ium.m_senderEndpoint = senderEndpoint;
+			ReleaseMessage(ium);
 		}
 
 		private void AcceptConnection(NetConnection conn)

@@ -70,7 +70,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Sends message to server
 		/// </summary>
-		public void SendMessage(NetOutgoingMessage msg, NetDeliveryMethod channel)
+		public void SendMessage(NetOutgoingMessage msg, NetDeliveryMethod method)
 		{
 			NetConnection serverConnection = ServerConnection;
 			if (serverConnection == null)
@@ -78,7 +78,21 @@ namespace Lidgren.Network
 				LogError("Cannot send message, no server connection!");
 				return;
 			}
-			serverConnection.SendMessage(msg, channel);
+			serverConnection.SendMessage(msg, method);
+		}
+
+		/// <summary>
+		/// Sends message to server
+		/// </summary>
+		public void SendMessage(NetOutgoingMessage msg, NetDeliveryMethod method, int sequenceChannel)
+		{
+			NetConnection serverConnection = ServerConnection;
+			if (serverConnection == null)
+			{
+				LogError("Cannot send message, no server connection!");
+				return;
+			}
+			serverConnection.SendMessage(msg, method, sequenceChannel);
 		}
 	}
 }
