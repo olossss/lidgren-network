@@ -244,12 +244,12 @@ namespace Lidgren.Network
 		/// </summary>
 		public int MaximumConnections
 		{
-			get { return m_maximumTransmissionUnit; }
+			get { return m_maximumConnections; }
 			set
 			{
 				if (m_isLocked)
 					throw new NetException(c_isLockedMessage);
-				m_maximumTransmissionUnit = value;
+				m_maximumConnections = value;
 			}
 		}
 

@@ -210,7 +210,7 @@ namespace Lidgren.Network
 					break;
 				default:
 					// huh?
-					throw new NotImplementedException();
+					throw new NotImplementedException("Unhandled library type: " + ltp);
 			}
 		}
 	}
