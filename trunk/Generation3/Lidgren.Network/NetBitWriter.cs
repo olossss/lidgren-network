@@ -237,7 +237,7 @@ namespace Lidgren.Network
 		[CLSCompliant(false)]
 		public static ulong ReadUInt64(byte[] fromBuffer, int numberOfBits, int readBitOffset)
 		{
-			throw new NotImplementedException();
+			throw new NotImplementedException("ReadUInt64 not implemented yet");
 
 #if BIGENDIAN
 			// reorder bytes

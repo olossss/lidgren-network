@@ -350,7 +350,7 @@ namespace Lidgren.Network
 				int fragmentTotalCount = buffer[ptr++] | (buffer[ptr++] << 8);
 				int fragmentNr = buffer[ptr++] | (buffer[ptr++] << 8);
 
-				throw new NotImplementedException();
+				throw new NotImplementedException("Fragmentation still unfinished");
 			}
 
 			// release to application
@@ -398,7 +398,7 @@ namespace Lidgren.Network
 					HandleIncomingAcks(ptr, payloadLength);
 					break;
 				default:
-					throw new NotImplementedException();
+					throw new NotImplementedException("Unhandled library type: " + libType);
 			}
 
 			return;
