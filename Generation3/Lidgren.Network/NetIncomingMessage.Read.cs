@@ -449,11 +449,19 @@ namespace Lidgren.Network
 		/// </summary>
 		public void ReadAllFields(object target)
 		{
+			ReadAllFields(target, BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		}
+
+		/// <summary>
+		/// Reads all fields with the specified binding of the object in declaration order using reflection
+		/// </summary>
+		public void ReadAllFields(object target, BindingFlags flags)
+		{
 			if (target == null)
 				return;
 			Type tp = target.GetType();
 
-			FieldInfo[] fields = tp.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+			FieldInfo[] fields = tp.GetFields(flags);
 			foreach (FieldInfo fi in fields)
 			{
 				object value;
@@ -467,6 +475,42 @@ namespace Lidgren.Network
 
 					// set the value
 					fi.SetValue(target, value);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Reads all public and private declared instance fields of the object in declaration order using reflection
+		/// </summary>
+		public void ReadAllProperties(object target)
+		{
+			ReadAllProperties(target, BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		}
+
+		/// <summary>
+		/// Reads all fields with the specified binding of the object in declaration order using reflection
+		/// </summary>
+		public void ReadAllProperties(object target, BindingFlags flags)
+		{
+			if (target == null)
+				return;
+			Type tp = target.GetType();
+
+			PropertyInfo[] fields = tp.GetProperties(flags);
+			foreach (PropertyInfo fi in fields)
+			{
+				object value;
+
+				// find read method
+				MethodInfo readMethod;
+				if (s_readMethods.TryGetValue(fi.PropertyType, out readMethod))
+				{
+					// read value
+					value = readMethod.Invoke(this, null);
+
+					// set the value
+					MethodInfo setMethod = fi.GetSetMethod((flags & BindingFlags.NonPublic) == BindingFlags.NonPublic);
+					setMethod.Invoke(target, new object[] { value });
 				}
 			}
 		}
