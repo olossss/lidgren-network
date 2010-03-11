@@ -20,6 +20,8 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 using System;
 using System.Diagnostics;
 using System.Net;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace Lidgren.Network
 {
@@ -27,7 +29,29 @@ namespace Lidgren.Network
 	{
 		private const string c_readOverflowError = "Trying to read past the buffer size - likely caused by mismatching Write/Reads, different size or order.";
 
+		private static Dictionary<Type, MethodInfo> s_readMethods;
+
 		private int m_readPosition;
+
+		static NetIncomingMessage()
+		{
+			Type[] integralTypes = typeof(Byte).Assembly.GetTypes();
+
+			s_readMethods = new Dictionary<Type, MethodInfo>();
+			MethodInfo[] methods = typeof(NetIncomingMessage).GetMethods(BindingFlags.Instance | BindingFlags.Public);
+			foreach (MethodInfo mi in methods)
+			{
+				if (mi.GetParameters().Length == 0 && mi.Name.StartsWith("Read"))
+				{
+					string n = mi.Name.Substring(4);
+					foreach (Type it in integralTypes)
+					{
+						if (it.Name == n)
+							s_readMethods[it] = mi;
+					}
+				}
+			}
+		}
 
 		//
 		// 1 bit
@@ -419,5 +443,33 @@ namespace Lidgren.Network
 		{
 			m_readPosition += numberOfBits;
 		}
+
+		/// <summary>
+		/// Reads all public and private declared instance fields of the object in declaration order using reflection
+		/// </summary>
+		public void ReadAllFields(object target)
+		{
+			if (target == null)
+				return;
+			Type tp = target.GetType();
+
+			FieldInfo[] fields = tp.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+			foreach (FieldInfo fi in fields)
+			{
+				object value;
+
+				// find read method
+				MethodInfo readMethod;
+				if (s_readMethods.TryGetValue(fi.FieldType, out readMethod))
+				{
+					// read value
+					value = readMethod.Invoke(this, null);
+
+					// set the value
+					fi.SetValue(target, value);
+				}
+			}
+		}
 	}
 }
+

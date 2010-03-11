@@ -57,7 +57,8 @@ namespace Lidgren.Network
 		internal void ReleaseMessage(NetIncomingMessage msg)
 		{
 			m_releasedIncomingMessages.Enqueue(msg);
-			m_messageReceivedEvent.Set();
+			if (m_messageReceivedEvent != null)
+				m_messageReceivedEvent.Set();
 		}
 
 		[System.Diagnostics.Conditional("DEBUG")]
