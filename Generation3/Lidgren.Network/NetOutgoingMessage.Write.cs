@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Diagnostics;
 using System.Text;
+using System.Reflection;
 
 namespace Lidgren.Network
 {
@@ -10,8 +11,25 @@ namespace Lidgren.Network
 	{
 		private const int c_overAllocateAmount = 4;
 
+		private static Dictionary<Type, MethodInfo> s_writeMethods;
+
 		internal byte[] m_data;
 		internal int m_bitLength;
+
+		static NetOutgoingMessage()
+		{
+			s_writeMethods = new Dictionary<Type, MethodInfo>();
+			MethodInfo[] methods = typeof(NetOutgoingMessage).GetMethods(BindingFlags.Instance | BindingFlags.Public);
+			foreach (MethodInfo mi in methods)
+			{
+				if (mi.Name == "Write")
+				{
+					ParameterInfo[] pis = mi.GetParameters();
+					if (pis.Length == 1)
+						s_writeMethods[pis[0].ParameterType] = mi;
+				}
+			}
+		}
 
 		/// <summary>
 		/// Returns the internal data buffer, don't modify
@@ -513,6 +531,27 @@ namespace Lidgren.Network
 		{
 			m_bitLength += numberOfBits;
 			EnsureBufferSize(m_bitLength);
+		}
+
+		/// <summary>
+		/// Writes all public and private declared instance fields of the object in declaration order using reflection
+		/// </summary>
+		public void WriteAllFields(object ob)
+		{
+			if (ob == null)
+				return;
+			Type tp = ob.GetType();
+
+			FieldInfo[] fields = tp.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+			foreach (FieldInfo fi in fields)
+			{
+				object value = fi.GetValue(ob);
+
+				// find the appropriate Write method
+				MethodInfo writeMethod;
+				if (s_writeMethods.TryGetValue(value.GetType(), out writeMethod))
+					writeMethod.Invoke(this, new object[] { value });
+			}
 		}
 	}
 }

@@ -8,6 +8,12 @@ using SamplesCommon;
 
 namespace ChatServer
 {
+	public class ChatMessage
+	{
+		public string Sender;
+		public string Text;
+	}
+
 	static class Program
 	{
 		public static Form1 MainForm;
@@ -65,13 +71,15 @@ namespace ChatServer
 
 						case NetIncomingMessageType.Data:
 
+							// read chat message
+							ChatMessage cm = new ChatMessage();
+							msg.ReadAllFields(cm);
+
 							// Forward all data to all clients (including sender for debugging purposes)
-							string text = msg.ReadString();
-
 							NetOutgoingMessage om = Server.CreateMessage();
-							om.Write(text);
+							om.WriteAllFields(cm);
 
-							Display("Forwarding text from " + msg.SenderConnection + " to all clients: " + text);
+							Display("Forwarding text from " + cm.Sender + " to all clients: " + cm.Text);
 							Server.SendMessage(om, Server.Connections, NetDeliveryMethod.ReliableUnordered, 0);
 
 							break;

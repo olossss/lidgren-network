@@ -12,4 +12,5 @@ Improvements over last version of library:
 * All public members of NetPeer/NetConnection completely thread safe
 * Larger number of delivery channels
 * More exact roundtrip measurement
+* Method serialize entire object via reflection
 

@@ -8,6 +8,12 @@ using SamplesCommon;
 
 namespace ChatClient
 {
+	public class ChatMessage
+	{
+		public string Sender;
+		public string Text;
+	}
+
 	static class Program
 	{
 		public static Form1 MainForm;
@@ -48,8 +54,12 @@ namespace ChatClient
 			}
 
 			// send chat message
+			ChatMessage cm = new ChatMessage();
+			cm.Sender = Client.UniqueIdentifier.ToString();
+			cm.Text = input;
+
 			NetOutgoingMessage om = Client.CreateMessage();
-			om.Write(input);
+			om.WriteAllFields(cm);
 			Client.SendMessage(om, NetDeliveryMethod.ReliableOrdered);
 		}
 
@@ -80,8 +90,10 @@ namespace ChatClient
 
 						case NetIncomingMessageType.Data:
 
-							string text = msg.ReadString();
-							Display("Received: " + text);
+							ChatMessage cm = new ChatMessage();
+							msg.ReadAllFields(cm);
+
+							Display("Received from " + cm.Sender + ": " + cm.Text);
 							break;
 					}
 				}
