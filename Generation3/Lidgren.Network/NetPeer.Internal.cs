@@ -496,6 +496,7 @@ namespace Lidgren.Network
 			NetOutgoingMessage reply = CreateMessage(2 + (conn.m_localHailData == null ? 0 : conn.m_localHailData.Length));
 			reply.m_type = NetMessageType.Library;
 			reply.m_libType = NetMessageLibraryType.ConnectResponse;
+			reply.Write((float)NetTime.Now);
 			if (conn.m_localHailData != null)
 				reply.Write(conn.m_localHailData);
 

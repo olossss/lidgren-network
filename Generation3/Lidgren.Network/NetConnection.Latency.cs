@@ -27,7 +27,6 @@ namespace Lidgren.Network
 		//
 		// Connection keepalive and latency calculation
 		//
-		private bool m_isPingInitialized;
 		internal float m_averageRoundtripTime = 0.05f;
 		private byte m_lastSentPingNumber;
 		private double m_lastPingSendTime;
@@ -35,22 +34,22 @@ namespace Lidgren.Network
 		private double m_nextKeepAlive;
 		private double m_lastSendRespondedTo;
 
+		// remote + diff = local
+		// diff = local - remote
+		// local - diff = remote
+		internal double m_remoteToLocalNetTime = double.MinValue;
+
 		public float AverageRoundtripTime { get { return m_averageRoundtripTime; } }
 
-		internal void UpdateLatency(float rtt)
+		internal void InitializeLatency(float rtt, float remoteNetTime)
 		{
-			if (!m_isPingInitialized)
-			{
-				m_isPingInitialized = true;
-				m_averageRoundtripTime = Math.Max(0.005f, rtt - 0.005f); // TODO: find out why initial ping always overshoots
-				m_nextPing = NetTime.Now + m_peerConfiguration.m_pingFrequency / 2.0f;
-				m_owner.LogDebug("Initialized average roundtrip time to: " + NetTime.ToReadable(m_averageRoundtripTime));
-			}
-			else
-			{
-				m_averageRoundtripTime = (m_averageRoundtripTime * 0.7f) + (rtt * 0.3f);
-				m_owner.LogVerbose("Found rtt: " + NetTime.ToReadable(rtt) + ", new average: " + NetTime.ToReadable(m_averageRoundtripTime));
-			}
+			m_averageRoundtripTime = Math.Max(0.005f, rtt - 0.005f); // TODO: find out why initial ping always overshoots
+			m_nextPing = NetTime.Now + m_peerConfiguration.m_pingFrequency / 2.0f;
+
+			double currentRemoteNetTime = remoteNetTime - (rtt * 0.5);
+			m_remoteToLocalNetTime = (float)(NetTime.Now - currentRemoteNetTime);
+
+			m_owner.LogDebug("Initialized average roundtrip time to: " + NetTime.ToReadable(m_averageRoundtripTime) + " remote time diff to " + NetTime.ToReadable(m_remoteToLocalNetTime));
 		}
 
 		internal void HandleIncomingPing(byte pingNumber)
@@ -60,12 +59,13 @@ namespace Lidgren.Network
 			pong.m_type = NetMessageType.Library;
 			pong.m_libType = NetMessageLibraryType.Pong;
 			pong.Write((byte)pingNumber);
+			pong.Write(NetTime.Now);
 
 			// send immediately
 			m_owner.SendImmediately(this, pong);
 		}
 
-		internal void HandleIncomingPong(byte pingNumber)
+		internal void HandleIncomingPong(double receiveNow, byte pingNumber, double remoteNetTime)
 		{
 			// verify it´s the correct ping number
 			if (pingNumber != m_lastSentPingNumber)
@@ -73,7 +73,7 @@ namespace Lidgren.Network
 				m_owner.LogDebug("Received wrong pong number; got " + pingNumber + " expected " + m_lastSentPingNumber);
 				return;
 			}
-
+			
 			double now = NetTime.Now; // need exact number
 
 			m_lastHeardFrom = now;
@@ -81,7 +81,19 @@ namespace Lidgren.Network
 
 			m_nextKeepAlive = now + m_peerConfiguration.m_keepAliveDelay;
 
-			UpdateLatency((float)(now - m_lastPingSendTime));
+			double rtt = now - m_lastPingSendTime;
+
+			// update clock sync
+			double currentRemoteNetTime = remoteNetTime - (rtt * 0.5);
+			double foundDiffRemoteToLocal = receiveNow - currentRemoteNetTime;
+
+			if (m_remoteToLocalNetTime == double.MinValue)
+				m_remoteToLocalNetTime = foundDiffRemoteToLocal;
+			else
+				m_remoteToLocalNetTime = ((m_remoteToLocalNetTime + foundDiffRemoteToLocal) * 0.5);
+
+			m_averageRoundtripTime = (m_averageRoundtripTime * 0.7f) + (float)(rtt * 0.3f);
+			m_owner.LogDebug("Found rtt: " + NetTime.ToReadable(rtt) + ", new average: " + NetTime.ToReadable(m_averageRoundtripTime) + " new time diff: " + NetTime.ToReadable(m_remoteToLocalNetTime));
 		}
 
 		internal void KeepAliveHeartbeat(double now)

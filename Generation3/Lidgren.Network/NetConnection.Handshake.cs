@@ -170,8 +170,12 @@ namespace Lidgren.Network
 					{
 						// get remote hail data
 						m_owner.m_statistics.m_bytesAllocated += payloadBytesLength;
-						m_remoteHailData = new byte[payloadBytesLength];
-						Buffer.BlockCopy(m_owner.m_receiveBuffer, ptr, m_remoteHailData, 0, payloadBytesLength);
+
+						float remoteNetTime = BitConverter.ToSingle(m_owner.m_receiveBuffer, ptr);
+						ptr += 4;
+
+						m_remoteHailData = new byte[payloadBytesLength - 4];
+						Buffer.BlockCopy(m_owner.m_receiveBuffer, ptr, m_remoteHailData, 0, payloadBytesLength - 4);
 
 						// excellent, handshake making progress; send connectionestablished
 						SetStatus(NetConnectionStatus.Connected, "Connected");
@@ -180,11 +184,12 @@ namespace Lidgren.Network
 						NetOutgoingMessage ce = m_owner.CreateMessage(1);
 						ce.m_type = NetMessageType.Library;
 						ce.m_libType = NetMessageLibraryType.ConnectionEstablished;
+						ce.Write((float)NetTime.Now);
 
 						m_owner.SendImmediately(this, ce);
 
 						// setup initial ping estimation
-						UpdateLatency((float)(NetTime.Now - m_connectInitationTime));
+						InitializeLatency((float)(NetTime.Now - m_connectInitationTime), remoteNetTime);
 						return;
 					}
 
@@ -193,8 +198,10 @@ namespace Lidgren.Network
 				case NetMessageLibraryType.ConnectionEstablished:
 					if (!m_connectionInitiator && m_status == NetConnectionStatus.Connecting)
 					{
+						float remoteNetTime = BitConverter.ToSingle(m_owner.m_receiveBuffer, ptr);
+
 						// handshake done
-						UpdateLatency((float)(NetTime.Now - m_connectInitationTime));
+						InitializeLatency((float)(NetTime.Now - m_connectInitationTime), remoteNetTime);
 
 						SetStatus(NetConnectionStatus.Connected, "Connected");
 						return;

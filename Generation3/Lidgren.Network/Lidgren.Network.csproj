@@ -82,6 +82,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Documentation\ChangedFromV2.txt" />
     <Content Include="Documentation\PacketLayout.txt" />
     <Content Include="Documentation\TODO.txt" />
   </ItemGroup>
