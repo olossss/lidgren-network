@@ -43,12 +43,20 @@ namespace Lidgren.Network
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
 
+		/// <summary>
+		/// Gets or sets the object containing data about the connection
+		/// </summary>
 		public object Tag { get; set; }
 
 		/// <summary>
-		/// Statistics for this particular connection
+		/// Statistics for the connection
 		/// </summary>
 		public NetConnectionStatistics Statistics { get { return m_statistics; } }
+
+		/// <summary>
+		/// Gets the remote endpoint for the connection
+		/// </summary>
+		public IPEndPoint RemoteEndpoint { get { return m_remoteEndpoint; } }
 
 		internal NetConnection(NetPeer owner, IPEndPoint remoteEndpoint)
 		{
@@ -389,10 +397,16 @@ namespace Lidgren.Network
 						m_owner.LogWarning("Received malformed ping");
 					break;
 				case NetMessageLibraryType.Pong:
-					if (payloadLength > 0)
-						HandleIncomingPong(m_owner.m_receiveBuffer[ptr]);
+					if (payloadLength == 9)
+					{
+						byte pingNr = m_owner.m_receiveBuffer[ptr++];
+						double remoteNetTime = BitConverter.ToDouble(m_owner.m_receiveBuffer, ptr);
+						HandleIncomingPong(now, pingNr, remoteNetTime);
+					}
 					else
+					{
 						m_owner.LogWarning("Received malformed pong");
+					}
 					break;
 				case NetMessageLibraryType.Acknowledge:
 					HandleIncomingAcks(ptr, payloadLength);
