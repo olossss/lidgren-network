@@ -10,8 +10,8 @@ namespace ChatServer
 {
 	public class ChatMessage
 	{
-		public string Sender;
-		public string Text;
+		public string Sender { get; set; }
+		public string Text { get; set; }
 	}
 
 	static class Program
@@ -73,11 +73,11 @@ namespace ChatServer
 
 							// read chat message
 							ChatMessage cm = new ChatMessage();
-							msg.ReadAllFields(cm);
+							msg.ReadAllProperties(cm);
 
 							// Forward all data to all clients (including sender for debugging purposes)
 							NetOutgoingMessage om = Server.CreateMessage();
-							om.WriteAllFields(cm);
+							om.WriteAllProperties(cm, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
 							Display("Forwarding text from " + cm.Sender + " to all clients: " + cm.Text);
 							Server.SendMessage(om, Server.Connections, NetDeliveryMethod.ReliableUnordered, 0);

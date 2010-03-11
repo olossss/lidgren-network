@@ -538,18 +538,56 @@ namespace Lidgren.Network
 		/// </summary>
 		public void WriteAllFields(object ob)
 		{
+			WriteAllFields(ob, BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		}
+
+		/// <summary>
+		/// Writes all fields with specified binding in declaration order using reflection
+		/// </summary>
+		public void WriteAllFields(object ob, BindingFlags flags)
+		{
 			if (ob == null)
 				return;
 			Type tp = ob.GetType();
 
-			FieldInfo[] fields = tp.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+			FieldInfo[] fields = tp.GetFields(flags);
 			foreach (FieldInfo fi in fields)
 			{
 				object value = fi.GetValue(ob);
 
 				// find the appropriate Write method
 				MethodInfo writeMethod;
-				if (s_writeMethods.TryGetValue(value.GetType(), out writeMethod))
+				if (s_writeMethods.TryGetValue(fi.FieldType, out writeMethod))
+					writeMethod.Invoke(this, new object[] { value });
+			}
+		}
+
+		/// <summary>
+		/// Writes all public and private declared instance properties of the object in declaration order using reflection
+		/// </summary>
+		public void WriteAllProperties(object ob)
+		{
+			WriteAllProperties(ob, BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+		}
+
+		/// <summary>
+		/// Writes all properties with specified binding in declaration order using reflection
+		/// </summary>
+		public void WriteAllProperties(object ob, BindingFlags flags)
+		{
+			if (ob == null)
+				return;
+			Type tp = ob.GetType();
+
+			PropertyInfo[] fields = tp.GetProperties(flags);
+			foreach (PropertyInfo fi in fields)
+			{
+				MethodInfo getMethod = fi.GetGetMethod((flags & BindingFlags.NonPublic) == BindingFlags.NonPublic);
+				object value = getMethod.Invoke(ob, null);
+				
+				// find the appropriate Write method
+				MethodInfo writeMethod;
+				if (s_writeMethods.TryGetValue(fi.PropertyType, out writeMethod))
 					writeMethod.Invoke(this, new object[] { value });
 			}
 		}
