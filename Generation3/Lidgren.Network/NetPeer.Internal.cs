@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Net.NetworkInformation;
 
 namespace Lidgren.Network
 {
@@ -119,7 +120,7 @@ namespace Lidgren.Network
 
 					m_listenPort = boundEp.Port;
 
-					ulong one = (ulong)NetUtility.GetMacAddress().GetHashCode();
+					ulong one = (pa == null ? 0 : (ulong)pa.GetHashCode());
 					ulong two = (ulong)((ulong)boundEp.GetHashCode() << 32);
 					m_uniqueIdentifier = (long)(one | two);
 

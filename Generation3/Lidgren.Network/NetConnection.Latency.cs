@@ -93,7 +93,7 @@ namespace Lidgren.Network
 				m_remoteToLocalNetTime = ((m_remoteToLocalNetTime + foundDiffRemoteToLocal) * 0.5);
 
 			m_averageRoundtripTime = (m_averageRoundtripTime * 0.7f) + (float)(rtt * 0.3f);
-			m_owner.LogDebug("Found rtt: " + NetTime.ToReadable(rtt) + ", new average: " + NetTime.ToReadable(m_averageRoundtripTime) + " new time diff: " + NetTime.ToReadable(m_remoteToLocalNetTime));
+			m_owner.LogVerbose("Found rtt: " + NetTime.ToReadable(rtt) + ", new average: " + NetTime.ToReadable(m_averageRoundtripTime) + " new time diff: " + NetTime.ToReadable(m_remoteToLocalNetTime));
 		}
 
 		internal void KeepAliveHeartbeat(double now)

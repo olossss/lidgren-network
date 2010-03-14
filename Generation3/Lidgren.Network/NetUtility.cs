@@ -100,20 +100,23 @@ namespace Lidgren.Network
 			if (nics == null || nics.Length < 1)
 				return null;
 
+			NetworkInterface best = null;
 			foreach (NetworkInterface adapter in nics)
 			{
-				if (adapter.OperationalStatus != OperationalStatus.Up)
-					continue;
 				if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback || adapter.NetworkInterfaceType == NetworkInterfaceType.Unknown)
 					continue;
 				if (!adapter.Supports(NetworkInterfaceComponent.IPv4))
+					continue;
+				if (best == null)
+					best = adapter;
+				if (adapter.OperationalStatus != OperationalStatus.Up)
 					continue;
 
 				// A computer could have several adapters (more than one network card)
 				// here but just return the first one for now...
 				return adapter;
 			}
-			return null;
+			return best;
 		}
 
 		public static PhysicalAddress GetMacAddress()

@@ -29,7 +29,20 @@ namespace Lidgren.Network
 		{
 			get
 			{
-				return (m_connections.Count > 0 ? m_connections[0] : null);
+				NetConnection retval = null;
+				if (m_connections.Count > 0)
+				{
+					try
+					{
+						retval = m_connections[0];
+					}
+					catch
+					{
+						// preempted!
+						return null;
+					}
+				}
+				return retval;
 			}
 		}
 
@@ -45,25 +58,12 @@ namespace Lidgren.Network
 		/// <param name="byeMessage">reason for disconnect</param>
 		public void Disconnect(string byeMessage)
 		{
-			NetConnection serverConnection = null;
-			if (m_connections.Count > 0)
-			{
-				try
-				{
-					serverConnection = m_connections[0];
-				}
-				catch
-				{
-					// preempted!
-				}
-			}
-
+			NetConnection serverConnection = ServerConnection;
 			if (serverConnection == null)
 			{
 				LogWarning("Disconnect requested when not connected!");
 				return;
 			}
-
 			serverConnection.Disconnect(byeMessage);
 		}
 
