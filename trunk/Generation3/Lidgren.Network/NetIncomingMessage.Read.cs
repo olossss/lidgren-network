@@ -33,6 +33,15 @@ namespace Lidgren.Network
 
 		private int m_readPosition;
 
+		/// <summary>
+		/// Gets or sets the read position in the buffer, in bits (not bytes)
+		/// </summary>
+		public int Position
+		{
+			get { return m_readPosition; }
+			set { m_readPosition = value; }
+		}
+
 		static NetIncomingMessage()
 		{
 			Type[] integralTypes = typeof(Byte).Assembly.GetTypes();
