@@ -437,6 +437,9 @@ namespace Lidgren.Network
 		// called by user and network thread
 		internal void EnqueueOutgoingMessage(NetOutgoingMessage msg)
 		{
+			if (m_owner == null)
+				return; // we've been disposed
+
 			int msgLen = msg.LengthBytes;
 			int mtu = m_owner.m_configuration.m_maximumTransmissionUnit;
 
@@ -539,7 +542,7 @@ namespace Lidgren.Network
 
 		public override string ToString()
 		{
-			return "[NetConnection to " + m_remoteEndpoint + "]";
+			return "[NetConnection to " + m_remoteEndpoint + ": " + m_status + "]";
 		}
 	}
 }

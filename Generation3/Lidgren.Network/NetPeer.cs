@@ -184,12 +184,12 @@ namespace Lidgren.Network
 			return conn;
 		}
 
-		public void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetDeliveryMethod deliveryMethod)
+		public bool SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetDeliveryMethod deliveryMethod)
 		{
-			SendMessage(msg, recipient, deliveryMethod, 0);
+			return SendMessage(msg, recipient, deliveryMethod, 0);
 		}
 
-		public void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetDeliveryMethod deliveryMethod, int channel)
+		public bool SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetDeliveryMethod deliveryMethod, int channel)
 		{
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
@@ -197,13 +197,18 @@ namespace Lidgren.Network
 				throw new NetException("Channel must be between 0 and 63");
 			if (channel != 0 && (deliveryMethod == NetDeliveryMethod.Unreliable || deliveryMethod == NetDeliveryMethod.ReliableUnordered))
 				throw new NetException("Channel must be 0 for Unreliable and ReliableUnordered");
+
+			if (m_status != NetPeerStatus.Running)
+				return false;
 
 			msg.m_type = (NetMessageType)((int)deliveryMethod + channel);
 
 			recipient.EnqueueOutgoingMessage(msg);
+
+			return true;
 		}
 
-		public void SendMessage(NetOutgoingMessage msg, IEnumerable<NetConnection> recipients, NetDeliveryMethod deliveryMethod, int channel)
+		public bool SendMessage(NetOutgoingMessage msg, IEnumerable<NetConnection> recipients, NetDeliveryMethod deliveryMethod, int channel)
 		{
 			if (msg.IsSent)
 				throw new NetException("Message has already been sent!");
@@ -211,11 +216,16 @@ namespace Lidgren.Network
 				throw new NetException("Channel must be between 0 and 63");
 			if (channel != 0 && (deliveryMethod == NetDeliveryMethod.Unreliable || deliveryMethod == NetDeliveryMethod.ReliableUnordered))
 				throw new NetException("Channel must be 0 for Unreliable and ReliableUnordered");
+
+			if (m_status != NetPeerStatus.Running)
+				return false;
 
 			msg.m_type = (NetMessageType)((int)deliveryMethod + channel);
 
 			foreach (NetConnection conn in recipients)
 				conn.EnqueueOutgoingMessage(msg);
+
+			return true;
 		}
 
 		public void SendUnconnectedMessage(NetOutgoingMessage msg, string host, int port)
@@ -261,6 +271,11 @@ namespace Lidgren.Network
 			LogDebug("Shutdown requested");
 			m_shutdownReason = bye;
 			m_status = NetPeerStatus.ShutdownRequested;
+		}
+
+		public override string ToString()
+		{
+			return "[NetPeer bound to " + m_socket.LocalEndPoint + " " + ConnectionsCount + " connections]";
 		}
 	}
 }
