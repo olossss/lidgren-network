@@ -94,5 +94,11 @@ namespace Lidgren.Network
 			}
 			serverConnection.SendMessage(msg, method, sequenceChannel);
 		}
+
+		public override string ToString()
+		{
+			return "[NetClient " + ServerConnection + "]";
+		}
+
 	}
 }

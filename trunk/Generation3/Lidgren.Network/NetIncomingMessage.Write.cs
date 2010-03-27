@@ -72,7 +72,7 @@ namespace Lidgren.Network
 
 		internal void Write(byte source, int numberOfBits)
 		{
-			Debug.Assert((numberOfBits > 0 && numberOfBits <= 8), "Write(byte, numberOfBits) can only write between 1 and 8 bits");
+			NetException.Assert((numberOfBits > 0 && numberOfBits <= 8), "Write(byte, numberOfBits) can only write between 1 and 8 bits");
 			InternalEnsureBufferSize(m_bitLength + numberOfBits);
 			NetBitWriter.WriteByte(source, numberOfBits, m_data, m_bitLength);
 			m_bitLength += numberOfBits;
@@ -110,7 +110,7 @@ namespace Lidgren.Network
 
 		internal void Write(UInt16 source, int numberOfBits)
 		{
-			Debug.Assert((numberOfBits > 0 && numberOfBits <= 16), "Write(ushort, numberOfBits) can only write between 1 and 16 bits");
+			NetException.Assert((numberOfBits > 0 && numberOfBits <= 16), "Write(ushort, numberOfBits) can only write between 1 and 16 bits");
 			InternalEnsureBufferSize(m_bitLength + numberOfBits);
 			NetBitWriter.WriteUInt32((uint)source, numberOfBits, m_data, m_bitLength);
 			m_bitLength += numberOfBits;
@@ -185,7 +185,7 @@ namespace Lidgren.Network
 
 		internal void Write(UInt32 source, int numberOfBits)
 		{
-			Debug.Assert((numberOfBits > 0 && numberOfBits <= 32), "Write(uint, numberOfBits) can only write between 1 and 32 bits");
+			NetException.Assert((numberOfBits > 0 && numberOfBits <= 32), "Write(uint, numberOfBits) can only write between 1 and 32 bits");
 			InternalEnsureBufferSize(m_bitLength + numberOfBits);
 			NetBitWriter.WriteUInt32(source, numberOfBits, m_data, m_bitLength);
 			m_bitLength += numberOfBits;
@@ -193,7 +193,7 @@ namespace Lidgren.Network
 
 		internal void Write(Int32 source, int numberOfBits)
 		{
-			Debug.Assert((numberOfBits > 0 && numberOfBits <= 32), "Write(int, numberOfBits) can only write between 1 and 32 bits");
+			NetException.Assert((numberOfBits > 0 && numberOfBits <= 32), "Write(int, numberOfBits) can only write between 1 and 32 bits");
 			InternalEnsureBufferSize(m_bitLength + numberOfBits);
 
 			if (numberOfBits != 32)
@@ -373,7 +373,7 @@ namespace Lidgren.Network
 		/// </summary>
 		internal void WriteSignedSingle(float value, int numberOfBits)
 		{
-			Debug.Assert(((value >= -1.0) && (value <= 1.0)), " WriteSignedSingle() must be passed a float in the range -1 to 1; val is " + value);
+			NetException.Assert(((value >= -1.0) && (value <= 1.0)), " WriteSignedSingle() must be passed a float in the range -1 to 1; val is " + value);
 
 			float unit = (value + 1.0f) * 0.5f;
 			int maxVal = (1 << numberOfBits) - 1;
@@ -387,7 +387,7 @@ namespace Lidgren.Network
 		/// </summary>
 		internal void WriteUnitSingle(float value, int numberOfBits)
 		{
-			Debug.Assert(((value >= 0.0) && (value <= 1.0)), " WriteUnitSingle() must be passed a float in the range 0 to 1; val is " + value);
+			NetException.Assert(((value >= 0.0) && (value <= 1.0)), " WriteUnitSingle() must be passed a float in the range 0 to 1; val is " + value);
 
 			int maxValue = (1 << numberOfBits) - 1;
 			uint writeVal = (uint)(value * (float)maxValue);
@@ -400,7 +400,7 @@ namespace Lidgren.Network
 		/// </summary>
 		internal void WriteRangedSingle(float value, float min, float max, int numberOfBits)
 		{
-			Debug.Assert(((value >= min) && (value <= max)), " WriteRangedSingle() must be passed a float in the range MIN to MAX; val is " + value);
+			NetException.Assert(((value >= min) && (value <= max)), " WriteRangedSingle() must be passed a float in the range MIN to MAX; val is " + value);
 
 			float range = max - min;
 			float unit = ((value - min) / range);
@@ -414,7 +414,7 @@ namespace Lidgren.Network
 		/// </summary>
 		internal int WriteRangedInteger(int min, int max, int value)
 		{
-			Debug.Assert(value >= min && value <= max, "Value not within min/max range!");
+			NetException.Assert(value >= min && value <= max, "Value not within min/max range!");
 
 			uint range = (uint)(max - min);
 			int numBits = NetUtility.BitsToHoldUInt(range);
