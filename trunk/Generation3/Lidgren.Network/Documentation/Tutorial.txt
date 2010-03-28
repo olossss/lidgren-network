@@ -1,0 +1,64 @@
+﻿
+Lidgren network library is all about messages. There are basically two types of messages:
+
+* Library messages telling you things like a peer has connected or error messages when unexpected things happen.
+* Data messages which is data sent from a remote (connected or unconnected) peer.
+
+The base class for establishing connections, receiving and sending message are the NetPeer class. Using it you can make a peer-to-peer network, but if you are creating a server/client topology there are special classes called NetServer and NetClient. They inherit NetPeer but sets some defaults and includes some helper methods/properties.
+
+Here's how to set up a NetServer:
+
+//
+// First create a configuration. It has lots of properties you can change, but the default values should be pretty good for most applications.
+// The string you provide here (MyExampleName) is an identifier to distinquish it from other applications using the lidgren library. Just make
+// sure you use the same string in both server and client - or you will be unable to communicate between them.
+//
+NetPeerConfiguration config = new NetPeerConfiguration("MyExampleName");
+
+//
+// For a server, you want to set the port to listen on, so you know what port number to connect to as a client.
+//
+config.Port = 14242;
+
+//
+// Finally we create the server, using the configuration.
+//
+Server server = new NetServer(config);
+
+//
+// We also need to Start the server - this binds to the socket and starts listening for connections. This also locks down certain settings
+// in the configuration that cannot be changed after the server is started.
+//
+server.Start();
+
+Ok, now we've set up and started the server. It is now capable of receiving connections. Now we want to start sending and receiving messages from clients that connect. Lets begin by writing some code to receive messages:
+
+NetIncomingMessage msg = server.ReadMessage();
+
+Easy, huh? The ReadMessage() method can also return NULL; in which case there are no more messages to be read. There's also a method called WaitMessage() which takes a timeout and blocks until either a message is available, or the timeout is hit. Best practice is to make a loop to read all messages available before continuing the game loop, like this:
+
+while((NetIncomingMessage msg = server.ReadMessage()) != null)
+{
+	// handle this message
+} 
+
+So, we've received a message and want to examine it. The first thing to consider is the type of message; it can be retrieved using the property "MessageType" - a useful construct is to switch on the type right after reading it:
+
+while((NetIncomingMessage msg = server.ReadMessage()) != null)
+{
+	switch (msg.MessageType)
+	{
+		case NetIncomingMessageType.VerboseDebugMessage:
+		case NetIncomingMessageType.DebugMessage:
+		case NetIncomingMessageType.ErrorMessage:
+		case NetIncomingMessageType.WarningMessage:
+			Console.WriteLine(msg.ReadString());
+			break;
+		default:
+			Console.WriteLine("We don't yet know how to handle message of type " + msg.MessageType);
+			break;
+	}
+}
+
+... this switch will catch the types VerboseDebugMessage, DebugMessage, ErrorMessage and WarningMessage. All those types contains a single string as data, which we read using the ReadString() method. Reading data will increment the internal message pointer so you can read subsequent data using the Read*() methods.
+

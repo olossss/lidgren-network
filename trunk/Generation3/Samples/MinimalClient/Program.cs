@@ -19,7 +19,7 @@ namespace MinimalClient
 
 			while (!Console.KeyAvailable)
 			{
-				NetIncomingMessage msg = client.ReadMessage();
+				NetIncomingMessage msg = client.WaitMessage(100);
 				if (msg != null)
 				{
 					switch (msg.MessageType)

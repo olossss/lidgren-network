@@ -85,6 +85,7 @@
     <Content Include="Documentation\ChangedFromV2.txt" />
     <Content Include="Documentation\PacketLayout.txt" />
     <Content Include="Documentation\TODO.txt" />
+    <Content Include="Documentation\Tutorial.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

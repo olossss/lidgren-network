@@ -48,7 +48,7 @@ namespace ChatServer
 		{
 			while (NativeMethods.AppStillIdle)
 			{
-				NetIncomingMessage msg = Server.ReadMessage();
+				NetIncomingMessage msg = Server.WaitMessage(100);
 				if (msg != null)
 				{
 					switch (msg.MessageType)
@@ -85,8 +85,6 @@ namespace ChatServer
 							break;
 					}
 				}
-
-				Thread.Sleep(1);
 			}
 		}
 	}

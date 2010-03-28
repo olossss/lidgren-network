@@ -141,6 +141,12 @@ namespace Lidgren.Network
 			return m_releasedIncomingMessages.TryDequeue();
 		}
 
+		public NetIncomingMessage WaitMessage(int maxMillis)
+		{
+			m_messageReceivedEvent.WaitOne(maxMillis);
+			return m_releasedIncomingMessages.TryDequeue();
+		}
+
 		/// <summary>
 		/// Create a connection to a remote endpoint
 		/// </summary>

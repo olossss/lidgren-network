@@ -18,7 +18,7 @@ namespace MinimalServer
 
 			while (!Console.KeyAvailable)
 			{
-				NetIncomingMessage msg = server.ReadMessage();
+				NetIncomingMessage msg = server.WaitMessage(100);
 				if (msg != null)
 				{
 					switch(msg.MessageType)

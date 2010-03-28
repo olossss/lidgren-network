@@ -44,7 +44,7 @@ namespace ImageServer
 			while (NativeMethods.AppStillIdle)
 			{
 				// read any pending messages
-				while ((inc = Server.ReadMessage()) != null)
+				while ((inc = Server.WaitMessage(100)) != null)
 				{
 					switch (inc.MessageType)
 					{
@@ -108,7 +108,7 @@ namespace ImageServer
 					// recycle message to avoid garbage
 					//Server.Recycle(inc);
 				}
-				System.Threading.Thread.Sleep(1);
+				//System.Threading.Thread.Sleep(1);
 			}
 		}
 
