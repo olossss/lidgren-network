@@ -50,7 +50,7 @@ namespace DurableClient
 			while (NativeMethods.AppStillIdle)
 			{
 				NetIncomingMessage msg;
-				while ((msg = Client.ReadMessage()) != null)
+				while ((msg = Client.WaitMessage(100)) != null)
 				{
 					switch (msg.MessageType)
 					{
@@ -112,8 +112,6 @@ namespace DurableClient
 						m_lastLabelUpdate = now;
 					}
 				}
-
-				Thread.Sleep(1);
 			}
 		}
 
