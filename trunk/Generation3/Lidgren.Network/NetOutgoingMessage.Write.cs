@@ -593,5 +593,23 @@ namespace Lidgren.Network
 					writeMethod.Invoke(this, new object[] { value });
 			}
 		}
+
+		/// <summary>
+		/// Append all the bits of message to this message
+		/// </summary>
+		public void Write(NetOutgoingMessage message)
+		{
+			EnsureBufferSize(m_bitLength + (message.LengthBytes * 8));
+
+			Write(message.m_data, 0, message.LengthBytes);
+
+			// did we write excessive bits?
+			int bitsInLastByte = (message.m_bitLength % 8);
+			if (bitsInLastByte != 0)
+			{
+				int excessBits = 8 - bitsInLastByte;
+				m_bitLength -= excessBits;
+			}
+		}
 	}
 }

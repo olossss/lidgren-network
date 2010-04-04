@@ -204,6 +204,14 @@ namespace Lidgren.Network
 			return bits;
 		}
 
+		/// <summary>
+		/// Returns how many bytes are required to hold a certain number of bits
+		/// </summary>
+		public static int BytesToHoldBits(int numBits)
+		{
+			return (numBits + 7) / 8;
+		}
+
 		[CLSCompliant(false)]
 		public static UInt32 SwapByteOrder(UInt32 value)
 		{

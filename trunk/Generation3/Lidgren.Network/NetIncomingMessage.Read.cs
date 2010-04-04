@@ -120,6 +120,23 @@ namespace Lidgren.Network
 			return;
 		}
 
+		public void ReadBits(byte[] into, int offset, int numberOfBits)
+		{
+			NetException.Assert(m_bitLength - m_readPosition >= numberOfBits, c_readOverflowError);
+			NetException.Assert(offset + NetUtility.BytesToHoldBits(numberOfBits) <= into.Length);
+
+			int numberOfWholeBytes = numberOfBits / 8;
+			int extraBits = numberOfBits - (numberOfWholeBytes * 8);
+
+			NetBitWriter.ReadBytes(m_data, numberOfWholeBytes, m_readPosition, into, offset);
+			m_readPosition += (8 * numberOfWholeBytes);
+
+			if (extraBits > 0)
+				into[offset + numberOfWholeBytes] = ReadByte(extraBits);
+
+			return;
+		}
+
 		//
 		// 16 bit
 		//

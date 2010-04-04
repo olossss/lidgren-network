@@ -421,7 +421,7 @@ namespace Lidgren.Network
 			}
 
 			string appIdent;
-			byte[] remoteHail = null;
+			NetIncomingMessage approval = null;
 			try
 			{
 				NetIncomingMessage reader = new NetIncomingMessage();
@@ -431,11 +431,17 @@ namespace Lidgren.Network
 				ptr += payloadLength;
 				reader.m_bitLength = payloadLength * 8;
 				appIdent = reader.ReadString();
-				int hailLen = (int)reader.ReadVariableUInt32();
-				if (hailLen > 0 && hailLen < m_configuration.MaximumTransmissionUnit)
+
+				int approvalBitLength = (int)reader.ReadVariableUInt32();
+				if (approvalBitLength > 0)
 				{
-					remoteHail = new byte[hailLen];
-					reader.ReadBytes(remoteHail, 0, hailLen);
+					int approvalByteLength = NetUtility.BytesToHoldBits(approvalBitLength);
+					if (approvalByteLength < m_configuration.MaximumTransmissionUnit)
+					{
+						approval = CreateIncomingMessage(NetIncomingMessageType.ConnectionApproval, approvalByteLength);
+						reader.ReadBits(approval.m_data, 0, approvalBitLength);
+						approval.m_bitLength = approvalBitLength;
+					}
 				}
 			}
 			catch (Exception ex)
@@ -461,14 +467,12 @@ namespace Lidgren.Network
 
 			NetConnection conn = new NetConnection(this, senderEndpoint);
 			conn.m_connectionInitiator = false;
-			conn.m_localHailData = m_configuration.m_defaultLocalHailData;
-			conn.m_remoteHailData = remoteHail;
 			conn.m_connectInitationTime = NetTime.Now;
 
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
 			{
 				// do connection approval before accepting this connection
-				AddPendingConnection(conn);
+				AddPendingConnection(conn, approval);
 				return;
 			}
 
@@ -496,12 +500,10 @@ namespace Lidgren.Network
 
 			// send connection response
 			LogVerbose("Sending LibraryConnectResponse");
-			NetOutgoingMessage reply = CreateMessage(2 + (conn.m_localHailData == null ? 0 : conn.m_localHailData.Length));
+			NetOutgoingMessage reply = CreateMessage(4);
 			reply.m_type = NetMessageType.Library;
 			reply.m_libType = NetMessageLibraryType.ConnectResponse;
 			reply.Write((float)NetTime.Now);
-			if (conn.m_localHailData != null)
-				reply.Write(conn.m_localHailData);
 
 			SendImmediately(conn, reply);
 			conn.m_connectInitationTime = NetTime.Now;

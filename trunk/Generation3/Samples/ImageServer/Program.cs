@@ -31,6 +31,7 @@ namespace ImageServer
 
 			Server = new NetServer(config);
 
+
 			Application.Idle += new EventHandler(AppLoop);
 			Application.Run(MainForm);
 		}
@@ -62,13 +63,13 @@ namespace ImageServer
 							// Here we could check inc.SenderConnection.RemoteEndPoint, deny certain ip
 
 							// check hail data
-							byte[] remoteHail = inc.ReadBytes(3);
-							if (remoteHail[0] == 6 &&
-								remoteHail[1] == 7 &&
-								remoteHail[2] == 8)
+							int a = inc.ReadInt32();
+							string s = inc.ReadString();
+
+							if (a == 42 && s == "secret")
 								inc.SenderConnection.Approve();
 							else
-								inc.SenderConnection.Deny("Bad hail data, go away!");
+								inc.SenderConnection.Deny("Bad approve data, go away!");
 							break;
 						case NetIncomingMessageType.StatusChanged:
 							NetConnectionStatus status = (NetConnectionStatus)inc.ReadByte();

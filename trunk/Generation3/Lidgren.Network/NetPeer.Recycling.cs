@@ -25,14 +25,14 @@ namespace Lidgren.Network
 	public partial class NetPeer
 	{
 		private List<byte[]> m_storagePool;
-		private NetQueue<NetIncomingMessage> m_incomingMessagesPool;
-		private NetQueue<NetOutgoingMessage> m_outgoingMessagesPool;
+		private NetQueue<NetIncomingMessage> m_incomingMessagesPool = new NetQueue<NetIncomingMessage>(16);
+		private NetQueue<NetOutgoingMessage> m_outgoingMessagesPool = new NetQueue<NetOutgoingMessage>(16);
 
 		private void InitializeRecycling()
 		{
 			m_storagePool = new List<byte[]>();
-			m_incomingMessagesPool = new NetQueue<NetIncomingMessage>(16);
-			m_outgoingMessagesPool = new NetQueue<NetOutgoingMessage>(16);
+			m_incomingMessagesPool.Clear();
+			m_outgoingMessagesPool.Clear();
 		}
 		
 		internal byte[] GetStorage(int requiredBytes)
@@ -62,7 +62,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Create a new message for sending
+		/// Creates a new message for sending
 		/// </summary>
 		public NetOutgoingMessage CreateMessage()
 		{
@@ -70,8 +70,10 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Create a new message for sending
+		/// Creates a new message for sending
 		/// </summary>
+		/// <param name="initialCapacity">initial capacity in bytes</param>
+		/// <returns></returns>
 		public NetOutgoingMessage CreateMessage(int initialCapacity)
 		{
 			NetOutgoingMessage retval = m_outgoingMessagesPool.TryDequeue();

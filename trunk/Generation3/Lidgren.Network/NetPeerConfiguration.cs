@@ -44,7 +44,6 @@ namespace Lidgren.Network
 		internal float m_pingFrequency;
 		internal int m_throttleBytesPerSecond;
 		internal int m_throttlePeakBytes;
-		internal byte[] m_defaultLocalHailData;
 
 		// reliability
 		internal float[] m_resendRTTMultiplier;
@@ -387,20 +386,6 @@ namespace Lidgren.Network
 				m_throttlePeakBytes = value;
 				if (m_throttlePeakBytes < m_maximumTransmissionUnit)
 					throw new NetException("ThrottlePeakBytes can not be lower than MaximumTransmissionUnit");
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the local hail data sent to all remote connections unless overridden, per connection, in approval stage. Cannot be changed once NetPeer is initialized.
-		/// </summary>
-		public byte[] DefaultLocalHailData
-		{
-			get { return m_defaultLocalHailData; }
-			set
-			{
-				if (m_isLocked)
-					throw new NetException(c_isLockedMessage);
-				m_defaultLocalHailData = value;
 			}
 		}
 	}

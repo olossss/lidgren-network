@@ -23,6 +23,7 @@ namespace DurableServer
 
 			NetPeerConfiguration config = new NetPeerConfiguration("durable");
 			config.Port = 14242;
+			config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
 			Server = new NetServer(config);
 			Server.Start();
 
@@ -68,6 +69,13 @@ namespace DurableServer
 						case NetIncomingMessageType.WarningMessage:
 						case NetIncomingMessageType.Error:
 							Display(msg.ReadString());
+							break;
+						case NetIncomingMessageType.ConnectionApproval:
+							string ok = msg.ReadString();
+							if (ok == "durableschmurable")
+								msg.SenderConnection.Approve();
+							else
+								msg.SenderConnection.Deny("You didn't say the secret word!");
 							break;
 						case NetIncomingMessageType.StatusChanged:
 							NetConnectionStatus status = (NetConnectionStatus)msg.ReadByte();

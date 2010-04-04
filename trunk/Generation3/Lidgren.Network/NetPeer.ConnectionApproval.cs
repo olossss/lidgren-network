@@ -18,6 +18,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
 using System.Collections.Generic;
+using System;
 
 namespace Lidgren.Network
 {
@@ -33,19 +34,20 @@ namespace Lidgren.Network
 	{
 		private List<NetConnection> m_pendingConnections;
 
-		private void AddPendingConnection(NetConnection conn)
+		private void AddPendingConnection(NetConnection conn, NetIncomingMessage approval)
 		{
 			if (m_pendingConnections == null)
 				m_pendingConnections = new List<NetConnection>();
 			m_pendingConnections.Add(conn);
 			conn.m_pendingStatus = PendingConnectionStatus.Pending;
 
-			NetIncomingMessage inc = CreateIncomingMessage(NetIncomingMessageType.ConnectionApproval, 0);
-			inc.m_data = conn.m_remoteHailData;
-			inc.m_bitLength = (inc.m_data == null ? 0 : inc.m_data.Length * 8);
-			inc.m_senderConnection = conn;
+			if (approval == null)
+				approval = CreateIncomingMessage(NetIncomingMessageType.ConnectionApproval, 0);
+			approval.m_messageType = NetMessageType.Library;
+			approval.m_senderConnection = conn;
+			approval.m_senderEndpoint = conn.m_remoteEndpoint;
 
-			ReleaseMessage(inc);
+			ReleaseMessage(approval);
 		}
 
 		private void CheckPendingConnections()
