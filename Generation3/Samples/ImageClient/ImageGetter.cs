@@ -25,7 +25,13 @@ namespace ImageClient
 
 			Client = new NetClient(config);
 			Client.Start();
-			Client.Connect(host, 14242, new byte[] { 6, 7, 8 }); // secret hail data :-)
+
+			// create approval data
+			NetOutgoingMessage approval = Client.CreateMessage();
+			approval.Write(42);
+			approval.Write("secret");
+
+			Client.Connect(host, 14242, approval); // secret approval data :-)
 		}
 
 		public void Heartbeat()

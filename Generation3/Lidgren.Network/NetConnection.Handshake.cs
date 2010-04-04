@@ -26,25 +26,7 @@ namespace Lidgren.Network
 		internal string m_disconnectByeMessage;
 		internal bool m_connectionInitiator;
 		internal double m_connectInitationTime; // regardless of initiator
-		internal byte[] m_localHailData;
-		internal byte[] m_remoteHailData;
-
-		/// <summary>
-		/// Gets the hail data (if any) that was sent from this host when connecting
-		/// </summary>
-		public byte[] LocalHailData
-		{
-			get { return m_localHailData; }
-			set { m_localHailData = value; }
-		}
-
-		/// <summary>
-		/// Gets the hail data (if any) that was provided by the remote host
-		/// </summary>
-		public byte[] RemoteHailData
-		{
-			get { return m_remoteHailData; }
-		}
+		internal NetOutgoingMessage m_approvalMessage;
 
 		internal void SetStatus(NetConnectionStatus status, string reason)
 		{
@@ -100,14 +82,15 @@ namespace Lidgren.Network
 			om.m_type = NetMessageType.Library;
 			om.m_libType = NetMessageLibraryType.Connect;
 			om.Write(m_peerConfiguration.AppIdentifier);
-			if (m_localHailData == null)
+
+			if (m_approvalMessage == null)
 			{
 				om.WriteVariableUInt32(0);
 			}
 			else
 			{
-				om.WriteVariableUInt32((uint)m_localHailData.Length);
-				om.Write(m_localHailData);
+				om.WriteVariableUInt32((uint)m_approvalMessage.LengthBits);
+				om.Write(m_approvalMessage);
 			}
 			m_owner.LogVerbose("Sending Connect");
 
@@ -168,20 +151,16 @@ namespace Lidgren.Network
 
 					if (m_status == NetConnectionStatus.Connecting)
 					{
-						// get remote hail data
 						m_owner.m_statistics.m_bytesAllocated += payloadBytesLength;
 
 						float remoteNetTime = BitConverter.ToSingle(m_owner.m_receiveBuffer, ptr);
 						ptr += 4;
 
-						m_remoteHailData = new byte[payloadBytesLength - 4];
-						Buffer.BlockCopy(m_owner.m_receiveBuffer, ptr, m_remoteHailData, 0, payloadBytesLength - 4);
-
 						// excellent, handshake making progress; send connectionestablished
 						SetStatus(NetConnectionStatus.Connected, "Connected");
 
 						m_owner.LogVerbose("Sending LibraryConnectionEstablished");
-						NetOutgoingMessage ce = m_owner.CreateMessage(1);
+						NetOutgoingMessage ce = m_owner.CreateMessage(4);
 						ce.m_type = NetMessageType.Library;
 						ce.m_libType = NetMessageLibraryType.ConnectionEstablished;
 						ce.Write((float)NetTime.Now);

@@ -163,15 +163,15 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Create a connection to a remote endpoint
 		/// </summary>
-		public NetConnection Connect(string host, int port, byte[] hailData)
+		public NetConnection Connect(string host, int port, NetOutgoingMessage approvalMessage)
 		{
-			return Connect(new IPEndPoint(NetUtility.Resolve(host), port), hailData);
+			return Connect(new IPEndPoint(NetUtility.Resolve(host), port), approvalMessage);
 		}
 
 		/// <summary>
 		/// Create a connection to a remote endpoint
 		/// </summary>
-		public virtual NetConnection Connect(IPEndPoint remoteEndpoint, byte[] hailData)
+		public virtual NetConnection Connect(IPEndPoint remoteEndpoint, NetOutgoingMessage approvalMessage)
 		{
 			if (m_status == NetPeerStatus.NotRunning)
 				throw new NetException("Must call Start() first");
@@ -180,7 +180,7 @@ namespace Lidgren.Network
 				throw new NetException("Already connected to that endpoint!");
 
 			NetConnection conn = new NetConnection(this, remoteEndpoint);
-			conn.m_localHailData = hailData;
+			conn.m_approvalMessage = approvalMessage;
 
 			// handle on network thread
 			conn.m_connectRequested = true;

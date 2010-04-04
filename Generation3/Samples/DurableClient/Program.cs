@@ -130,5 +130,13 @@ namespace DurableClient
 				MainForm.label1.Text = bdr.ToString();
 			}
 		}
+
+		public static void Connect(string host)
+		{
+			NetOutgoingMessage approval = Client.CreateMessage();
+			approval.Write("durableschmurable");
+
+			Client.Connect(host, 14242, approval);
+		}
 	}
 }

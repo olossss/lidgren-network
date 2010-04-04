@@ -23,7 +23,8 @@ namespace DurableClient
 		{
 			if (string.IsNullOrEmpty(textBox1.Text))
 				textBox1.Text = "localhost";
-			Program.Client.Connect(textBox1.Text, 14242);
+
+			Program.Connect(textBox1.Text);
 		}
 
 		private void button2_Click(object sender, EventArgs e)

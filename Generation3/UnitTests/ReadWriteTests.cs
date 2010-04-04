@@ -59,6 +59,17 @@ namespace UnitTests
 				Console.WriteLine("Read/write tests OK");
 			else
 				throw new NetException("Read/write tests FAILED!");
+
+			msg = peer.CreateMessage();
+
+			NetOutgoingMessage tmp = peer.CreateMessage();
+			tmp.Write((int)42, 14);
+
+			msg.Write(tmp);
+			msg.Write(tmp);
+
+			if (msg.LengthBits != tmp.LengthBits * 2)
+				throw new NetException("NetOutgoingMessage.Write(NetOutgoingMessage) failed!");
 		}
 	}
 }
