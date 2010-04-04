@@ -84,6 +84,7 @@ namespace ChatServer
 
 							break;
 					}
+					Server.Recycle(msg);
 				}
 			}
 		}

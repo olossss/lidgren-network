@@ -96,6 +96,7 @@ namespace ChatClient
 							Display("Received from " + cm.Sender + ": " + cm.Text);
 							break;
 					}
+					Client.Recycle(msg);
 				}
 				Thread.Sleep(1);
 			}

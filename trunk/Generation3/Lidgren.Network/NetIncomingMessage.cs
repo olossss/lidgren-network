@@ -24,6 +24,13 @@ using System.Diagnostics;
 
 namespace Lidgren.Network
 {
+	internal enum NetIncomingMessageReleaseStatus
+	{
+		NotReleased = 0,
+		ReleasedToApplication,
+		RecycledByApplication
+	}
+
 	[DebuggerDisplay("{m_readPosition} of {m_bitLength} bits ({LengthBytes} bytes) read")]
 	public partial class NetIncomingMessage
 	{
@@ -31,6 +38,7 @@ namespace Lidgren.Network
 		internal int m_bitLength;
 		internal NetMessageType m_messageType; // NetDeliveryMethod and sequence channel can be derived from this
 		internal ushort m_sequenceNumber;
+		internal NetIncomingMessageReleaseStatus m_status;
 
 		internal NetIncomingMessageType m_incomingType;
 		internal IPEndPoint m_senderEndpoint;

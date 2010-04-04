@@ -100,6 +100,10 @@ namespace Lidgren.Network
 		/// </summary>
 		public void Recycle(NetIncomingMessage msg)
 		{
+			if (msg.m_status != NetIncomingMessageReleaseStatus.ReleasedToApplication)
+				throw new NetException("Message not under application control; recycled more than once?");
+
+			msg.m_status = NetIncomingMessageReleaseStatus.RecycledByApplication;
 			lock (m_storagePool)
 			{
 				if (!m_storagePool.Contains(msg.m_data))
@@ -140,6 +144,7 @@ namespace Lidgren.Network
 				}
 			}
 #endif
+			NetException.Assert(msg.m_inQueueCount == 0, "Recycling message still in some queue!");
 
 			lock (m_storagePool)
 			{
@@ -182,9 +187,12 @@ namespace Lidgren.Network
 			else
 				retval.Reset();
 
+			NetException.Assert(retval.m_status != NetIncomingMessageReleaseStatus.ReleasedToApplication);
+
 			retval.m_incomingType = tp;
 			retval.m_senderConnection = null;
 			retval.m_senderEndpoint = null;
+			retval.m_status = NetIncomingMessageReleaseStatus.NotReleased;
 
 			if (requiredCapacity > 0)
 			{

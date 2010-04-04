@@ -28,6 +28,7 @@ namespace Lidgren.Network
 	{
 		// reference count before message can be recycled
 		internal int m_inQueueCount;
+
 		internal NetMessageType m_type;
 		internal NetMessageLibraryType m_libType;
 		internal ushort m_sequenceNumber;
@@ -45,7 +46,7 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Returns true if this message has been passed to SendMessage() already
 		/// </summary>
-		public bool IsSent { get { return m_inQueueCount > 0; } }
+		public bool IsSent { get { return m_numSends > 0; } }
 
 		internal NetOutgoingMessage()
 		{
@@ -54,8 +55,7 @@ namespace Lidgren.Network
 
 		internal void Reset()
 		{
-			if (m_inQueueCount != 0)
-				throw new NetException("Ouch! Resetting NetOutgoingMessage still in some queue!");
+			NetException.Assert(m_inQueueCount == 0, "Ouch! Resetting NetOutgoingMessage still in some queue!");
 
 			m_bitLength = 0;
 			m_type = NetMessageType.Error;
