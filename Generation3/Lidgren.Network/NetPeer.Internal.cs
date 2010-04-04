@@ -54,9 +54,10 @@ namespace Lidgren.Network
 			m_messageReceivedEvent = new AutoResetEvent(false);
 		}
 
-		// TODO: inline this method manually
+		// TODO: inline this method manually(?)
 		internal void ReleaseMessage(NetIncomingMessage msg)
 		{
+			msg.m_status = NetIncomingMessageReleaseStatus.ReleasedToApplication;
 			m_releasedIncomingMessages.Enqueue(msg);
 			if (m_messageReceivedEvent != null)
 				m_messageReceivedEvent.Set();
@@ -548,16 +549,11 @@ namespace Lidgren.Network
 
 		internal void SendImmediately(NetConnection conn, NetOutgoingMessage msg)
 		{
-#if DEBUG
-			if (msg.m_type != NetMessageType.Library)
-				throw new NetException("SendImmediately can only send library (non-reliable) messages");
-#endif
+			NetException.Assert(msg.m_type == NetMessageType.Library, "SendImmediately can only send library (non-reliable) messages");
+
 			msg.m_inQueueCount = 1;
 			int len = msg.Encode(m_sendBuffer, 0, conn);
 			Interlocked.Decrement(ref msg.m_inQueueCount);
-
-			if (msg.m_inQueueCount > 0)
-				Console.WriteLine("x");
 
 			SendPacket(len, conn.m_remoteEndpoint, 1);
 

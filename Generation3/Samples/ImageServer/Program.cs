@@ -106,9 +106,8 @@ namespace ImageServer
 					}
 
 					// recycle message to avoid garbage
-					//Server.Recycle(inc);
+					Server.Recycle(inc);
 				}
-				//System.Threading.Thread.Sleep(1);
 			}
 		}
 

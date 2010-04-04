@@ -75,6 +75,7 @@ namespace DurableClient
 							}
 							break;
 					}
+					Client.Recycle(msg);
 				}
 
 				if (m_sendStuff)

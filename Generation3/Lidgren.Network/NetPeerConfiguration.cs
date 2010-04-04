@@ -60,7 +60,7 @@ namespace Lidgren.Network
 		public NetPeerConfiguration(string appIdentifier)
 		{
 			if (string.IsNullOrEmpty(appIdentifier))
-				throw new NetException("App identifier must be a string of at least one characters length");
+				throw new NetException("App identifier must be at least one character long");
 			m_appIdentifier = appIdentifier;
 
 			// defaults
