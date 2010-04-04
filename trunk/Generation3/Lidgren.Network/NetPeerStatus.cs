@@ -20,7 +20,7 @@ using System;
 
 namespace Lidgren.Network
 {
-	internal enum NetPeerStatus
+	public enum NetPeerStatus
 	{
 		NotRunning = 0,
 		Starting = 1,
