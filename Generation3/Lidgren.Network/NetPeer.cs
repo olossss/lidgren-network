@@ -47,6 +47,11 @@ namespace Lidgren.Network
 		private Dictionary<IPEndPoint, NetConnection> m_connectionLookup;
 
 		/// <summary>
+		/// Gets the status of the NetPeer
+		/// </summary>
+		public NetPeerStatus Status { get { return m_status; } }
+
+		/// <summary>
 		/// Gets a copy of the list of connections
 		/// </summary>
 		public List<NetConnection> Connections
