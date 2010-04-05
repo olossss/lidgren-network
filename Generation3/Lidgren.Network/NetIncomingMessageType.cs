@@ -35,9 +35,11 @@ namespace Lidgren.Network
 		ConnectionApproval = 1 << 2,	// Data
 		Data = 1 << 3,					// Data					Based on data received
 		Receipt = 1 << 4,				// Data
-		VerboseDebugMessage = 1 << 5,	// Data (string)
-		DebugMessage = 1 << 6,			// Data (string)
-		WarningMessage = 1 << 7,		// Data (string)
-		ErrorMessage = 1 << 8,			// Data (string)
+		DiscoveryRequest = 1 << 5,		// (no data)
+		DiscoveryResponse = 1 << 6,		// Data
+		VerboseDebugMessage = 1 << 7,	// Data (string)
+		DebugMessage = 1 << 8,			// Data (string)
+		WarningMessage = 1 << 9,		// Data (string)
+		ErrorMessage = 1 << 10,			// Data (string)
 	}
 }

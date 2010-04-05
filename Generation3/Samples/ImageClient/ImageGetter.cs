@@ -22,16 +22,12 @@ namespace ImageClient
 			InitializeComponent();
 
 			NetPeerConfiguration config = copyConfig.Clone();
+			config.EnableMessageType(NetIncomingMessageType.DiscoveryResponse);
 
 			Client = new NetClient(config);
 			Client.Start();
 
-			// create approval data
-			NetOutgoingMessage approval = Client.CreateMessage();
-			approval.Write(42);
-			approval.Write("secret");
-
-			Client.Connect(host, 14242, approval); // secret approval data :-)
+			Client.DiscoverLocalPeers(14242);
 		}
 
 		public void Heartbeat()
@@ -41,6 +37,18 @@ namespace ImageClient
 			{
 				switch(inc.MessageType)
 				{
+					case NetIncomingMessageType.DiscoveryResponse:
+						// found server! just connect...
+
+						string serverResponseHello = inc.ReadString();
+
+						// create approval data
+						NetOutgoingMessage approval = Client.CreateMessage();
+						approval.Write(42);
+						approval.Write("secret");
+
+						Client.Connect(inc.SenderEndpoint, approval);
+						break;
 					case NetIncomingMessageType.DebugMessage:
 					case NetIncomingMessageType.VerboseDebugMessage:
 					case NetIncomingMessageType.WarningMessage:
