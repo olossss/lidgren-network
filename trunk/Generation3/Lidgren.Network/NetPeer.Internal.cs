@@ -404,12 +404,43 @@ namespace Lidgren.Network
 		{
 			VerifyNetworkThread();
 
-			if (libType != NetMessageLibraryType.Connect)
+			if (libType != NetMessageLibraryType.Connect && libType != NetMessageLibraryType.Discovery && libType != NetMessageLibraryType.DiscoveryResponse)
 			{
 				LogWarning("Received unconnected library message of type " + libType);
 				return;
 			}
 
+			//
+			// Handle Discovery
+			//
+			if (libType == NetMessageLibraryType.Discovery)
+			{
+				if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.DiscoveryRequest))
+				{
+					NetIncomingMessage dm = CreateIncomingMessage(NetIncomingMessageType.DiscoveryRequest, payloadLength);
+					if (payloadLength > 0)
+						Buffer.BlockCopy(m_receiveBuffer, ptr, dm.m_data, 0, payloadLength);
+					dm.m_bitLength = payloadLength * 8; // TODO: fix this - exact number of bits
+					dm.m_senderEndpoint = senderEndpoint;
+					ReleaseMessage(dm);
+				}
+				return;
+			}
+
+			if (libType == NetMessageLibraryType.DiscoveryResponse)
+			{
+				if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.DiscoveryResponse))
+				{
+					NetIncomingMessage dr = CreateIncomingMessage(NetIncomingMessageType.DiscoveryResponse, payloadLength);
+					if (payloadLength > 0)
+						Buffer.BlockCopy(m_receiveBuffer, ptr, dr.m_data, 0, payloadLength);
+					dr.m_bitLength = payloadLength * 8; // TODO: fix this - exact number of bits
+					dr.m_senderEndpoint = senderEndpoint;
+					ReleaseMessage(dr);
+				}
+				return;
+			}
+			
 			//
 			// Handle NetMessageLibraryType.Connect
 			//

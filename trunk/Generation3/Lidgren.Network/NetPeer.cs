@@ -148,7 +148,8 @@ namespace Lidgren.Network
 
 		public NetIncomingMessage WaitMessage(int maxMillis)
 		{
-			m_messageReceivedEvent.WaitOne(maxMillis);
+			if (m_messageReceivedEvent != null)
+				m_messageReceivedEvent.WaitOne(maxMillis);
 			return m_releasedIncomingMessages.TryDequeue();
 		}
 
@@ -158,6 +159,14 @@ namespace Lidgren.Network
 		public NetConnection Connect(string host, int port)
 		{
 			return Connect(new IPEndPoint(NetUtility.Resolve(host), port), null);
+		}
+
+		/// <summary>
+		/// Create a connection to a remote endpoint
+		/// </summary>
+		public NetConnection Connect(IPEndPoint remoteEndpoint)
+		{
+			return Connect(remoteEndpoint, null);
 		}
 
 		/// <summary>
@@ -260,6 +269,15 @@ namespace Lidgren.Network
 			EnqueueUnconnectedMessage(msg, recipient);
 		}
 
+		internal void SendUnconnectedLibraryMessage(NetOutgoingMessage msg, NetMessageLibraryType libType, IPEndPoint recipient)
+		{
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+			msg.m_type = NetMessageType.Library;
+			msg.m_libType = libType;
+			EnqueueUnconnectedMessage(msg, recipient);
+		}
+
 		public void SendUnconnectedMessage(NetOutgoingMessage msg, IEnumerable<IPEndPoint> recipients)
 		{
 			if (msg.IsSent)
@@ -268,7 +286,18 @@ namespace Lidgren.Network
 			foreach (IPEndPoint ipe in recipients)
 				EnqueueUnconnectedMessage(msg, ipe);
 		}
-				
+
+		public void SendDiscoveryResponse(NetOutgoingMessage msg, IPEndPoint recipient)
+		{
+			if (msg == null)
+				msg = CreateMessage(0);
+			if (msg.IsSent)
+				throw new NetException("Message has already been sent!");
+			msg.m_type = NetMessageType.Library;
+			msg.m_libType = NetMessageLibraryType.DiscoveryResponse;
+			EnqueueUnconnectedMessage(msg, recipient);
+		}
+
 		/// <summary>
 		/// Disconnects all active connections and closes the socket
 		/// </summary>

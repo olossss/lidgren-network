@@ -106,13 +106,15 @@ namespace Lidgren.Network
 				throw new NetException("Message not under application control; recycled more than once?");
 
 			msg.m_status = NetIncomingMessageReleaseStatus.RecycledByApplication;
-			lock (m_storagePool)
+			if (msg.m_data != null)
 			{
-				if (!m_storagePool.Contains(msg.m_data))
-					m_storagePool.Add(msg.m_data);
+				lock (m_storagePool)
+				{
+					if (!m_storagePool.Contains(msg.m_data))
+						m_storagePool.Add(msg.m_data);
+				}
+				msg.m_data = null;
 			}
-
-			msg.m_data = null;
 			m_incomingMessagesPool.Enqueue(msg);
 		}
 
@@ -148,13 +150,15 @@ namespace Lidgren.Network
 #endif
 			NetException.Assert(msg.m_inQueueCount == 0, "Recycling message still in some queue!");
 
-			lock (m_storagePool)
+			if (msg.m_data != null)
 			{
-				if (!m_storagePool.Contains(msg.m_data))
-					m_storagePool.Add(msg.m_data);
+				lock (m_storagePool)
+				{
+					if (!m_storagePool.Contains(msg.m_data))
+						m_storagePool.Add(msg.m_data);
+				}
+				msg.m_data = null;
 			}
-
-			msg.m_data = null;
 			m_outgoingMessagesPool.Enqueue(msg);
 		}
 

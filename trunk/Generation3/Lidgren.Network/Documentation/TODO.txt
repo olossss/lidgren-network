@@ -11,8 +11,11 @@ Completed features:
 Missing features:
 * Message fragmentation 50% done
 * Receipts 25% done, need design
-* Local server discovery
+* Server discovery, incl. appending data to responses
 * Resending of lost handshake (connect/response/established) packets
+
+Things to check/fix:
+* Make sure multiple Start(), Shutdown() works correctly
 * Sometimes keepalive is sent immediately
 
 

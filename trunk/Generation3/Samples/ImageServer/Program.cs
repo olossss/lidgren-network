@@ -25,6 +25,7 @@ namespace ImageServer
 			// create a configuration, use identifier "ImageTransfer" - same as client
 			NetPeerConfiguration config = new NetPeerConfiguration("ImageTransfer");
 			config.EnableMessageType(NetIncomingMessageType.ConnectionApproval);
+			config.EnableMessageType(NetIncomingMessageType.DiscoveryRequest);
 
 			// listen on port 14242
 			config.Port = 14242;
@@ -58,25 +59,36 @@ namespace ImageServer
 							NativeMethods.AppendText(MainForm.richTextBox1, str);
 							System.IO.File.AppendAllText("C:\\tmp\\serverlog.txt", str + Environment.NewLine);
 							break;
+						case NetIncomingMessageType.DiscoveryRequest:
+							NetOutgoingMessage dom = Server.CreateMessage();
+							dom.Write("Kokosboll");
+							Server.SendDiscoveryResponse(dom, inc.SenderEndpoint);
+							break;
 						case NetIncomingMessageType.ConnectionApproval:
 
 							// Here we could check inc.SenderConnection.RemoteEndPoint, deny certain ip
 
 							// check hail data
-							int a = inc.ReadInt32();
-							string s = inc.ReadString();
+							try
+							{
+								int a = inc.ReadInt32();
+								string s = inc.ReadString();
 
-							if (a == 42 && s == "secret")
-								inc.SenderConnection.Approve();
-							else
+								if (a == 42 && s == "secret")
+									inc.SenderConnection.Approve();
+								else
+									inc.SenderConnection.Deny("Bad approve data, go away!");
+							}
+							catch (NetException)
+							{
 								inc.SenderConnection.Deny("Bad approve data, go away!");
+							}
 							break;
 						case NetIncomingMessageType.StatusChanged:
 							NetConnectionStatus status = (NetConnectionStatus)inc.ReadByte();
 							NativeMethods.AppendText(MainForm.richTextBox1, "New status: " + status + " (" + inc.ReadString() + ")");
 							if (status == NetConnectionStatus.Connected)
 							{
-								/*
 								//
 								// A client connected; send the entire image in chunks of 990 bytes
 								//
@@ -94,11 +106,15 @@ namespace ImageServer
 
 									Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
 								}
-								*/
+
+								/*
+								 * 
+								 * TODO: use this when fragmentation is working
 
 								NetOutgoingMessage om = Server.CreateMessage(ImageData.Length);
 								om.Write(ImageData);
 								Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
+								*/
 
 								// all messages will be sent before disconnect so we can call it here
 								inc.SenderConnection.Disconnect("Bye bye now");
@@ -114,6 +130,12 @@ namespace ImageServer
 
 		public static void Start(string filename)
 		{
+			if (Server.Status != NetPeerStatus.NotRunning)
+			{
+				Server.Shutdown("Restarting");
+				System.Threading.Thread.Sleep(100);
+			}
+
 			Server.Start();
 
 			MainForm.Text = "Server: Running";
