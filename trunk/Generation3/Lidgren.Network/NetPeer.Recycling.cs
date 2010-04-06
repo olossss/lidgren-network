@@ -110,8 +110,11 @@ namespace Lidgren.Network
 			{
 				lock (m_storagePool)
 				{
-					if (!m_storagePool.Contains(msg.m_data))
-						m_storagePool.Add(msg.m_data);
+#if DEBUG
+					if (m_storagePool.Contains(msg.m_data))
+						throw new NetException("Storage pool object recycled twice!");
+#endif
+					m_storagePool.Add(msg.m_data);
 				}
 				msg.m_data = null;
 			}
