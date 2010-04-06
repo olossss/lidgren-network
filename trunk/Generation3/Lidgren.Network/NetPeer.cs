@@ -36,7 +36,7 @@ namespace Lidgren.Network
 
 		private NetPeerStatus m_status;
 		private object m_initializeLock = new object();
-		private long m_uniqueIdentifier;
+		internal long m_uniqueIdentifier;
 
 		internal NetPeerConfiguration m_configuration;
 		internal NetPeerStatistics m_statistics;

@@ -121,9 +121,9 @@ namespace Lidgren.Network
 
 					m_listenPort = boundEp.Port;
 
-					ulong one = (pa == null ? 0 : (ulong)pa.GetHashCode());
-					ulong two = (ulong)((ulong)boundEp.GetHashCode() << 32);
-					m_uniqueIdentifier = (long)(one | two);
+					long first = (pa == null ? (long)0 : (long)pa.GetHashCode());
+					long second = (long)((long)boundEp.GetHashCode() << 32);
+					m_uniqueIdentifier = first ^ second;
 
 					m_receiveBuffer = new byte[m_configuration.ReceiveBufferSize];
 					m_sendBuffer = new byte[m_configuration.SendBufferSize];
@@ -452,6 +452,7 @@ namespace Lidgren.Network
 			}
 
 			string appIdent;
+			long remoteUniqueIdentifier = 0;
 			NetIncomingMessage approval = null;
 			try
 			{
@@ -462,6 +463,7 @@ namespace Lidgren.Network
 				ptr += payloadLength;
 				reader.m_bitLength = payloadLength * 8;
 				appIdent = reader.ReadString();
+				remoteUniqueIdentifier = reader.ReadInt64();
 
 				int approvalBitLength = (int)reader.ReadVariableUInt32();
 				if (approvalBitLength > 0)
@@ -499,6 +501,7 @@ namespace Lidgren.Network
 			NetConnection conn = new NetConnection(this, senderEndpoint);
 			conn.m_connectionInitiator = false;
 			conn.m_connectInitationTime = NetTime.Now;
+			conn.m_remoteUniqueIdentifier = remoteUniqueIdentifier;
 
 			if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.ConnectionApproval))
 			{
