@@ -54,12 +54,12 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Gets a copy of the list of connections
 		/// </summary>
-		public List<NetConnection> Connections
+		public NetConnection[] Connections
 		{
 			get
 			{
 				lock (m_connections)
-					return new List<NetConnection>(m_connections);
+					return m_connections.ToArray();
 			}
 		}
 

@@ -50,7 +50,7 @@ namespace DurableClient
 			while (NativeMethods.AppStillIdle)
 			{
 				NetIncomingMessage msg;
-				while ((msg = Client.WaitMessage(100)) != null)
+				while ((msg = Client.WaitMessage(1)) != null)
 				{
 					switch (msg.MessageType)
 					{
@@ -82,6 +82,10 @@ namespace DurableClient
 				{
 					double now = NetTime.Now;
 
+					float speed = 50.0f;
+
+					float speedMultiplier = 1.0f / speed;
+
 					int r = NetRandom.Instance.Next(3);
 					if (now > m_nextSendReliableOrdered)
 					{
@@ -93,7 +97,7 @@ namespace DurableClient
 						om.Write(rv);
 
 						Client.SendMessage(om, NetDeliveryMethod.ReliableOrdered, r);
-						m_nextSendReliableOrdered = now + (NetRandom.Instance.NextFloat() * 0.01f) + 0.005f;
+						m_nextSendReliableOrdered = now + (NetRandom.Instance.NextFloat() * (0.01f * speedMultiplier)) + (0.005f * speedMultiplier);
 					}
 
 					if (now > m_nextSendSequenced)
@@ -104,7 +108,7 @@ namespace DurableClient
 						m_sequencedNr[r]++;
 						om.Write(v);
 						Client.SendMessage(om, NetDeliveryMethod.UnreliableSequenced, r);
-						m_nextSendSequenced = now + (NetRandom.Instance.NextFloat() * 0.01f) + 0.005f;
+						m_nextSendSequenced = now + (NetRandom.Instance.NextFloat() * (0.01f * speedMultiplier)) + (0.005f * speedMultiplier);
 					}
 
 					if (now > m_lastLabelUpdate + kLabelUpdateFrequency)

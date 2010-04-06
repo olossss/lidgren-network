@@ -43,6 +43,7 @@ namespace Lidgren.Network
 			int num = ((int)NetMessageType.UserReliableOrdered + NetConstants.NetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;
 			m_nextSendSequenceNumber = new ushort[num];
 			m_lastReceivedSequenced = new ushort[num];
+			m_nextForceAckTime = double.MaxValue;
 
 			m_storedMessages = new List<NetOutgoingMessage>[NetConstants.NumReliableChannels];
 			m_storedMessagesNotEmpty = new NetBitVector(NetConstants.NumReliableChannels);
