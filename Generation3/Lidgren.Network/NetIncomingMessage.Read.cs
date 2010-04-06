@@ -50,7 +50,7 @@ namespace Lidgren.Network
 			MethodInfo[] methods = typeof(NetIncomingMessage).GetMethods(BindingFlags.Instance | BindingFlags.Public);
 			foreach (MethodInfo mi in methods)
 			{
-				if (mi.GetParameters().Length == 0 && mi.Name.StartsWith("Read"))
+				if (mi.GetParameters().Length == 0 && mi.Name.StartsWith("Read", StringComparison.InvariantCulture))
 				{
 					string n = mi.Name.Substring(4);
 					foreach (Type it in integralTypes)

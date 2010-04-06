@@ -12,21 +12,47 @@ namespace Lidgren.Network
 		public NetBitVector(int bitsCapacity)
 		{
 			m_capacity = bitsCapacity;
-			m_data = new uint[(bitsCapacity + 7) / 8];
+			m_data = new uint[(bitsCapacity + 31) / 32];
+		}
+
+		public bool IsEmpty()
+		{
+			foreach (uint v in m_data)
+				if (v != 0)
+					return false;
+			return true;
+		}
+
+		public int GetFirstSetIndex()
+		{
+			int idx = 0;
+
+			uint data = m_data[0];
+			while (data == 0)
+			{
+				idx++;
+				data = m_data[idx];
+			}
+
+			int a = 0;
+			while (((data >> a) & 1) == 0)
+				a++;
+
+			return (idx * 32) + a;
 		}
 
 		public bool Get(int bitIndex)
 		{
-			int idx = bitIndex / 8;
+			int idx = bitIndex / 32;
 			uint data = m_data[idx];
-			int bitNr = bitIndex - (idx * 8);
+			int bitNr = bitIndex - (idx * 32);
 			return (data & (1 << bitNr)) != 0;
 		}
 
 		public void Set(int bitIndex, bool value)
 		{
-			int idx = bitIndex / 8;
-			int bitNr = bitIndex - (idx * 8);
+			int idx = bitIndex / 32;
+			int bitNr = bitIndex - (idx * 32);
 			if (value)
 				m_data[idx] |= (uint)(1 << bitNr);
 			else
@@ -41,7 +67,7 @@ namespace Lidgren.Network
 
 		public void Clear()
 		{
-			m_data.Initialize();
+			Array.Clear(m_data, 0, m_data.Length);
 		}
 	}
 }

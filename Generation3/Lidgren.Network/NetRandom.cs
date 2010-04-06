@@ -69,8 +69,8 @@ namespace Lidgren.Network
 				// tickcount + gettimestamp + workingset should be random enough
 				if (!string.IsNullOrEmpty(Environment.CommandLine))
 					seed ^= Environment.CommandLine.GetHashCode();
-				seed ^= (int)(Stopwatch.GetTimestamp() & uint.MaxValue);
-				seed ^= (int)(Environment.WorkingSet & uint.MaxValue);
+				seed ^= (int)(Stopwatch.GetTimestamp());
+				seed ^= (int)(Environment.WorkingSet); // will return 0 on mono
 			}
 			catch
 			{

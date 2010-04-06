@@ -16,13 +16,15 @@ namespace UnitTests
 
 			System.Threading.Thread.Sleep(50);
 
-			Console.WriteLine("MAC is " + NetUtility.GetMacAddress());
+			Console.WriteLine("Unique identifier is " + NetUtility.ToHexString(peer.UniqueIdentifier));
 
 			ReadWriteTests.Run(peer);
 
 			NetQueueTests.Run();
 
 			MiscTests.Run(peer);
+
+			BitVectorTests.Run();
 
 			peer.Shutdown("bye");
 

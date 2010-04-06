@@ -75,6 +75,7 @@ namespace Lidgren.Network
 			double now = NetTime.Now;
 			m_nextPing = now + 5.0f;
 			m_nextKeepAlive = now + 6.0f + m_peerConfiguration.m_keepAliveDelay;
+			m_nextForceAckTime = double.MaxValue;
 			m_lastSentUnsentMessages = now;
 			m_lastSendRespondedTo = now;
 			m_statistics = new NetConnectionStatistics(this);
@@ -103,16 +104,20 @@ namespace Lidgren.Network
 					SendConnect();
 
 				// queue resends
-				for (int i = 0; i < m_storedMessages.Length; i++)
+				if (!m_storedMessagesNotEmpty.IsEmpty())
 				{
-					if (m_storedMessagesNotEmpty.Get(i))
+					int first = m_storedMessagesNotEmpty.GetFirstSetIndex();
+					for (int i = first; i < m_storedMessages.Length; i++)
 					{
-						foreach (NetOutgoingMessage om in m_storedMessages[i])
+						if (m_storedMessagesNotEmpty.Get(i))
 						{
-							if (now >= om.m_nextResendTime)
+							foreach (NetOutgoingMessage om in m_storedMessages[i])
 							{
-								Resend(now, om);
-								break; // need to break out here; collection may have been modified
+								if (now >= om.m_nextResendTime)
+								{
+									Resend(now, om);
+									break; // need to break out here; collection may have been modified
+								}
 							}
 						}
 					}
@@ -374,7 +379,7 @@ namespace Lidgren.Network
 			im.m_senderConnection = this;
 			im.m_senderEndpoint = m_remoteEndpoint;
 
-			m_owner.LogVerbose("Releasing " + im);
+			// m_owner.LogVerbose("Releasing " + im);
 			m_owner.ReleaseMessage(im);
 		}
 
