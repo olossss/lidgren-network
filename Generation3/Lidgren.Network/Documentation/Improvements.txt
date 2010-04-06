@@ -13,4 +13,5 @@ Improvements over last version of library:
 * Larger number of delivery channels
 * More exact roundtrip measurement
 * Method serialize entire object via reflection
+* Unique identifier now exists for all peers/connections
 

@@ -127,6 +127,11 @@ namespace Lidgren.Network
 			return ni.GetPhysicalAddress();
 		}
 
+		public static string ToHexString(long data)
+		{
+			return ToHexString(BitConverter.GetBytes(data));
+		}
+
 		public static string ToHexString(byte[] data)
 		{
 			StringBuilder sb = new StringBuilder(data.Length * 2);

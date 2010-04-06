@@ -82,6 +82,7 @@ namespace Lidgren.Network
 			om.m_type = NetMessageType.Library;
 			om.m_libType = NetMessageLibraryType.Connect;
 			om.Write(m_peerConfiguration.AppIdentifier);
+			om.Write(m_owner.m_uniqueIdentifier);
 
 			if (m_approvalMessage == null)
 			{

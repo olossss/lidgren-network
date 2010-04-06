@@ -39,6 +39,7 @@ namespace Lidgren.Network
 		internal NetConnectionStatistics m_statistics;
 		private int m_lesserHeartbeats;
 		private int m_nextFragmentGroupId;
+		internal long m_remoteUniqueIdentifier;
 
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
@@ -52,6 +53,11 @@ namespace Lidgren.Network
 		/// Statistics for the connection
 		/// </summary>
 		public NetConnectionStatistics Statistics { get { return m_statistics; } }
+
+		/// <summary>
+		/// The unique identifier of the remote NetPeer for this connection
+		/// </summary>
+		public long RemoteUniqueIdentifier { get { return m_remoteUniqueIdentifier; } }
 
 		/// <summary>
 		/// Gets the remote endpoint for the connection
