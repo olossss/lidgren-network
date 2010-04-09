@@ -92,6 +92,7 @@ namespace ImageServer
 								//
 								// A client connected; send the entire image in chunks of 990 bytes
 								//
+								/*
 								uint seg = 0;
 								int ptr = 0;
 								while (ptr < ImageData.Length)
@@ -106,18 +107,20 @@ namespace ImageServer
 
 									Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
 								}
-
-								/*
-								 * 
-								 * TODO: use this when fragmentation is working
-
-								NetOutgoingMessage om = Server.CreateMessage(ImageData.Length);
-								om.Write(ImageData);
-								Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
 								*/
 
+								NetOutgoingMessage om = Server.CreateMessage(ImageData.Length);
+
+								om.Write((ushort)ImageWidth);
+								om.Write((ushort)ImageHeight);
+								om.WriteVariableUInt32(0);
+
+								om.Write(ImageData);
+
+								Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
+
 								// all messages will be sent before disconnect so we can call it here
-								inc.SenderConnection.Disconnect("Bye bye now");
+								// inc.SenderConnection.Disconnect("Bye bye now");
 							}
 							break;
 					}

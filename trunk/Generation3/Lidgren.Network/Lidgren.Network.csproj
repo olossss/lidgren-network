@@ -16,7 +16,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
+    <Optimize>true</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -57,6 +57,7 @@
     <Compile Include="NetConnectionStatus.cs" />
     <Compile Include="NetConstants.cs" />
     <Compile Include="NetException.cs" />
+    <Compile Include="NetFragmentationInfo.cs" />
     <Compile Include="NetIncomingMessage.cs" />
     <Compile Include="NetIncomingMessage.Peek.cs" />
     <Compile Include="NetIncomingMessage.Read.cs" />

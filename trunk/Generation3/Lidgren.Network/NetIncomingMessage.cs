@@ -44,6 +44,8 @@ namespace Lidgren.Network
 		internal IPEndPoint m_senderEndpoint;
 		internal NetConnection m_senderConnection;
 
+		internal NetFragmentationInfo m_fragmentationInfo;
+
 		/// <summary>
 		/// Gets the length of the data in bytes
 		/// </summary>
@@ -97,6 +99,7 @@ namespace Lidgren.Network
 		{
 			m_bitLength = 0;
 			m_readPosition = 0;
+			m_fragmentationInfo = null;
 		}
 
 		public override string ToString()
