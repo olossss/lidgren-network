@@ -523,6 +523,13 @@ namespace Lidgren.Network
 				return;
 			}
 
+#if DEBUG
+			if (msg.m_type < NetMessageType.UserReliableSequenced)
+			{
+				// unreliable
+				m_owner.LogWarning("Sending more than MTU (currently " + mtu + ") bytes unreliably is not recommended!");
+			}
+#endif
 			mtu -= NetConstants.FragmentHeaderSize; // size of fragmentation info
 
 			// message must be fragmented
