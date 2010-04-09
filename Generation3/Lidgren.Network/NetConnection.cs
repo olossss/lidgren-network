@@ -40,6 +40,7 @@ namespace Lidgren.Network
 		private int m_lesserHeartbeats;
 		private int m_nextFragmentGroupId;
 		internal long m_remoteUniqueIdentifier;
+		private Dictionary<int, NetIncomingMessage> m_fragmentGroups;
 
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
@@ -70,6 +71,7 @@ namespace Lidgren.Network
 			m_peerConfiguration = m_owner.m_configuration;
 			m_remoteEndpoint = remoteEndpoint;
 			m_unsentMessages = new NetQueue<NetOutgoingMessage>(16);
+			m_fragmentGroups = new Dictionary<int, NetIncomingMessage>();
 			m_status = NetConnectionStatus.None;
 
 			double now = NetTime.Now;
@@ -362,6 +364,7 @@ namespace Lidgren.Network
 		private void AcceptMessage(NetMessageType mtp, bool isFragment, ushort seqNr, int ptr, int payloadLength)
 		{
 			byte[] buffer = m_owner.m_receiveBuffer;
+			NetIncomingMessage im;
 
 			if (isFragment)
 			{
@@ -369,18 +372,77 @@ namespace Lidgren.Network
 				int fragmentTotalCount = buffer[ptr++] | (buffer[ptr++] << 8);
 				int fragmentNr = buffer[ptr++] | (buffer[ptr++] << 8);
 
-				throw new NotImplementedException("Fragmentation still unfinished");
-			}
+				// do we already have fragments of this group?
+				if (!m_fragmentGroups.TryGetValue(fragmentGroup, out im))
+				{
+					// new fragmented message
+					int estLength = fragmentTotalCount * payloadLength;
 
-			// release to application
-			NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, buffer, ptr, payloadLength);
-			im.m_messageType = mtp;
-			im.m_sequenceNumber = seqNr;
-			im.m_senderConnection = this;
-			im.m_senderEndpoint = m_remoteEndpoint;
+					im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, estLength);
+					im.m_messageType = mtp;
+					im.m_sequenceNumber = seqNr;
+					im.m_senderConnection = this;
+					im.m_senderEndpoint = m_remoteEndpoint;
+					NetFragmentationInfo info = new NetFragmentationInfo();
+					info.TotalFragmentCount = fragmentTotalCount;
+					info.Received = new bool[fragmentTotalCount];
+					info.FragmentSize = payloadLength;
+					im.m_fragmentationInfo = info;
+					m_fragmentGroups[fragmentGroup] = im;
+				}
+
+				// insert this fragment at correct position
+				bool done = InsertFragment(im, fragmentNr, ptr, payloadLength);
+				if (!done)
+					return;
+
+				// all received!
+				m_fragmentGroups.Remove(fragmentGroup);
+			}
+			else
+			{
+				// non-fragmented - release to application
+				im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, buffer, ptr, payloadLength);
+				im.m_messageType = mtp;
+				im.m_sequenceNumber = seqNr;
+				im.m_senderConnection = this;
+				im.m_senderEndpoint = m_remoteEndpoint;
+			}
 
 			// m_owner.LogVerbose("Releasing " + im);
 			m_owner.ReleaseMessage(im);
+		}
+
+		private bool InsertFragment(NetIncomingMessage im, int nr, int ptr, int payloadLength)
+		{
+			NetFragmentationInfo info = im.m_fragmentationInfo;
+
+			if (nr >= info.TotalFragmentCount)
+			{
+				m_owner.LogError("Received fragment larger than total fragments! (total " + info.TotalFragmentCount + ", nr " + nr + ")");
+				return false;
+			}
+
+			if (info.Received[nr] == true)
+			{
+				// duplicate fragment
+				return false;
+			}
+
+			// insert data
+			int offset = nr * info.FragmentSize;
+
+			if (im.m_data.Length < offset + payloadLength)
+				Array.Resize<byte>(ref im.m_data, offset + payloadLength);
+
+			Buffer.BlockCopy(m_owner.m_receiveBuffer, ptr, im.m_data, offset, payloadLength);
+
+			im.m_bitLength = (8 * (offset + payloadLength));
+
+			info.Received[nr] = true;
+			info.TotalReceived++;
+
+			return info.TotalReceived >= info.TotalFragmentCount;
 		}
 
 		internal void HandleLibraryMessage(double now, NetMessageLibraryType libType, int ptr, int payloadLength)
