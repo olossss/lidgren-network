@@ -47,11 +47,19 @@ namespace Lidgren.Network
 		internal NetFragmentationInfo m_fragmentationInfo;
 
 		/// <summary>
-		/// Gets the length of the data in bytes
+		/// Gets the length of the data in number of bytes
 		/// </summary>
 		public int LengthBytes
 		{
 			get { return ((m_bitLength + 7) >> 3); }
+		}
+
+		/// <summary>
+		/// Gets the length of the data in number of bits
+		/// </summary>
+		public int LengthBits
+		{
+			get { return m_bitLength; }
 		}
 
 		/// <summary>

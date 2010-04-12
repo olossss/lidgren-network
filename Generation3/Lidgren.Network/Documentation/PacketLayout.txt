@@ -7,7 +7,7 @@ PER MESSAGE:
 
 [16 bits sequence number, if NetMessageType >= UserSequenced]
 
-8/16 bits - Payload length (variable size ushort)
+8/16 bits - Payload length in bits (variable size ushort)
 
 [16 bits fragments group id, if fragmented]
 [16 bits fragments total count, if fragmented]

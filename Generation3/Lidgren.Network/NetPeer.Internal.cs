@@ -331,11 +331,13 @@ namespace Lidgren.Network
 						sequenceNumber = 0;
 
 					// get payload length
-					int payloadLength = (int)m_receiveBuffer[ptr++];
-					if ((payloadLength & 128) == 128) // large payload
-						payloadLength = (payloadLength & 127) | (m_receiveBuffer[ptr++] << 7);
+					int payloadLengthBits = (int)m_receiveBuffer[ptr++];
+					if ((payloadLengthBits & 128) == 128) // large payload
+						payloadLengthBits = (payloadLengthBits & 127) | (m_receiveBuffer[ptr++] << 7);
 
-					if ((ptr + payloadLength) > bytesReceived)
+					int payloadLengthBytes = NetUtility.BytesToHoldBits(payloadLengthBits);
+
+					if ((ptr + payloadLengthBytes) > bytesReceived)
 					{
 						LogWarning("Malformed message from " + ipsender.ToString() + "; not enough bytes");
 						break;
@@ -356,28 +358,28 @@ namespace Lidgren.Network
 					if (msgType == NetMessageType.Library)
 					{
 						if (sender == null)
-							HandleUnconnectedLibraryMessage(libType, ptr, payloadLength, ipsender);
+							HandleUnconnectedLibraryMessage(libType, ptr, payloadLengthBits, ipsender);
 						else
-							sender.HandleLibraryMessage(now, libType, ptr, payloadLength);
+							sender.HandleLibraryMessage(now, libType, ptr, payloadLengthBits);
 					}
 					else
 					{
 						if (sender == null)
 						{
 							if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData))
-								HandleUnconnectedUserMessage(ptr, payloadLength, ipsender);
+								HandleUnconnectedUserMessage(ptr, payloadLengthBits, ipsender);
 						}
 						else
 						{
 							if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.Data))
-								sender.HandleUserMessage(now, msgType, isFragment, sequenceNumber, ptr, payloadLength);
+								sender.HandleUserMessage(now, msgType, isFragment, sequenceNumber, ptr, payloadLengthBits);
 						}
 					}
 
 					if (isFragment)
 						ptr += NetConstants.FragmentHeaderSize;
 
-					ptr += payloadLength;
+					ptr += payloadLengthBytes;
 				}
 
 				m_statistics.PacketReceived(bytesReceived, numMessagesReceived);
@@ -400,7 +402,7 @@ namespace Lidgren.Network
 			// heartbeat done
 		}
 
-		private void HandleUnconnectedLibraryMessage(NetMessageLibraryType libType, int ptr, int payloadLength, IPEndPoint senderEndpoint)
+		private void HandleUnconnectedLibraryMessage(NetMessageLibraryType libType, int ptr, int payloadLengthBits, IPEndPoint senderEndpoint)
 		{
 			VerifyNetworkThread();
 
@@ -410,6 +412,8 @@ namespace Lidgren.Network
 				return;
 			}
 
+			int payloadLengthBytes = NetUtility.BytesToHoldBits(payloadLengthBits);
+
 			//
 			// Handle Discovery
 			//
@@ -417,10 +421,10 @@ namespace Lidgren.Network
 			{
 				if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.DiscoveryRequest))
 				{
-					NetIncomingMessage dm = CreateIncomingMessage(NetIncomingMessageType.DiscoveryRequest, payloadLength);
-					if (payloadLength > 0)
-						Buffer.BlockCopy(m_receiveBuffer, ptr, dm.m_data, 0, payloadLength);
-					dm.m_bitLength = payloadLength * 8; // TODO: fix this - exact number of bits
+					NetIncomingMessage dm = CreateIncomingMessage(NetIncomingMessageType.DiscoveryRequest, payloadLengthBytes);
+					if (payloadLengthBytes > 0)
+						Buffer.BlockCopy(m_receiveBuffer, ptr, dm.m_data, 0, payloadLengthBytes);
+					dm.m_bitLength = payloadLengthBits;
 					dm.m_senderEndpoint = senderEndpoint;
 					ReleaseMessage(dm);
 				}
@@ -431,10 +435,10 @@ namespace Lidgren.Network
 			{
 				if (m_configuration.IsMessageTypeEnabled(NetIncomingMessageType.DiscoveryResponse))
 				{
-					NetIncomingMessage dr = CreateIncomingMessage(NetIncomingMessageType.DiscoveryResponse, payloadLength);
-					if (payloadLength > 0)
-						Buffer.BlockCopy(m_receiveBuffer, ptr, dr.m_data, 0, payloadLength);
-					dr.m_bitLength = payloadLength * 8; // TODO: fix this - exact number of bits
+					NetIncomingMessage dr = CreateIncomingMessage(NetIncomingMessageType.DiscoveryResponse, payloadLengthBytes);
+					if (payloadLengthBytes > 0)
+						Buffer.BlockCopy(m_receiveBuffer, ptr, dr.m_data, 0, payloadLengthBytes);
+					dr.m_bitLength = payloadLengthBits;
 					dr.m_senderEndpoint = senderEndpoint;
 					ReleaseMessage(dr);
 				}
@@ -458,10 +462,10 @@ namespace Lidgren.Network
 			{
 				NetIncomingMessage reader = new NetIncomingMessage();
 
-				reader.m_data = GetStorage(payloadLength);
-				Buffer.BlockCopy(m_receiveBuffer, ptr, reader.m_data, 0, payloadLength);
-				ptr += payloadLength;
-				reader.m_bitLength = payloadLength * 8;
+				reader.m_data = GetStorage(payloadLengthBytes);
+				Buffer.BlockCopy(m_receiveBuffer, ptr, reader.m_data, 0, payloadLengthBytes);
+				ptr += payloadLengthBytes;
+				reader.m_bitLength = payloadLengthBits;
 				appIdent = reader.ReadString();
 				remoteUniqueIdentifier = reader.ReadInt64();
 
@@ -514,11 +518,12 @@ namespace Lidgren.Network
 			return;
 		}
 
-		private void HandleUnconnectedUserMessage(int ptr, int payloadLength, IPEndPoint senderEndpoint)
+		private void HandleUnconnectedUserMessage(int ptr, int payloadLengthBits, IPEndPoint senderEndpoint)
 		{
 			VerifyNetworkThread();
 
-			NetIncomingMessage ium = CreateIncomingMessage(NetIncomingMessageType.UnconnectedData, m_receiveBuffer, ptr, payloadLength);
+			NetIncomingMessage ium = CreateIncomingMessage(NetIncomingMessageType.UnconnectedData, m_receiveBuffer, ptr, NetUtility.BytesToHoldBits(payloadLengthBits));
+			ium.m_bitLength = payloadLengthBits;
 			ium.m_senderEndpoint = senderEndpoint;
 			ReleaseMessage(ium);
 		}

@@ -136,13 +136,13 @@ namespace Lidgren.Network
 			msg.m_nextResendTime = now + baseTimes[numSends] + (m_averageRoundtripTime * multiplers[numSends]);
 		}
 
-		private void HandleIncomingAcks(int ptr, int payloadLength)
+		private void HandleIncomingAcks(int ptr, int payloadByteLength)
 		{
 			m_owner.VerifyNetworkThread();
 
-			int numAcks = payloadLength / 3;
-			if (numAcks * 3 != payloadLength)
-				m_owner.LogWarning("Malformed ack message; payload length is " + payloadLength);
+			int numAcks = payloadByteLength / 3;
+			if (numAcks * 3 != payloadByteLength)
+				m_owner.LogWarning("Malformed ack message; payload length is " + payloadByteLength);
 
 			byte[] buffer = m_owner.m_receiveBuffer;
 			for (int i = 0; i < numAcks; i++)
