@@ -73,7 +73,6 @@ namespace Lidgren.Network
 		/// Creates a new message for sending
 		/// </summary>
 		/// <param name="initialCapacity">initial capacity in bytes</param>
-		/// <returns></returns>
 		public NetOutgoingMessage CreateMessage(int initialCapacity)
 		{
 			NetOutgoingMessage retval = m_outgoingMessagesPool.TryDequeue();

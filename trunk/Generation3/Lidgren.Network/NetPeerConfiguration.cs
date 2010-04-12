@@ -235,7 +235,12 @@ namespace Lidgren.Network
 		public int MaximumTransmissionUnit
 		{
 			get { return m_maximumTransmissionUnit; }
-			set { m_maximumTransmissionUnit = value; }
+			set
+			{
+				if (value < 1 || value >= 4096)
+					throw new NetException("MaximumTransmissionUnit must be between 1 and 4095 bytes");
+				m_maximumTransmissionUnit = value;
+			}
 		}
 
 		/// <summary>

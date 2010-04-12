@@ -133,7 +133,7 @@ namespace Lidgren.Network
 			m_connectionInitiator = false;
 		}
 
-		private void HandleIncomingHandshake(NetMessageLibraryType ltp, int ptr, int payloadBytesLength)
+		private void HandleIncomingHandshake(NetMessageLibraryType ltp, int ptr, int payloadBitsLength)
 		{
 			m_owner.VerifyNetworkThread();
 
@@ -152,7 +152,7 @@ namespace Lidgren.Network
 
 					if (m_status == NetConnectionStatus.Connecting)
 					{
-						m_owner.m_statistics.m_bytesAllocated += payloadBytesLength;
+						m_owner.m_statistics.m_bytesAllocated += NetUtility.BytesToHoldBits(payloadBitsLength);
 
 						float remoteNetTime = BitConverter.ToSingle(m_owner.m_receiveBuffer, ptr);
 						ptr += 4;
@@ -191,7 +191,8 @@ namespace Lidgren.Network
 					break;
 				case NetMessageLibraryType.Disconnect:
 					// extract bye message
-					NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, payloadBytesLength);
+					NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, NetUtility.BytesToHoldBits(payloadBitsLength));
+					im.m_bitLength = payloadBitsLength;
 					m_disconnectByeMessage = im.ReadString();
 					FinishDisconnect();
 					break;

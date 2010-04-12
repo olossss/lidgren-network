@@ -218,7 +218,7 @@ namespace Lidgren.Network
 			}
 		}
 
-		internal void HandleUserMessage(double now, NetMessageType mtp, bool isFragment, ushort channelSequenceNumber, int ptr, int payloadLength)
+		internal void HandleUserMessage(double now, NetMessageType mtp, bool isFragment, ushort channelSequenceNumber, int ptr, int payloadLengthBits)
 		{
 			m_owner.VerifyNetworkThread();
 
@@ -231,7 +231,7 @@ namespace Lidgren.Network
 				//
 				if (ndm == NetDeliveryMethod.Unreliable)
 				{
-					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
+					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLengthBits);
 					return;
 				}
 
@@ -242,7 +242,7 @@ namespace Lidgren.Network
 				{
 					bool reject = ReceivedSequencedMessage(mtp, channelSequenceNumber);
 					if (!reject)
-						AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
+						AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLengthBits);
 					return;
 				}
 
@@ -259,7 +259,7 @@ namespace Lidgren.Network
 				{
 					bool reject = ReceivedSequencedMessage(mtp, channelSequenceNumber);
 					if (!reject)
-						AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
+						AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLengthBits);
 					return;
 				}
 
@@ -278,7 +278,7 @@ namespace Lidgren.Network
 				if (diff == 0)
 				{
 					// Expected sequence number
-					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
+					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLengthBits);
 				
 					ExpectedReliableSequenceArrived(reliableSlot);
 					return;
@@ -317,7 +317,7 @@ namespace Lidgren.Network
 
 				if (ndm == NetDeliveryMethod.ReliableUnordered)
 				{
-					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLength);
+					AcceptMessage(mtp, isFragment, channelSequenceNumber, ptr, payloadLengthBits);
 					return;
 				}
 
@@ -337,7 +337,8 @@ namespace Lidgren.Network
 				}
 
 				// create message
-				NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, payloadLength);
+				NetIncomingMessage im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, m_owner.m_receiveBuffer, ptr, NetUtility.BytesToHoldBits(payloadLengthBits));
+				im.m_bitLength = payloadLengthBits;
 				im.m_messageType = mtp;
 				im.m_sequenceNumber = channelSequenceNumber;
 				im.m_senderConnection = this;
@@ -361,10 +362,11 @@ namespace Lidgren.Network
 			}
 		}
 
-		private void AcceptMessage(NetMessageType mtp, bool isFragment, ushort seqNr, int ptr, int payloadLength)
+		private void AcceptMessage(NetMessageType mtp, bool isFragment, ushort seqNr, int ptr, int payloadLengthBits)
 		{
 			byte[] buffer = m_owner.m_receiveBuffer;
 			NetIncomingMessage im;
+			int bytesLen = NetUtility.BytesToHoldBits(payloadLengthBits);
 
 			if (isFragment)
 			{
@@ -376,7 +378,7 @@ namespace Lidgren.Network
 				if (!m_fragmentGroups.TryGetValue(fragmentGroup, out im))
 				{
 					// new fragmented message
-					int estLength = fragmentTotalCount * payloadLength;
+					int estLength = fragmentTotalCount * bytesLen;
 
 					im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, estLength);
 					im.m_messageType = mtp;
@@ -386,13 +388,13 @@ namespace Lidgren.Network
 					NetFragmentationInfo info = new NetFragmentationInfo();
 					info.TotalFragmentCount = fragmentTotalCount;
 					info.Received = new bool[fragmentTotalCount];
-					info.FragmentSize = payloadLength;
+					info.FragmentSize = bytesLen;
 					im.m_fragmentationInfo = info;
 					m_fragmentGroups[fragmentGroup] = im;
 				}
 
 				// insert this fragment at correct position
-				bool done = InsertFragment(im, fragmentNr, ptr, payloadLength);
+				bool done = InsertFragment(im, fragmentNr, ptr, bytesLen);
 				if (!done)
 					return;
 
@@ -402,7 +404,8 @@ namespace Lidgren.Network
 			else
 			{
 				// non-fragmented - release to application
-				im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, buffer, ptr, payloadLength);
+				im = m_owner.CreateIncomingMessage(NetIncomingMessageType.Data, buffer, ptr, bytesLen);
+				im.m_bitLength = payloadLengthBits;
 				im.m_messageType = mtp;
 				im.m_sequenceNumber = seqNr;
 				im.m_senderConnection = this;
@@ -445,7 +448,7 @@ namespace Lidgren.Network
 			return info.TotalReceived >= info.TotalFragmentCount;
 		}
 
-		internal void HandleLibraryMessage(double now, NetMessageLibraryType libType, int ptr, int payloadLength)
+		internal void HandleLibraryMessage(double now, NetMessageLibraryType libType, int ptr, int payloadLengthBits)
 		{
 			m_owner.VerifyNetworkThread();
 
@@ -458,19 +461,19 @@ namespace Lidgren.Network
 				case NetMessageLibraryType.ConnectResponse:
 				case NetMessageLibraryType.ConnectionEstablished:
 				case NetMessageLibraryType.Disconnect:
-					HandleIncomingHandshake(libType, ptr, payloadLength);
+					HandleIncomingHandshake(libType, ptr, payloadLengthBits);
 					break;
 				case NetMessageLibraryType.KeepAlive:
 					// no operation, we just want the acks
 					break;
 				case NetMessageLibraryType.Ping:
-					if (payloadLength > 0)
+					if (NetUtility.BytesToHoldBits(payloadLengthBits) > 0)
 						HandleIncomingPing(m_owner.m_receiveBuffer[ptr]);
 					else
 						m_owner.LogWarning("Received malformed ping");
 					break;
 				case NetMessageLibraryType.Pong:
-					if (payloadLength == 9)
+					if (payloadLengthBits == (9 * 8))
 					{
 						byte pingNr = m_owner.m_receiveBuffer[ptr++];
 						double remoteNetTime = BitConverter.ToDouble(m_owner.m_receiveBuffer, ptr);
@@ -482,7 +485,7 @@ namespace Lidgren.Network
 					}
 					break;
 				case NetMessageLibraryType.Acknowledge:
-					HandleIncomingAcks(ptr, payloadLength);
+					HandleIncomingAcks(ptr, NetUtility.BytesToHoldBits(payloadLengthBits));
 					break;
 				default:
 					throw new NotImplementedException("Unhandled library type: " + libType);
@@ -524,7 +527,7 @@ namespace Lidgren.Network
 			}
 
 #if DEBUG
-			if (msg.m_type < NetMessageType.UserReliableSequenced)
+			if ((int)msg.m_type < (int)NetMessageType.UserReliableUnordered)
 			{
 				// unreliable
 				m_owner.LogWarning("Sending more than MTU (currently " + mtu + ") bytes unreliably is not recommended!");

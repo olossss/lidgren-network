@@ -74,15 +74,15 @@ namespace Lidgren.Network
 			int maxAcks = maxBytesPayload / 3;
 			int acksToEncode = (acks.Count < maxAcks ? acks.Count : maxAcks);
 
-			int msgPayloadLength = acksToEncode * 3;
-			if (msgPayloadLength < 127)
+			int payloadBitsLength = acksToEncode * 3 * 8;
+			if (payloadBitsLength < 127)
 			{
-				buffer[ptr++] = (byte)msgPayloadLength;
+				buffer[ptr++] = (byte)payloadBitsLength;
 			}
 			else
 			{
-				buffer[ptr++] = (byte)((msgPayloadLength & 127) | 128);
-				buffer[ptr++] = (byte)(msgPayloadLength >> 7);
+				buffer[ptr++] = (byte)((payloadBitsLength & 127) | 128);
+				buffer[ptr++] = (byte)(payloadBitsLength >> 7);
 			}
 
 			for (int i = 0; i < acksToEncode; i++)
@@ -116,16 +116,20 @@ namespace Lidgren.Network
 			}
 
 			// payload length
-			int msgPayloadLength = LengthBytes;
-			NetException.Assert(msgPayloadLength < 32768);
-			if (msgPayloadLength < 127)
+			int payloadBitsLength = LengthBits;
+			int payloadBytesLength = NetUtility.BytesToHoldBits(payloadBitsLength);
+			if (payloadBitsLength < 127)
 			{
-				buffer[ptr++] = (byte)msgPayloadLength;
+				buffer[ptr++] = (byte)payloadBitsLength;
+			}
+			else if (payloadBitsLength < 32768)
+			{
+				buffer[ptr++] = (byte)((payloadBitsLength & 127) | 128);
+				buffer[ptr++] = (byte)(payloadBitsLength >> 7);
 			}
 			else
 			{
-				buffer[ptr++] = (byte)((msgPayloadLength & 127) | 128);
-				buffer[ptr++] = (byte)(msgPayloadLength >> 7);
+				throw new NetException("Packet content too large; 4095 bytes maximum");
 			}
 
 			// fragmentation info
@@ -140,10 +144,13 @@ namespace Lidgren.Network
 			}
 
 			// payload
-			if (msgPayloadLength > 0)
+			if (payloadBitsLength > 0)
 			{
-				Buffer.BlockCopy(m_data, 0, buffer, ptr, msgPayloadLength);
-				ptr += msgPayloadLength;
+				// zero out last byte
+				buffer[ptr + payloadBytesLength] = 0;
+
+				Buffer.BlockCopy(m_data, 0, buffer, ptr, payloadBytesLength);
+				ptr += payloadBytesLength;
 			}
 
 			m_numSends++;
