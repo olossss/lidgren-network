@@ -37,6 +37,8 @@ namespace DurableServer
 
 			Application.Idle += new EventHandler(AppLoop);
 			Application.Run(MainForm);
+
+			Server.Shutdown("App exiting");
 		}
 
 		private static void Display(string text)
@@ -126,7 +128,10 @@ namespace DurableServer
 		{
 			if (Server.ConnectionsCount < 1)
 			{
-				MainForm.label1.Text = "No connections";
+				// don't update! Keep old...
+				const string oldData = "(Note: OLD DATA - NO CONNECTIONS NOW)";
+				if (!MainForm.label1.Text.EndsWith(oldData))
+					MainForm.label1.Text += oldData;
 			}
 			else
 			{

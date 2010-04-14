@@ -23,7 +23,7 @@ using System.Net;
 
 namespace Lidgren.Network
 {
-	[DebuggerDisplay("LengthBytes={LengthBytes}")]
+	[DebuggerDisplay("LengthBits={LengthBits}")]
 	public sealed partial class NetOutgoingMessage
 	{
 		// reference count before message can be recycled

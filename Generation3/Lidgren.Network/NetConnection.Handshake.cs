@@ -103,6 +103,28 @@ namespace Lidgren.Network
 			return;
 		}
 
+		internal void SendConnectResponse()
+		{
+			m_owner.LogVerbose("Sending LibraryConnectResponse");
+			NetOutgoingMessage reply = m_owner.CreateMessage(4);
+			reply.m_type = NetMessageType.Library;
+			reply.m_libType = NetMessageLibraryType.ConnectResponse;
+			reply.Write((float)NetTime.Now);
+			
+			m_owner.SendImmediately(this, reply);
+		}
+
+		internal void SendConnectionEstablished()
+		{
+			m_owner.LogVerbose("Sending LibraryConnectionEstablished");
+			NetOutgoingMessage ce = m_owner.CreateMessage(4);
+			ce.m_type = NetMessageType.Library;
+			ce.m_libType = NetMessageLibraryType.ConnectionEstablished;
+			ce.Write((float)NetTime.Now);
+
+			m_owner.SendImmediately(this, ce);
+		}
+
 		internal void ExecuteDisconnect(bool sendByeMessage)
 		{
 			m_owner.VerifyNetworkThread();
@@ -140,7 +162,14 @@ namespace Lidgren.Network
 			switch (ltp)
 			{
 				case NetMessageLibraryType.Connect:
-					m_owner.LogError("NetConnection.HandleIncomingHandshake() passed LibraryConnect!?");
+					if (m_status == NetConnectionStatus.Connecting)
+					{
+						// our connectresponse must have been lost, send another one
+						SendConnectResponse();
+						return;
+					}
+
+					m_owner.LogError("NetConnection.HandleIncomingHandshake() passed LibraryConnect but status is " + m_status + "!?");
 					break;
 				case NetMessageLibraryType.ConnectResponse:
 					if (!m_connectionInitiator)
@@ -160,16 +189,17 @@ namespace Lidgren.Network
 						// excellent, handshake making progress; send connectionestablished
 						SetStatus(NetConnectionStatus.Connected, "Connected");
 
-						m_owner.LogVerbose("Sending LibraryConnectionEstablished");
-						NetOutgoingMessage ce = m_owner.CreateMessage(4);
-						ce.m_type = NetMessageType.Library;
-						ce.m_libType = NetMessageLibraryType.ConnectionEstablished;
-						ce.Write((float)NetTime.Now);
-
-						m_owner.SendImmediately(this, ce);
+						SendConnectionEstablished();
 
 						// setup initial ping estimation
 						InitializeLatency((float)(NetTime.Now - m_connectInitationTime), remoteNetTime);
+						return;
+					}
+
+					if (m_status == NetConnectionStatus.Connected)
+					{
+						// received (another) connectresponse; our connectionestablished must have been lost, send another one
+						SendConnectionEstablished();
 						return;
 					}
 
