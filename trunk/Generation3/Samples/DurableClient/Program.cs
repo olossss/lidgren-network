@@ -29,6 +29,8 @@ namespace DurableClient
 
 			Application.Idle += new EventHandler(AppLoop);
 			Application.Run(MainForm);
+
+			Client.Shutdown("App exiting");
 		}
 
 		public static void Display(string text)

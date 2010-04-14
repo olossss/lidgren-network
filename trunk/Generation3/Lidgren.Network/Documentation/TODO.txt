@@ -11,6 +11,6 @@ Completed features:
 Missing features:
 * Message fragmentation 50% done
 * Receipts 25% done, need design
-* Resending of lost handshake (connect/response/established) packets
+* Resending of lost handshake (connect/response/established) packets (50% done)
 
 

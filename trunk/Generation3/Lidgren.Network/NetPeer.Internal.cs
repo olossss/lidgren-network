@@ -538,13 +538,8 @@ namespace Lidgren.Network
 			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
 
 			// send connection response
-			LogVerbose("Sending LibraryConnectResponse");
-			NetOutgoingMessage reply = CreateMessage(4);
-			reply.m_type = NetMessageType.Library;
-			reply.m_libType = NetMessageLibraryType.ConnectResponse;
-			reply.Write((float)NetTime.Now);
+			conn.SendConnectResponse();
 
-			SendImmediately(conn, reply);
 			conn.m_connectInitationTime = NetTime.Now;
 
 			return;
