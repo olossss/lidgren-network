@@ -60,7 +60,7 @@ namespace DurableServer
 			while (NativeMethods.AppStillIdle)
 			{
 				NetIncomingMessage msg;
-				while ((msg = Server.WaitMessage(100)) != null)
+				while ((msg = Server.ReadMessage()) != null)
 				{
 					switch (msg.MessageType)
 					{
@@ -111,6 +111,7 @@ namespace DurableServer
 					}
 					Server.Recycle(msg);
 				}
+				Thread.Sleep(0);
 
 				double now = NetTime.Now;
 				if (now > m_lastLabelUpdate + kLabelUpdateFrequency)
