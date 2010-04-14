@@ -356,7 +356,6 @@ namespace Lidgren.Network
 				throw new NetException("Message generated exception: " + ex, ex);
 #else
 				m_owner.LogError("Message generated exception: " + ex);
-				ptr += payloadLength;
 				return;
 #endif
 			}

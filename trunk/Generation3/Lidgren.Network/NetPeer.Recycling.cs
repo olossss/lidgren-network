@@ -24,13 +24,13 @@ namespace Lidgren.Network
 {
 	public partial class NetPeer
 	{
-		private List<byte[]> m_storagePool;
+		private List<byte[]> m_storagePool = new List<byte[]>();
 		private NetQueue<NetIncomingMessage> m_incomingMessagesPool = new NetQueue<NetIncomingMessage>(16);
 		private NetQueue<NetOutgoingMessage> m_outgoingMessagesPool = new NetQueue<NetOutgoingMessage>(16);
 
 		private void InitializeRecycling()
 		{
-			m_storagePool = new List<byte[]>();
+			m_storagePool.Clear();
 			m_incomingMessagesPool.Clear();
 			m_outgoingMessagesPool.Clear();
 		}
