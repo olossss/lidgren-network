@@ -64,7 +64,7 @@ namespace Lidgren.Network
 				if (now - m_lastPongReceived > m_owner.Configuration.TimeoutDelay)
 				{
 					// Time out!
-					Disconnect("Connection timed out", 1.0f, true, true);
+					Disconnect("Connection timed out; no pong for " + (now - m_lastPongReceived) + " seconds", 1.0f, true, true);
 					return;
 				}
 
