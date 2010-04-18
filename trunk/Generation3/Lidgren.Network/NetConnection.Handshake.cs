@@ -63,7 +63,6 @@ namespace Lidgren.Network
 					break;
 				case NetConnectionStatus.Connecting:
 				case NetConnectionStatus.None:
-					// just send connect, regardless of who was previous initiator
 					break;
 				case NetConnectionStatus.Disconnected:
 					throw new NetException("This connection is Disconnected; spent. A new one should have been created");
@@ -77,7 +76,7 @@ namespace Lidgren.Network
 
 			// start handshake
 
-			int len = 2 + m_owner.m_macAddressBytes.Length;
+			int len = 2 + m_peerConfiguration.AppIdentifier.Length + 8 + 4 + (m_approvalMessage == null ? 0 : m_approvalMessage.LengthBytes);
 			NetOutgoingMessage om = m_owner.CreateMessage(len);
 			om.m_type = NetMessageType.Library;
 			om.m_libType = NetMessageLibraryType.Connect;
@@ -105,23 +104,23 @@ namespace Lidgren.Network
 
 		internal void SendConnectResponse()
 		{
-			m_owner.LogVerbose("Sending LibraryConnectResponse");
 			NetOutgoingMessage reply = m_owner.CreateMessage(4);
 			reply.m_type = NetMessageType.Library;
 			reply.m_libType = NetMessageLibraryType.ConnectResponse;
 			reply.Write((float)NetTime.Now);
-			
+
+			m_owner.LogVerbose("Sending LibraryConnectResponse");
 			m_owner.SendImmediately(this, reply);
 		}
 
 		internal void SendConnectionEstablished()
 		{
-			m_owner.LogVerbose("Sending LibraryConnectionEstablished");
 			NetOutgoingMessage ce = m_owner.CreateMessage(4);
 			ce.m_type = NetMessageType.Library;
 			ce.m_libType = NetMessageLibraryType.ConnectionEstablished;
 			ce.Write((float)NetTime.Now);
 
+			m_owner.LogVerbose("Sending LibraryConnectionEstablished");
 			m_owner.SendImmediately(this, ce);
 		}
 

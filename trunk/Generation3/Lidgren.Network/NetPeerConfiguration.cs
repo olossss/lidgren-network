@@ -37,13 +37,18 @@ namespace Lidgren.Network
 		internal int m_receiveBufferSize, m_sendBufferSize;
 		internal int m_defaultOutgoingMessageCapacity;
 		internal int m_maximumTransmissionUnit;
-		internal float m_keepAliveDelay;
-		internal float m_connectionTimeout;
 		internal int m_maximumConnections;
 		internal NetIncomingMessageType m_disabledTypes;
-		internal float m_pingFrequency;
 		internal int m_throttleBytesPerSecond;
 		internal int m_throttlePeakBytes;
+		internal int m_maxRecycledBytesKept;
+
+		// handshake, timeout and keepalive
+		internal float m_handshakeAttemptDelay;
+		internal int m_handshakeMaxAttempts;
+		internal float m_keepAliveDelay;
+		internal float m_connectionTimeout;
+		internal float m_pingFrequency;
 
 		// reliability
 		internal float[] m_resendRTTMultiplier;
@@ -77,6 +82,9 @@ namespace Lidgren.Network
 			m_throttleBytesPerSecond = 1024 * 512;
 			m_throttlePeakBytes = 8192;
 			m_maxAckDelayTime = 0.01f;
+			m_handshakeAttemptDelay = 1.0f;
+			m_handshakeMaxAttempts = 7;
+			m_maxRecycledBytesKept = 128 * 1024;
 
 			m_loss = 0.0f;
 			m_minimumOneWayLatency = 0.0f;
@@ -391,6 +399,38 @@ namespace Lidgren.Network
 				m_throttlePeakBytes = value;
 				if (m_throttlePeakBytes < m_maximumTransmissionUnit)
 					throw new NetException("ThrottlePeakBytes can not be lower than MaximumTransmissionUnit");
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the number between handshake attempts in seconds
+		/// </summary>
+		public float HandshakeAttemptDelay
+		{
+			get { return m_handshakeAttemptDelay; }
+			set { m_handshakeAttemptDelay = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets the maximum number of handshake attempts before declaring failure to shake hands
+		/// </summary>
+		public int HandshakeMaxAttempts
+		{
+			get { return m_handshakeMaxAttempts; }
+			set { m_handshakeMaxAttempts = value; }
+		}
+
+		/// <summary>
+		/// Gets or sets the maximum number of bytes kept in the recycle pool. Cannot be changed once NetPeer is initialized.
+		/// </summary>
+		public int MaxRecycledBytesKept
+		{
+			get { return m_maxRecycledBytesKept; }
+			set
+			{
+				if (m_isLocked)
+					throw new NetException(c_isLockedMessage);
+				m_maxRecycledBytesKept = value;
 			}
 		}
 	}

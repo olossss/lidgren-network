@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Text;
 
 namespace Lidgren.Network
 {
@@ -160,7 +161,20 @@ namespace Lidgren.Network
 
 		public override string ToString()
 		{
-			return "[NetOutgoingMessage " + m_type + (m_type == NetMessageType.Library ? "|" + m_libType : "") + " #" + m_sequenceNumber + " sent " + m_numSends + " times]";
+			StringBuilder bdr = new StringBuilder();
+			bdr.Append("[NetOutgoingMessage ");
+			bdr.Append(m_type.ToString());
+			if (m_type == NetMessageType.Library)
+			{
+				bdr.Append('|');
+				bdr.Append(m_libType.ToString());
+			}
+			bdr.Append(" #");
+			bdr.Append(m_sequenceNumber);
+			bdr.Append(" sent ");
+			bdr.Append(m_numSends);
+			bdr.Append(" times]");
+			return bdr.ToString();
 		}
 	}
 }

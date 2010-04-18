@@ -112,7 +112,12 @@ namespace Lidgren.Network
 
 		public override string ToString()
 		{
-			return "[NetIncomingMessage " + m_incomingType + ", " + m_messageType + "|" + m_sequenceNumber + ", " + m_bitLength + " bits]";
+			return String.Format("[NetIncomingMessage {0}, {1}|{2}, {3} bits]",
+				m_incomingType,
+				m_messageType,
+				m_sequenceNumber,
+				m_bitLength
+			);
 		}
 	}
 }
