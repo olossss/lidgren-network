@@ -7,10 +7,11 @@ Completed features:
 * Throttling
 * Clock synchronization to detect jitter per packet (NetTime.RemoteNow)
 * Peer discovery
+* Message fragmentation
 
 Missing features:
-* Message fragmentation 50% done
 * Receipts 25% done, need design
 * Resending of lost handshake (connect/response/established) packets (50% done)
+* Realistic lag/loss
 
 

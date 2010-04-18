@@ -38,6 +38,18 @@ namespace Lidgren.Network
 
 		private NetBitVector[] m_reliableReceived;
 
+		public int GetStoredMessagesCount()
+		{
+			int retval = 0;
+			for (int i = 0; i < m_storedMessages.Length; i++)
+			{
+				List<NetOutgoingMessage> list = m_storedMessages[i];
+				if (list != null)
+					retval += list.Count;
+			}
+			return retval;
+		}
+
 		private void InitializeReliability()
 		{
 			int num = ((int)NetMessageType.UserReliableOrdered + NetConstants.NetChannelsPerDeliveryMethod) - (int)NetMessageType.UserSequenced;

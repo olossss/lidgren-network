@@ -19,6 +19,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Lidgren.Network
 {
@@ -49,7 +50,12 @@ namespace Lidgren.Network
 			double currentRemoteNetTime = remoteNetTime - (rtt * 0.5);
 			m_remoteToLocalNetTime = (float)(NetTime.Now - currentRemoteNetTime);
 
-			m_owner.LogDebug("Initialized average roundtrip time to: " + NetTime.ToReadable(m_averageRoundtripTime) + " remote time diff to " + NetTime.ToReadable(m_remoteToLocalNetTime));
+			StringBuilder bdr = new StringBuilder();
+			bdr.Append("Initialized average roundtrip time to: ");
+			bdr.Append(NetTime.ToReadable(m_averageRoundtripTime));
+			bdr.Append(" remote time diff to ");
+			bdr.Append(NetTime.ToReadable(m_remoteToLocalNetTime));
+			m_owner.LogDebug(bdr.ToString());
 		}
 
 		internal void HandleIncomingPing(byte pingNumber)
@@ -118,7 +124,7 @@ namespace Lidgren.Network
 
 			// timeout
 			if (now > m_lastSendRespondedTo + m_peerConfiguration.m_connectionTimeout)
-				Disconnect("Timed out");
+				Disconnect("Timed out after " + (now - m_lastSendRespondedTo) + " seconds");
 
 			// ping time?
 			if (now > m_nextPing)

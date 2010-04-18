@@ -92,6 +92,12 @@ namespace Lidgren.Network
 			bdr.AppendLine("Average roundtrip time: " + NetTime.ToReadable(m_connection.m_averageRoundtripTime));
 			bdr.AppendLine("Sent " + m_sentBytes + " bytes in " + m_sentMessages + " messages in " + m_sentPackets + " packets");
 			bdr.AppendLine("Received " + m_receivedBytes + " bytes in " + m_receivedMessages + " messages in " + m_receivedPackets + " packets");
+			int numUnsent = m_connection.m_unsentMessages.Count;
+			if (numUnsent > 0)
+				bdr.AppendLine("Unsent messages: " + numUnsent);
+			int numStored = m_connection.GetStoredMessagesCount();
+			if (numStored > 0)
+				bdr.AppendLine("Stored messages: " + numStored);
 			return bdr.ToString();
 		}
 	}

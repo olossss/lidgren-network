@@ -41,6 +41,7 @@ namespace Lidgren.Network
 		private int m_nextFragmentGroupId;
 		internal long m_remoteUniqueIdentifier;
 		private Dictionary<int, NetIncomingMessage> m_fragmentGroups;
+		private int m_handshakeAttempts;
 
 		internal PendingConnectionStatus m_pendingStatus = PendingConnectionStatus.NotPending;
 		internal string m_pendingDenialReason;
@@ -104,6 +105,20 @@ namespace Lidgren.Network
 
 				if (m_connectRequested)
 					SendConnect();
+
+				if (m_status == NetConnectionStatus.Connecting && now - m_connectInitationTime > m_owner.m_configuration.m_handshakeAttemptDelay)
+				{
+					if (m_connectionInitiator)
+						SendConnect();
+					else
+						SendConnectResponse();
+
+					if (++m_handshakeAttempts >= m_owner.m_configuration.m_handshakeMaxAttempts)
+					{
+						Disconnect("Failed to complete handshake; initiated " + (now - m_connectInitationTime) + " seconds ago");
+						return;
+					}
+				}
 
 				// queue resends
 				if (!m_storedMessagesNotEmpty.IsEmpty())

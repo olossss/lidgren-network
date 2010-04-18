@@ -24,6 +24,8 @@ namespace Lidgren.Network
 {
 	public partial class NetPeer
 	{
+		internal int m_storedBytes;
+		private int m_maxStoredBytes;
 		private List<byte[]> m_storagePool = new List<byte[]>();
 		private NetQueue<NetIncomingMessage> m_incomingMessagesPool = new NetQueue<NetIncomingMessage>(16);
 		private NetQueue<NetOutgoingMessage> m_outgoingMessagesPool = new NetQueue<NetOutgoingMessage>(16);
@@ -31,6 +33,8 @@ namespace Lidgren.Network
 		private void InitializeRecycling()
 		{
 			m_storagePool.Clear();
+			m_storedBytes = 0;
+			m_maxStoredBytes = m_configuration.m_maxRecycledBytesKept;
 			m_incomingMessagesPool.Clear();
 			m_outgoingMessagesPool.Clear();
 		}
@@ -52,6 +56,7 @@ namespace Lidgren.Network
 					if (retval.Length >= requiredBytes)
 					{
 						m_storagePool.RemoveAt(i);
+						m_storedBytes -= retval.Length;
 						return retval;
 					}
 				}
@@ -113,6 +118,9 @@ namespace Lidgren.Network
 					if (m_storagePool.Contains(msg.m_data))
 						throw new NetException("Storage pool object recycled twice!");
 #endif
+					m_storedBytes += msg.m_data.Length;
+					if (m_storedBytes > m_maxStoredBytes)
+						ReduceStoragePool();
 					m_storagePool.Add(msg.m_data);
 				}
 				msg.m_data = null;
@@ -157,11 +165,38 @@ namespace Lidgren.Network
 				lock (m_storagePool)
 				{
 					if (!m_storagePool.Contains(msg.m_data))
+					{
+						m_storedBytes += msg.m_data.Length;
+						if (m_storedBytes > m_maxStoredBytes)
+							ReduceStoragePool();
 						m_storagePool.Add(msg.m_data);
+					}
 				}
 				msg.m_data = null;
 			}
 			m_outgoingMessagesPool.Enqueue(msg);
+		}
+
+		/// <summary>
+		/// Called if m_storedBytes > m_maxStoredBytes
+		/// </summary>
+		private void ReduceStoragePool()
+		{
+			// since newly stored message at added to the end; remove from the start
+			int wasStoredBytes = m_storedBytes;
+			int reduceTo = m_maxStoredBytes / 2;
+
+			// (note: m_storagePool is locked at this point)
+			while (m_storedBytes > reduceTo && m_storagePool.Count > 0)
+			{
+				byte[] arr = m_storagePool[0];
+				m_storedBytes -= arr.Length;
+				m_storagePool.RemoveAt(0);
+			}
+
+			// done
+			LogDebug("Reduced recycled bytes pool from " + wasStoredBytes + " bytes to " + m_storedBytes + " bytes");
+			return;
 		}
 
 		/// <summary>
