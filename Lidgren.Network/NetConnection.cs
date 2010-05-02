@@ -566,7 +566,9 @@ namespace Lidgren.Network
 					Disconnect(msg.m_data.ReadString(), 0.75f + ((float)m_currentAvgRoundtrip * 4), false, false);
 					break;
 				case NetSystemType.ConnectionRejected:
-					m_owner.NotifyApplication(NetMessageType.ConnectionRejected, msg.m_data.ReadString(), msg.m_sender, msg.m_senderEndPoint);
+					string reason = msg.m_data.ReadString();
+					m_owner.NotifyApplication(NetMessageType.ConnectionRejected, reason, msg.m_sender, msg.m_senderEndPoint);
+					Disconnect(reason, 0.0f, false, true);
 					break;
 				case NetSystemType.Connect:
 
