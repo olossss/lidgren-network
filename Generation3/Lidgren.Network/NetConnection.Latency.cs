@@ -32,7 +32,6 @@ namespace Lidgren.Network
 		private byte m_lastSentPingNumber;
 		private double m_lastPingSendTime;
 		private double m_nextPing;
-		private double m_nextKeepAlive;
 		private double m_lastSendRespondedTo;
 
 		// remote + diff = local
@@ -76,7 +75,20 @@ namespace Lidgren.Network
 			// verify it´s the correct ping number
 			if (pingNumber != m_lastSentPingNumber)
 			{
-				m_owner.LogDebug("Received wrong pong number; got " + pingNumber + " expected " + m_lastSentPingNumber);
+				m_owner.LogError("Received wrong pong number; got " + pingNumber + " expected " + m_lastSentPingNumber);
+
+				// but still, a pong must have been triggered by a ping...
+				double diff = receiveNow - m_lastSendRespondedTo;
+				if (diff > 0)
+				{
+					m_lastSendRespondedTo += (diff / 2); // postpone timing out a bit
+					//m_owner.LogError("WRONG but updating to " + m_lastPingSendTime); // TODO: remove
+				}
+				else
+				{
+					//m_owner.LogError("MAJOR WRONG?! receiveNow is " + receiveNow + " m_lastSendRespondedTo is " + m_lastSendRespondedTo);
+				}
+
 				return;
 			}
 			
@@ -85,7 +97,7 @@ namespace Lidgren.Network
 			m_lastHeardFrom = now;
 			m_lastSendRespondedTo = m_lastPingSendTime;
 
-			m_nextKeepAlive = now + m_peerConfiguration.m_keepAliveDelay;
+			//m_owner.LogError("Correct pong received; updating to "+ m_lastPingSendTime); // TODO: remove
 
 			double rtt = now - m_lastPingSendTime;
 
@@ -108,26 +120,30 @@ namespace Lidgren.Network
 			if (m_status == NetConnectionStatus.Disconnected || m_status == NetConnectionStatus.None)
 				return;
 
-			if (now > m_nextKeepAlive || now > m_nextForceAckTime)
+			// in case of inactivity; send forced keepalive/ping
+			if (now > m_lastSendRespondedTo + m_peerConfiguration.m_keepAliveDelay)
+				m_nextPing = now;
+
+			// force ack sending?
+			if (now > m_nextForceAckTime)
 			{
-				// send keepalive message
-				m_owner.LogVerbose("Sending keepalive");
-
-				NetOutgoingMessage keepalive = m_owner.CreateMessage(1);
-				keepalive.m_type = NetMessageType.Library;
-				keepalive.m_libType = NetMessageLibraryType.KeepAlive;
-				EnqueueOutgoingMessage(keepalive);
-
-				m_nextKeepAlive = now + m_peerConfiguration.KeepAliveDelay;
-				m_nextForceAckTime = double.MaxValue;
+				// send keepalive thru regular channels to give acks something to piggyback on
+				NetOutgoingMessage pig = m_owner.CreateMessage(1);
+				pig.m_type = NetMessageType.Library;
+				pig.m_libType = NetMessageLibraryType.KeepAlive;
+				EnqueueOutgoingMessage(pig);
+				m_nextForceAckTime = now + m_peerConfiguration.m_maxAckDelayTime;
 			}
 
 			// timeout
 			if (now > m_lastSendRespondedTo + m_peerConfiguration.m_connectionTimeout)
+			{
 				Disconnect("Timed out after " + (now - m_lastSendRespondedTo) + " seconds");
+				return;
+			}
 
 			// ping time?
-			if (now > m_nextPing)
+			if (now >= m_nextPing)
 			{
 				//
 				// send ping

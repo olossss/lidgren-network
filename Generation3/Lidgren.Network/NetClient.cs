@@ -75,7 +75,7 @@ namespace Lidgren.Network
 			NetConnection serverConnection = ServerConnection;
 			if (serverConnection == null)
 			{
-				LogError("Cannot send message, no server connection!");
+				//LogError("Cannot send message, no server connection!");
 				return;
 			}
 			serverConnection.SendMessage(msg, method);
@@ -89,7 +89,7 @@ namespace Lidgren.Network
 			NetConnection serverConnection = ServerConnection;
 			if (serverConnection == null)
 			{
-				LogError("Cannot send message, no server connection!");
+				//LogError("Cannot send message, no server connection!");
 				return;
 			}
 			serverConnection.SendMessage(msg, method, sequenceChannel);
