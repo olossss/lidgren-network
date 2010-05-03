@@ -77,7 +77,6 @@ namespace Lidgren.Network
 
 			double now = NetTime.Now;
 			m_nextPing = now + 5.0f;
-			m_nextKeepAlive = now + 6.0f + m_peerConfiguration.m_keepAliveDelay;
 			m_nextForceAckTime = double.MaxValue;
 			m_lastSentUnsentMessages = now;
 			m_lastSendRespondedTo = now;
@@ -113,9 +112,11 @@ namespace Lidgren.Network
 					else
 						SendConnectResponse();
 
+					m_connectInitationTime = now;
+
 					if (++m_handshakeAttempts >= m_owner.m_configuration.m_handshakeMaxAttempts)
 					{
-						Disconnect("Failed to complete handshake; initiated " + (now - m_connectInitationTime) + " seconds ago");
+						Disconnect("Failed to complete handshake");
 						return;
 					}
 				}
@@ -137,6 +138,12 @@ namespace Lidgren.Network
 								}
 							}
 						}
+#if DEBUG
+						else
+						{
+							NetException.Assert(m_storedMessages[i] == null || m_storedMessages[i].Count < 1, "m_storedMessagesNotEmpty fail!");
+						}
+#endif
 					}
 				}
 			}
@@ -572,7 +579,7 @@ namespace Lidgren.Network
 
 		public void Disconnect(string byeMessage)
 		{
-			// called on user thread
+			// called on user thread (possibly)
 			if (m_status == NetConnectionStatus.None || m_status == NetConnectionStatus.Disconnected)
 				return;
 
@@ -595,7 +602,7 @@ namespace Lidgren.Network
 					}
 					catch (InvalidOperationException)
 					{
-						// ok, collection was modified, never mind then
+						// ok, collection was modified, never mind then - it was worth a shot
 					}
 				}
 			}

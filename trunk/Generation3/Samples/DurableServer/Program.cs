@@ -69,7 +69,7 @@ namespace DurableServer
 						case NetIncomingMessageType.VerboseDebugMessage:
 						case NetIncomingMessageType.DebugMessage:
 						case NetIncomingMessageType.WarningMessage:
-						case NetIncomingMessageType.Error:
+						case NetIncomingMessageType.ErrorMessage:
 							Display(msg.ReadString());
 							break;
 						case NetIncomingMessageType.ConnectionApproval:

@@ -46,8 +46,8 @@ namespace Lidgren.Network
 		// handshake, timeout and keepalive
 		internal float m_handshakeAttemptDelay;
 		internal int m_handshakeMaxAttempts;
-		internal float m_keepAliveDelay;
 		internal float m_connectionTimeout;
+		internal float m_keepAliveDelay;
 		internal float m_pingFrequency;
 
 		// reliability
@@ -74,7 +74,7 @@ namespace Lidgren.Network
 			m_port = 0;
 			m_receiveBufferSize = 131071;
 			m_sendBufferSize = 131071;
-			m_keepAliveDelay = 7.0f;
+			m_keepAliveDelay = 4.0f;
 			m_connectionTimeout = 25;
 			m_maximumConnections = 8;
 			m_defaultOutgoingMessageCapacity = 8;
@@ -106,6 +106,7 @@ namespace Lidgren.Network
 				4.0f,
 				4.0f,
 				4.0f,
+				6.0f,
 				6.0f
 			};
 
@@ -119,8 +120,9 @@ namespace Lidgren.Network
 				3.0f, // 1.5 delay
 				5.0f, // 2.0 delay
 				7.5f, // 2.5 delay
-				12.5f, // 5.0 delay, obi wan you're my only hope
-				17.5f // 5.0 delay, and yet another one
+				12.5f, // 5.0 delay
+				17.5f, // 5.0 delay
+				25.0f // 7.5 delay, obi wan you're my only hope
 			};
 
 			// Maximum transmission unit
@@ -128,8 +130,9 @@ namespace Lidgren.Network
 			// 20 bytes ip header
 			//  8 bytes udp header
 			//  5 bytes lidgren header for one message
-			// Totals 1440 minus 33 = 1407 bytes free for payload
-			m_maximumTransmissionUnit = 1407;
+			//  1 byte just to be on the safe side
+			// Totals 1440 minus 34 = 1406 bytes free for payload
+			m_maximumTransmissionUnit = 1406;
 		}
 
 		public NetPeerConfiguration Clone()
@@ -238,7 +241,7 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Gets or sets the maximum amount of bytes to send in a single packet
+		/// Gets or sets the maximum amount of bytes to send in a single packet, excluding ip, udp and lidgren headers
 		/// </summary>
 		public int MaximumTransmissionUnit
 		{
@@ -340,13 +343,15 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Gets or sets the number of seconds of inactivity before sending a dummy keepalive packet. This should be longer than ping interval.
+		/// Gets or sets the number of seconds of inactivity before sending an extra ping packet as keepalive. This should be shorter than ping interval.
 		/// </summary>
 		public float KeepAliveDelay
 		{
 			get { return m_keepAliveDelay; }
 			set
 			{
+				if (value < m_pingFrequency)
+					throw new NetException("Setting KeepAliveDelay to lower than ping frequency doesn't make sense!");
 				m_keepAliveDelay = value;
 			}
 		}

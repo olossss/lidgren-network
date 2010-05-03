@@ -73,7 +73,7 @@ namespace Lidgren.Network
 			return m_nextSendSequenceNumber[slot]++;
 		}
 
-		internal static int Relate(ushort seqNr, ushort lastReceived)
+		internal static int Relate(int seqNr, int lastReceived)
 		{
 			return (seqNr < lastReceived ? (seqNr + NetConstants.NumSequenceNumbers) - lastReceived : seqNr - lastReceived);
 		}
@@ -133,7 +133,10 @@ namespace Lidgren.Network
 				List<NetOutgoingMessage> list = m_storedMessages[reliableSlot];
 				list.Remove(msg);
 				m_owner.LogWarning("Failed to deliver reliable message " + msg);
-				return; // no more resends!
+
+				Disconnect("Failed to deliver reliable message!");
+
+				return; // bye
 			}
 
 			m_owner.LogVerbose("Resending " + msg);
@@ -182,7 +185,8 @@ namespace Lidgren.Network
 
 						NetException.Assert(om.m_lastSentTime != 0);
 
-						m_lastSendRespondedTo = om.m_lastSentTime;
+						if (om.m_lastSentTime > m_lastSendRespondedTo)
+							m_lastSendRespondedTo = om.m_lastSentTime;
 
 						if (om.m_inQueueCount < 1)
 							m_owner.Recycle(om);
@@ -242,6 +246,11 @@ namespace Lidgren.Network
 
 								foundWithheld = true;
 								withheldList.Remove(wm);
+
+								// advance next expected
+								received[(nextExpected + (NetConstants.NumSequenceNumbers / 2)) % NetConstants.NumSequenceNumbers] = false; // reset for next pass
+								nextExpected = (nextExpected + 1) % NetConstants.NumSequenceNumbers;
+
 								break;
 							}
 						}
@@ -249,10 +258,6 @@ namespace Lidgren.Network
 					if (!foundWithheld)
 						throw new NetException("Failed to find withheld message!");
 				}
-
-				// advance next expected
-				received[(nextExpected + (NetConstants.NumSequenceNumbers / 2)) % NetConstants.NumSequenceNumbers] = false; // reset for next pass
-				nextExpected = (nextExpected + 1) % NetConstants.NumSequenceNumbers;
 			}
 
 			m_nextExpectedReliableSequence[reliableSlot] = (ushort)nextExpected;

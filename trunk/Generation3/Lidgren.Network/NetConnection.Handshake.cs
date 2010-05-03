@@ -17,6 +17,7 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR TH
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 using System;
+using System.Collections.Generic;
 
 namespace Lidgren.Network
 {
@@ -144,10 +145,21 @@ namespace Lidgren.Network
 
 		private void FinishDisconnect()
 		{
+			m_owner.VerifyNetworkThread();
+
 			if (m_status == NetConnectionStatus.Disconnected || m_status == NetConnectionStatus.None)
 				return;
 
 			m_owner.LogVerbose("Finishing Disconnect(" + m_disconnectByeMessage + ")");
+
+			// release some held memory
+			if (m_storedMessages != null)
+			{
+				foreach (List<NetOutgoingMessage> oml in m_storedMessages)
+					if (oml != null)
+						oml.Clear();
+			}
+			m_acknowledgesToSend.Clear();
 
 			SetStatus(NetConnectionStatus.Disconnected, m_disconnectByeMessage);
 			m_disconnectByeMessage = null;

@@ -67,6 +67,8 @@ namespace Lidgren.Network
 
 		internal static int EncodeAcksMessage(byte[] buffer, int ptr, NetConnection conn, int maxBytesPayload)
 		{
+			// TODO: if appropriate; make bit vector of adjacent acks
+
 			buffer[ptr++] = (byte)NetMessageType.Library;
 			buffer[ptr++] = (byte)NetMessageLibraryType.Acknowledge;
 
