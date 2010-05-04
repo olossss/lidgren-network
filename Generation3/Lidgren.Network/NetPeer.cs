@@ -204,11 +204,17 @@ namespace Lidgren.Network
 			return conn;
 		}
 
+		/// <summary>
+		/// Send a message to an existing connection
+		/// </summary>
 		public bool SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetDeliveryMethod deliveryMethod)
 		{
 			return SendMessage(msg, recipient, deliveryMethod, 0);
 		}
 
+		/// <summary>
+		/// Send a message to an existing connection
+		/// </summary>
 		public bool SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetDeliveryMethod deliveryMethod, int channel)
 		{
 			if (msg.IsSent)
@@ -228,6 +234,9 @@ namespace Lidgren.Network
 			return true;
 		}
 
+		/// <summary>
+		/// Send a message to a number of existing connections
+		/// </summary>
 		public bool SendMessage(NetOutgoingMessage msg, IEnumerable<NetConnection> recipients, NetDeliveryMethod deliveryMethod, int channel)
 		{
 			if (msg.IsSent)
@@ -248,6 +257,9 @@ namespace Lidgren.Network
 			return true;
 		}
 
+		/// <summary>
+		/// Send a message to an unconnected host
+		/// </summary>
 		public void SendUnconnectedMessage(NetOutgoingMessage msg, string host, int port)
 		{
 			if (msg.IsSent)
@@ -261,6 +273,9 @@ namespace Lidgren.Network
 			EnqueueUnconnectedMessage(msg, new IPEndPoint(adr, port));
 		}
 
+		/// <summary>
+		/// Send a message to an unconnected host
+		/// </summary>
 		public void SendUnconnectedMessage(NetOutgoingMessage msg, IPEndPoint recipient)
 		{
 			if (msg.IsSent)
@@ -278,6 +293,9 @@ namespace Lidgren.Network
 			EnqueueUnconnectedMessage(msg, recipient);
 		}
 
+		/// <summary>
+		/// Send a message to a number of unconnected hosts
+		/// </summary>
 		public void SendUnconnectedMessage(NetOutgoingMessage msg, IEnumerable<IPEndPoint> recipients)
 		{
 			if (msg.IsSent)
@@ -287,6 +305,9 @@ namespace Lidgren.Network
 				EnqueueUnconnectedMessage(msg, ipe);
 		}
 
+		/// <summary>
+		/// Send a discovery response message
+		/// </summary>
 		public void SendDiscoveryResponse(NetOutgoingMessage msg, IPEndPoint recipient)
 		{
 			if (msg == null)

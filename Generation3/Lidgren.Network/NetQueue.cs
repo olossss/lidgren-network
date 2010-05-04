@@ -153,7 +153,8 @@ namespace Lidgren.Network
 		{
 			lock (m_lock)
 			{
-				m_items.Initialize();
+				for (int i = 0; i < m_items.Length; i++)
+					m_items[i] = default(T);
 				m_head = 0;
 			}
 		}

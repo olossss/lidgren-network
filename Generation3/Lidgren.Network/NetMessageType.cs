@@ -20,7 +20,7 @@ using System;
 
 namespace Lidgren.Network
 {
-	// public visible subset of NetMessageType
+	// publicly visible subset of NetMessageType
 
 	/// <summary>
 	/// How the library deals with dropped and delayed messages
@@ -38,7 +38,7 @@ namespace Lidgren.Network
 	internal enum NetMessageLibraryType : byte
 	{
 		Error = 0,
-		KeepAlive = 1,
+		KeepAlive = 1, // used for piggybacking acks
 		Ping = 2, // used for RTT calculation
 		Pong = 3, // used for RTT calculation
 		Connect = 4,

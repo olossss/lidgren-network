@@ -43,6 +43,10 @@ namespace UnitTests
 			if (queue.TryDequeue() != 78)
 				throw new Exception("NetQueue failed");
 
+			queue.Clear();
+			if (queue.Count != 0)
+				throw new Exception("NetQueue.Clear failed");
+
 			Console.WriteLine("NetQueue tests OK");
 		}
 	}
