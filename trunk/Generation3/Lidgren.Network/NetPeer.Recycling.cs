@@ -57,6 +57,7 @@ namespace Lidgren.Network
 					{
 						m_storagePool.RemoveAt(i);
 						m_storedBytes -= retval.Length;
+
 						return retval;
 					}
 				}

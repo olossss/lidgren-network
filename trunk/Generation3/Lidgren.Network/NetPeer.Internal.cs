@@ -165,9 +165,12 @@ namespace Lidgren.Network
 			LogDebug("Shutting down...");
 
 			// disconnect and make one final heartbeat
-			foreach (NetConnection conn in m_connections)
-				if (conn.m_status == NetConnectionStatus.Connected || conn.m_status == NetConnectionStatus.Connecting)
-					conn.Disconnect(m_shutdownReason);
+			lock (m_connections)
+			{
+				foreach (NetConnection conn in m_connections)
+					if (conn.m_status == NetConnectionStatus.Connected || conn.m_status == NetConnectionStatus.Connecting)
+						conn.Disconnect(m_shutdownReason);
+			}
 
 			// one final heartbeat, will send stuff and do disconnect
 			Heartbeat();
@@ -279,7 +282,7 @@ namespace Lidgren.Network
 					{
 						// connection reset by peer, aka forcibly closed
 						// we should shut down the connection; but m_senderRemote seemingly cannot be trusted, so which connection should we shut down?!
-						LogWarning("Connection reset by peer, seemingly from " + m_senderRemote);
+						//LogWarning("Connection reset by peer, seemingly from " + m_senderRemote);
 						return;
 					}
 
@@ -543,12 +546,12 @@ namespace Lidgren.Network
 
 		internal void RemoveConnection(NetConnection conn)
 		{
-			conn.Dispose();
 			lock (m_connections)
 			{
 				m_connections.Remove(conn);
 				m_connectionLookup.Remove(conn.m_remoteEndpoint);
 			}
+			conn.Dispose();
 		}
 
 		private void HandleServerFull(IPEndPoint connecter)
