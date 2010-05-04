@@ -444,12 +444,14 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Writes an IPv4 endpoint description
+		/// Writes an endpoint description
 		/// </summary>
 		/// <param name="endPoint"></param>
 		internal void Write(IPEndPoint endPoint)
 		{
-			Write(BitConverter.ToUInt32(endPoint.Address.GetAddressBytes(), 0));
+			byte[] bytes = endPoint.Address.GetAddressBytes();
+			Write((byte)bytes.Length);
+			Write(bytes);
 			Write((ushort)endPoint.Port);
 		}
 

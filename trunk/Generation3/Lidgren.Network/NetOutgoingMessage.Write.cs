@@ -507,12 +507,15 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Writes an IPv4 endpoint description
+		/// Writes an endpoint description
 		/// </summary>
-		public void Write(IPEndPoint endpoint)
+		/// <param name="endPoint"></param>
+		internal void Write(IPEndPoint endPoint)
 		{
-			Write(BitConverter.ToUInt32(endpoint.Address.GetAddressBytes(), 0));
-			Write((ushort)endpoint.Port);
+			byte[] bytes = endPoint.Address.GetAddressBytes();
+			Write((byte)bytes.Length);
+			Write(bytes);
+			Write((ushort)endPoint.Port);
 		}
 
 		/// <summary>

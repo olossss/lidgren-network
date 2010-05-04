@@ -11,8 +11,7 @@ Completed features:
 
 Missing features:
 * Receipts 25% done, need design
-* Resending of lost handshake (connect/response/established) packets (50% done)
-* Realistic lag/loss
+* More realistic lag/loss (lumpy)
 * Detect estimated packet loss
 * More advanced ack packet
 

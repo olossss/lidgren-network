@@ -449,9 +449,12 @@ namespace Lidgren.Network
 		/// </summary>
 		public IPEndPoint ReadIPEndpoint()
 		{
-			uint address = ReadUInt32();
+			byte len = ReadByte();
+			byte[] addressBytes = ReadBytes(len);
 			int port = (int)ReadUInt16();
-			return new IPEndPoint(new IPAddress((long)address), port);
+
+			IPAddress address = new IPAddress(addressBytes);
+			return new IPEndPoint(address, port);
 		}
 
 		/// <summary>

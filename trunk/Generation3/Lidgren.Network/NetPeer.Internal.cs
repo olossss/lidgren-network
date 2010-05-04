@@ -54,7 +54,6 @@ namespace Lidgren.Network
 			m_messageReceivedEvent = new AutoResetEvent(false);
 		}
 
-		// TODO: inline this method manually(?)
 		internal void ReleaseMessage(NetIncomingMessage msg)
 		{
 			msg.m_status = NetIncomingMessageReleaseStatus.ReleasedToApplication;
@@ -158,9 +157,6 @@ namespace Lidgren.Network
 				{
 					LogWarning(ex.ToString());
 				}
-
-				// wait here to give cpu to other threads/processes; also to collect messages for aggregate packet
-				//Thread.Sleep(m_runSleepInMilliseconds);
 			} while (m_status == NetPeerStatus.Running);
 
 			//
