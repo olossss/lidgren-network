@@ -195,6 +195,16 @@ namespace Lidgren.Network
 						{
 							if ((m_enabledMessageTypes & NetMessageType.ConnectionRejected) == NetMessageType.ConnectionRejected)
 								NotifyApplication(NetMessageType.ConnectionRejected, "Server full; rejecting connect from " + senderEndpoint, null, senderEndpoint);
+
+							// send connection rejected
+							NetBuffer rejreason = new NetBuffer("Server full");
+							QueueSingleUnreliableSystemMessage(
+								NetSystemType.ConnectionRejected,
+								rejreason,
+								senderEndpoint,
+								false
+							);
+
 							return;
 						}
 
