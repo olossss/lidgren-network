@@ -80,14 +80,7 @@ namespace Lidgren.Network
 				// but still, a pong must have been triggered by a ping...
 				double diff = receiveNow - m_lastSendRespondedTo;
 				if (diff > 0)
-				{
 					m_lastSendRespondedTo += (diff / 2); // postpone timing out a bit
-					//m_owner.LogError("WRONG but updating to " + m_lastPingSendTime); // TODO: remove
-				}
-				else
-				{
-					//m_owner.LogError("MAJOR WRONG?! receiveNow is " + receiveNow + " m_lastSendRespondedTo is " + m_lastSendRespondedTo);
-				}
 
 				return;
 			}
@@ -96,8 +89,6 @@ namespace Lidgren.Network
 
 			m_lastHeardFrom = now;
 			m_lastSendRespondedTo = m_lastPingSendTime;
-
-			//m_owner.LogError("Correct pong received; updating to "+ m_lastPingSendTime); // TODO: remove
 
 			double rtt = now - m_lastPingSendTime;
 
