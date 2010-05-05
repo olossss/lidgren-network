@@ -115,6 +115,7 @@ namespace ImageServer
 								om.Write((ushort)ImageHeight);
 								om.WriteVariableUInt32(0);
 
+								// send entire as a large message that will be automatically fragmented by the library
 								om.Write(ImageData);
 
 								Server.SendMessage(om, inc.SenderConnection, NetDeliveryMethod.ReliableUnordered, 0);
