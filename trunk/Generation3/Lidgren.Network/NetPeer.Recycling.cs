@@ -120,8 +120,6 @@ namespace Lidgren.Network
 						throw new NetException("Storage pool object recycled twice!");
 #endif
 					m_storedBytes += msg.m_data.Length;
-					if (m_storedBytes > m_maxStoredBytes)
-						ReduceStoragePool();
 					m_storagePool.Add(msg.m_data);
 				}
 				msg.m_data = null;
@@ -168,8 +166,6 @@ namespace Lidgren.Network
 					if (!m_storagePool.Contains(msg.m_data))
 					{
 						m_storedBytes += msg.m_data.Length;
-						if (m_storedBytes > m_maxStoredBytes)
-							ReduceStoragePool();
 						m_storagePool.Add(msg.m_data);
 					}
 				}
@@ -179,24 +175,34 @@ namespace Lidgren.Network
 		}
 
 		/// <summary>
-		/// Called if m_storedBytes > m_maxStoredBytes
+		/// Call to check if storage pool should be reduced
 		/// </summary>
 		private void ReduceStoragePool()
 		{
-			// since newly stored message at added to the end; remove from the start
-			int wasStoredBytes = m_storedBytes;
-			int reduceTo = m_maxStoredBytes / 2;
+			VerifyNetworkThread();
 
-			// (note: m_storagePool is locked at this point)
-			while (m_storedBytes > reduceTo && m_storagePool.Count > 0)
+			if (m_storedBytes < m_configuration.m_maxRecycledBytesKept)
+				return; // never mind threading, no big deal if storage is larger than config setting for a frame
+
+			int wasStoredBytes;
+			int reduceTo;
+			lock (m_storagePool)
 			{
-				byte[] arr = m_storagePool[0];
-				m_storedBytes -= arr.Length;
-				m_storagePool.RemoveAt(0);
+				// since newly stored message at added to the end; remove from the start
+				wasStoredBytes = m_storedBytes;
+				reduceTo = m_maxStoredBytes / 2;
+
+				while (m_storedBytes > reduceTo && m_storagePool.Count > 0)
+				{
+					byte[] arr = m_storagePool[0];
+					m_storedBytes -= arr.Length;
+					m_storagePool.RemoveAt(0);
+				}
 			}
 
 			// done
-			LogDebug("Reduced recycled bytes pool from " + wasStoredBytes + " bytes to " + m_storedBytes + " bytes");
+			LogDebug("Reduced recycled bytes pool from " + wasStoredBytes + " bytes to " + m_storedBytes + " bytes (target " + reduceTo + ")");
+
 			return;
 		}
 

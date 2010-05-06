@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace Lidgren.Network
 {
 	/// <summary>
 	/// Thread safe queue with TryDequeue()
 	/// </summary>
+	[DebuggerDisplay("Count={m_size}")]
 	public sealed class NetQueue<T>
 	{
 		// Example:
@@ -48,11 +50,11 @@ namespace Lidgren.Network
 						throw new NetException("Enqueuing error message!");
 			}
 #endif
-			if (m_size == m_items.Length)
-				SetCapacity(m_items.Length + 8);
-
 			lock (m_lock)
 			{
+				if (m_size == m_items.Length)
+					SetCapacity(m_items.Length + 8);
+							
 				int slot = (m_head + m_size) % m_items.Length;
 				m_items[slot] = item;
 				m_size++;
@@ -64,11 +66,11 @@ namespace Lidgren.Network
 		/// </summary>
 		public void EnqueueFirst(T item)
 		{
-			if (m_size >= m_items.Length)
-				SetCapacity(m_items.Length + 8);
-
 			lock (m_lock)
 			{
+				if (m_size >= m_items.Length)
+					SetCapacity(m_items.Length + 8);
+			
 				m_head--;
 				if (m_head < 0)
 					m_head = m_items.Length - 1;
