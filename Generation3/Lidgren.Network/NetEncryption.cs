@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Lidgren.Network
 {
@@ -105,21 +106,39 @@ namespace Lidgren.Network
 
 	public static class NetSHA
 	{
-		private static SHA256Managed m_sha;
+		// TODO: switch to SHA256
+		private static SHA1 m_sha;
 
 		public static byte[] Hash(byte[] data)
 		{
 			if (m_sha == null)
-				m_sha = SHA256Managed.Create() as SHA256Managed;
+				m_sha = SHA1Managed.Create();
 			return m_sha.ComputeHash(data);
 		}
 	}
 
 	public static class NetSRP
 	{
-		private const string N = "7q8Kua2zjdacM/gK+o/F6GByYYd1/zwLnqIxTJwlZXbWdN90luqB0zg7SBPWksbg4NXY4lC5i+SOSVwdYIna0V3H17RhVNa2zo70rWmxXUmCVZspe88YhcUp9WZmDlfsaO28PAVybMAv1Mv0l26qmv1ROP6DdkNbn8YdL8DrBuM=";
+		private static readonly BigInteger N = new BigInteger(NetUtility.ToByteArray("0115b8b692e0e045692cf280b436735c77a5a9e8a9e7ed56c965f87db5b2a2ece3"));
+		private static readonly BigInteger g = new BigInteger((uint)2);
 
-		//public static readonly BigInteger N1024Bit = new BigInteger(Convert.FromBase64String(prime1024Bit));
+		/// <summary>
+		/// Creates a verifier that the server can use to authenticate users later on
+		/// </summary>
+		public static byte[] ComputePasswordVerifier(string username, string password, byte[] salt)
+		{
+			byte[] tmp = Encoding.ASCII.GetBytes(username + ":" + password);
+			byte[] innerHash = NetSHA.Hash(tmp);
 
+			byte[] total = new byte[innerHash.Length + salt.Length];
+			Buffer.BlockCopy(salt, 0, total, 0, salt.Length);
+			Buffer.BlockCopy(innerHash, 0, total, salt.Length, innerHash.Length);
+
+			byte[] x = NetSHA.Hash(total);
+
+			// Verifier (v) = g^x (mod N) 
+			BigInteger xx = new BigInteger(x);
+			return g.ModPow(xx, N).GetBytes();
+		}
 	}
 }

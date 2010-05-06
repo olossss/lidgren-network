@@ -76,7 +76,7 @@ namespace ChatClient
 						case NetIncomingMessageType.DebugMessage:
 						case NetIncomingMessageType.ErrorMessage:
 						case NetIncomingMessageType.WarningMessage:
-							// print any library message
+							// print any diagnostics message
 							Display(msg.ReadString());
 							break;
 

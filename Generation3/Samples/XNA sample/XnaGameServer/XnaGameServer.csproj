@@ -47,10 +47,6 @@
       <Project>{FA245447-5F23-4AA1-BD5F-8D2DDF33CFBD}</Project>
       <Name>Lidgren.Network</Name>
     </ProjectReference>
-    <ProjectReference Include="..\XnaGameCommon\XnaGameCommon.csproj">
-      <Project>{93EDAE3F-EC94-4E4A-BDD6-D2AF91891939}</Project>
-      <Name>XnaGameCommon</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

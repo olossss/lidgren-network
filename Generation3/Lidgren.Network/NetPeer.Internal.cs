@@ -56,6 +56,8 @@ namespace Lidgren.Network
 
 		internal void ReleaseMessage(NetIncomingMessage msg)
 		{
+			NetException.Assert(msg.m_status != NetIncomingMessageReleaseStatus.ReleasedToApplication, "Message released to application twice!");
+
 			msg.m_status = NetIncomingMessageReleaseStatus.ReleasedToApplication;
 			m_releasedIncomingMessages.Enqueue(msg);
 			if (m_messageReceivedEvent != null)
@@ -256,6 +258,9 @@ namespace Lidgren.Network
 				}
 			}
 
+			// check if we need to reduce the recycled pool
+			ReduceStoragePool();
+
 			//
 			// read from socket
 			//
@@ -389,8 +394,6 @@ namespace Lidgren.Network
 					sender.m_statistics.PacketReceived(bytesReceived, numMessagesReceived);
 				}
 
-
-
 				if (ptr < bytesReceived)
 				{
 					// malformed packet
@@ -398,7 +401,9 @@ namespace Lidgren.Network
 					continue;
 				}
 			} while (true);
+
 			// heartbeat done
+			return;
 		}
 
 		private void HandleUnconnectedLibraryMessage(NetMessageLibraryType libType, int ptr, int payloadLengthBits, IPEndPoint senderEndpoint)

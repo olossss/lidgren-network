@@ -26,6 +26,8 @@ namespace UnitTests
 
 			BitVectorTests.Run();
 
+			EncryptionTests.Run();
+
 			peer.Shutdown("bye");
 
 			Console.ReadKey();
