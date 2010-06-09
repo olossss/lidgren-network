@@ -348,6 +348,8 @@ namespace Lidgren.Network
 			}
 
 			int mtu = m_owner.Configuration.MaximumTransmissionUnit;
+			bool useCoalescing = m_owner.Configuration.UseMessageCoalescing;
+
 			int messagesInPacket = 0;
 			NetBuffer sendBuffer = m_owner.m_sendBuffer;
 			sendBuffer.Reset();
@@ -361,14 +363,17 @@ namespace Lidgren.Network
 					break;
 
 				// need to send packet and start a new one?
-				if (messagesInPacket > 0 && sendBuffer.LengthBytes + estimatedMessageSize > mtu)
+				if (messagesInPacket > 0)
 				{
-					m_owner.SendPacket(m_remoteEndPoint);
-					int sendLen = sendBuffer.LengthBytes;
-					m_statistics.CountPacketSent(sendLen);
-					//LogWrite("THROTTLE Send packet +" + sendLen + " bytes = " + m_throttleDebt + " (maxSendBytes " + maxSendBytes + " estimated " + estimatedMessageSize + ")");
-					m_throttleDebt += sendLen;
-					sendBuffer.Reset();
+					if (!useCoalescing || (sendBuffer.LengthBytes + estimatedMessageSize > mtu))
+					{
+						m_owner.SendPacket(m_remoteEndPoint);
+						int sendLen = sendBuffer.LengthBytes;
+						m_statistics.CountPacketSent(sendLen);
+						//LogWrite("THROTTLE Send packet +" + sendLen + " bytes = " + m_throttleDebt + " (maxSendBytes " + maxSendBytes + " estimated " + estimatedMessageSize + ")");
+						m_throttleDebt += sendLen;
+						sendBuffer.Reset();
+					}
 				}
 
 				if (msg.m_sequenceNumber == -1)
