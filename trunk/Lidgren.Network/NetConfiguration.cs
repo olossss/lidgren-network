@@ -43,6 +43,7 @@ namespace Lidgren.Network
 		internal bool m_useBufferRecycling;
 		internal bool m_answerDiscoveryRequests;
 		internal int m_defaultBufferCapacity;
+		internal bool m_useMessageCoalescing;
 
 		/// <summary>
 		/// Gets or sets the string identifying this particular application; distinquishing it from other Lidgren based applications. Ie. this needs to be the same on client and server.
@@ -62,6 +63,13 @@ namespace Lidgren.Network
 				//	m_owner.LogWrite("Warning: Ports 1-1023 are reserved");
 			}
 		}
+
+		public bool UseMessageCoalescing
+		{
+			get { return m_useMessageCoalescing; }
+			set { m_useMessageCoalescing = value; }
+		}
+
         public System.Net.IPAddress Address
         {
             get { return m_address; }
@@ -168,6 +176,7 @@ namespace Lidgren.Network
 			m_answerDiscoveryRequests = true;
 			m_useBufferRecycling = false; // TODO: enable this when sure there's no threading issues
 			m_defaultBufferCapacity = 8;
+			m_useMessageCoalescing = true;
 		}
 	}
 }
