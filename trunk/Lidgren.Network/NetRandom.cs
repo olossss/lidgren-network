@@ -1,4 +1,5 @@
-﻿using System;
+﻿//#define WEB_PLAYER
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -59,9 +60,15 @@ namespace Lidgren.Network
 			// Initialise using the system tick count.
 			try
 			{
+#if WEB_PLAYER
+				Reinitialize(
+					this.GetHashCode() ^ (int)Environment.TickCount
+				);
+#else
 				Reinitialize(
 					Environment.CommandLine.GetHashCode() ^ (int)Environment.TickCount
 				);
+#endif
 			}
 			catch
 			{
