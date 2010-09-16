@@ -321,6 +321,16 @@ namespace Lidgren.Network
 		{
 			conn.SetStatus(NetConnectionStatus.Connecting, "Connecting");
 
+			lock (m_connections)
+			{
+				if (m_connections.Contains(conn))
+				{
+					// already added
+					conn.m_approved = true; // just to be sure
+					return;
+				}
+			}
+
 			LogWrite("Adding connection " + conn);
 
 			// send response; even if connected
