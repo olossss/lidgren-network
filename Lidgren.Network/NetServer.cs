@@ -344,7 +344,7 @@ namespace Lidgren.Network
 			conn.m_approved = true;
 			lock (m_connections)
 				m_connections.Add(conn);
-			m_connectionLookup.Add(conn.m_remoteEndPoint, conn);
+			m_connectionLookup[conn.m_remoteEndPoint] = conn;
 		}
 
 		/*
