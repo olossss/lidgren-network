@@ -47,6 +47,12 @@ namespace Lidgren.Network
 				FragmentedMessage fmsg;
 				if (!m_fragments.TryGetValue(id, out fmsg))
 				{
+					if (number == total - 1)
+					{
+						// last message arrived first; ignore this
+						return;
+					}
+					
 					fmsg = new FragmentedMessage();
 					fmsg.TotalFragments = total;
 					fmsg.FragmentsReceived = 0;
