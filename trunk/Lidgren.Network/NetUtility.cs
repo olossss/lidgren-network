@@ -34,8 +34,6 @@ namespace Lidgren.Network
 	/// </summary>
 	public static class NetUtility
 	{
-		private static Regex s_regIP;
-
 		/// <summary>
 		/// Get IP address from notation (xxx.xxx.xxx.xxx) or hostname
 		/// </summary>
@@ -46,16 +44,9 @@ namespace Lidgren.Network
 
 			ipOrHost = ipOrHost.Trim();
 
-			if (s_regIP == null)
-			{
-				string expression = "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b";
-				RegexOptions options = RegexOptions.Compiled;
-				s_regIP = new Regex(expression, options);
-			}
-
 			// is it an ip number string?
 			IPAddress ipAddress = null;
-			if (s_regIP.Match(ipOrHost).Success && IPAddress.TryParse(ipOrHost, out ipAddress))
+			if (IPAddress.TryParse(ipOrHost, out ipAddress))
 				return ipAddress;
 
 			// ok must be a host name
@@ -67,15 +58,11 @@ namespace Lidgren.Network
 					return null;
 
 				// check each entry for a valid IP address
-				foreach (IPAddress ipCurrent in entry.AddressList)
+				foreach (IPAddress ip in entry.AddressList)
 				{
-					string sIP = ipCurrent.ToString();
-					bool isIP = s_regIP.Match(sIP).Success && IPAddress.TryParse(sIP, out ipAddress);
-					if (isIP)
-						break;
+					if (ip.AddressFamily == AddressFamily.InterNetwork)
+						ipAddress = ip;
 				}
-				if (ipAddress == null)
-					return null;
 
 				return ipAddress;
 			}
