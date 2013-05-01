@@ -112,7 +112,7 @@ namespace Lidgren.Network
 			if (m_serverConnection != null)
 			{
 				m_serverConnection.Disconnect("New connect", 0, m_serverConnection.Status == NetConnectionStatus.Connected, true);
-				if (m_serverConnection.RemoteEndpoint.Equals(m_connectEndpoint))
+				if (!m_serverConnection.RemoteEndpoint.Equals(m_connectEndpoint))
 					m_serverConnection = new NetConnection(this, m_connectEndpoint, m_localHailData, null);
 			}
 			else
